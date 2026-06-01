@@ -52,7 +52,7 @@ Shipped after the original M1–M5 scope, all gated by the same lint/typecheck/t
 - [x] **Two input sources**: a top-level switch between **Text to avatar** (default, no upload — pick a style + short description) and **From a photo** (single/couple restyle). Modes are nested under each source.
 - [x] **Text-to-avatar mode** (`text`): low-friction text-to-image generation with no face reference, supported by both OpenAI and MiniMax.
 - [x] **Provider-specific prompt suggestions**: starter prompt chips tailored to OpenAI vs MiniMax, shown for description-first modes.
-- [x] **Dark / light theme**: `next-themes` toggle (system default) in the header, EN/zh-CN labels.
+- [x] **Dark / light theme**: local system-aware theme toggle in the header, EN/zh-CN labels.
 - [x] **Makefile task runner**: `make help/check/qa/deploy/deploy-prod` wrappers over the npm scripts.
 - [x] **Production deploy config**: gitignored `wrangler.prod.jsonc` (+ committed `.example`) for binding a custom domain without leaking production-private details into the open-source repo.
 
