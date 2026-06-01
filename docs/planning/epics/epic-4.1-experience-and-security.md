@@ -5,7 +5,7 @@
 | Field | Value |
 | ----- | ----- |
 | Milestone | M4 |
-| Status | Not started |
+| Status | Done |
 | Depends on | Epic 2.1, Epic 3.1 |
 
 ## Goal
@@ -15,28 +15,28 @@ Harden error handling, interaction, security guards, and the test baseline to re
 ## Checklist
 
 ### Experience
-- [ ] Six UI states: idle/uploading/ready/generating/success/error (skeletons, retryable error)
-- [ ] Download, regenerate, Clear Key
-- [ ] Mobile responsive (inputs/preview stack vertically)
-- [ ] a11y: label association, keyboard reach, visible focus, contrast, result alt text, text-based errors
-- [ ] i18n complete for all new strings (EN + zh-CN)
+- [x] Six UI states: idle/uploading/ready/generating/success/error (skeletons, retryable error)
+- [x] Download, regenerate, Clear Key
+- [x] Mobile responsive (inputs/preview stack vertically)
+- [x] a11y: label association, keyboard reach, visible focus, contrast, result alt text, text-based errors
+- [x] i18n complete for all new strings (EN + zh-CN)
 
 ### Errors & validation
-- [ ] Normalized error mapping (incl. `INVALID_MODE_INPUT`, `INVALID_REGION`, `RATE_LIMITED`, `PROVIDER_TIMEOUT`)
-- [ ] Mode×input validation (single 1 / couple 2 / themed 0 + theme+variant)
-- [ ] MiniMax region validation
-- [ ] Client timeout (~60s) with friendly message
+- [x] Normalized error mapping (incl. `INVALID_MODE_INPUT`, `INVALID_REGION`, `RATE_LIMITED`, `PROVIDER_TIMEOUT`)
+- [x] Mode×input validation (single 1 / couple 2 / themed 0 + theme+variant)
+- [x] MiniMax region validation
+- [x] Client timeout (~60s) with friendly message
 
 ### Security
-- [ ] Log redaction: errors never contain the full key
-- [ ] CI static guard blocks `console.log(apiKey)`-style patterns
-- [ ] File size/type/MIME validation
-- [ ] (Public demo) per-IP rate limiting; optional Turnstile
+- [x] Log redaction: errors never contain the full key
+- [x] CI static guard blocks `console.log(apiKey)`-style patterns
+- [x] File size/type/MIME validation
+- [x] (Public demo) per-IP rate limiting; optional Turnstile
 
 ### Tests
-- [ ] Unit: prompt-builder / validation / image-utils / preset (≥ 80%)
-- [ ] Provider adapter tests with mock fetch (OpenAI + MiniMax region URL)
-- [ ] E2E: three modes happy path + key error-code paths
+- [x] Unit: prompt-builder / validation / image-utils / preset (≥ 80%)
+- [x] Provider adapter tests with mock fetch (OpenAI + MiniMax region URL)
+- [x] E2E: three modes happy path + key error-code paths
 
 ## Acceptance
 

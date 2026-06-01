@@ -12,6 +12,12 @@ import { ProviderError } from "@/lib/types";
 import { DEFAULT_IMAGE_SIZE } from "@/lib/constants";
 import { getProvider } from "@/lib/providers";
 import { buildPrompt } from "@/lib/prompt-builder";
+import {
+  checkRateLimit,
+  clientIdentifier,
+  configuredLimit,
+  type RateLimitState,
+} from "@/lib/rate-limit";
 import { getStyleById } from "@/styles/avatar-styles";
 import { getThemeById, getVariant } from "@/styles/avatar-themes";
 import {
@@ -43,6 +49,9 @@ function errorResponse(code: ErrorCode): NextResponse<GenerateResponse> {
     { status },
   );
 }
+
+// Instance-local rate-limit state for the optional public demo guard.
+const rateLimitState: RateLimitState = new Map();
 
 type ParsedRequest = {
   provider: string;
@@ -106,6 +115,20 @@ async function parseRequest(req: Request): Promise<ParsedRequest | null> {
 }
 
 export async function POST(req: Request): Promise<NextResponse<GenerateResponse>> {
+  const limit = configuredLimit();
+  if (limit > 0) {
+    const { allowed, retryAfterSeconds } = checkRateLimit(
+      rateLimitState,
+      clientIdentifier(req.headers),
+      limit,
+    );
+    if (!allowed) {
+      const response = errorResponse("RATE_LIMITED");
+      response.headers.set("Retry-After", String(retryAfterSeconds));
+      return response;
+    }
+  }
+
   let parsed: ParsedRequest | null;
   try {
     parsed = await parseRequest(req);

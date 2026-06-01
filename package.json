@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "guard:secrets": "node scripts/check-no-secret-logs.mjs"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.1.1",
