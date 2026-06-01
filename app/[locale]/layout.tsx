@@ -8,6 +8,7 @@ import {
 } from "next-intl/server";
 
 import { routing, isSupportedLocale } from "@/i18n/routing";
+import { ThemeProvider } from "@/components/theme-provider";
 import { SiteHeader } from "@/components/site-header";
 import "../globals.css";
 
@@ -58,8 +59,10 @@ export default async function LocaleLayout({
     <html lang={locale} suppressHydrationWarning>
       <body className="min-h-screen bg-background antialiased">
         <NextIntlClientProvider messages={messages}>
-          <SiteHeader />
-          <main className="container py-10">{children}</main>
+          <ThemeProvider>
+            <SiteHeader />
+            <main className="container py-10">{children}</main>
+          </ThemeProvider>
         </NextIntlClientProvider>
       </body>
     </html>

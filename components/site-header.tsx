@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { GITHUB_URL } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitcher } from "@/components/language-switcher";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export async function SiteHeader() {
   const t = await getTranslations();
@@ -33,6 +34,7 @@ export async function SiteHeader() {
               <span className="sr-only sm:not-sr-only">GitHub</span>
             </a>
           </Button>
+          <ThemeToggle />
           <LanguageSwitcher />
         </nav>
       </div>
