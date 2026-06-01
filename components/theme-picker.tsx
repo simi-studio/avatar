@@ -24,7 +24,7 @@ export function ThemePicker({
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
         <Label>{t("label")}</Label>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        <div className="flex flex-wrap gap-2">
           {AVATAR_THEMES.map((option) => {
             const selected = option.id === theme?.id;
             return (
@@ -34,24 +34,13 @@ export function ThemePicker({
                 aria-pressed={selected}
                 onClick={() => onThemeChange(option.id)}
                 className={cn(
-                  "flex flex-col gap-2 overflow-hidden rounded-lg border p-2 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "rounded-full border px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   selected
                     ? "border-primary bg-accent text-accent-foreground"
-                    : "hover:border-primary/60",
+                    : "text-muted-foreground hover:border-primary/60 hover:text-foreground",
                 )}
               >
-                {option.thumbnail && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={option.thumbnail}
-                    alt=""
-                    aria-hidden
-                    className="aspect-square w-full rounded-md border object-cover"
-                  />
-                )}
-                <span className="text-center text-xs font-medium sm:text-sm">
-                  {t(option.id)}
-                </span>
+                {t(option.id)}
               </button>
             );
           })}
@@ -60,7 +49,7 @@ export function ThemePicker({
 
       <div className="flex flex-col gap-2">
         <Label>{t("variantLabel")}</Label>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        <div className="flex flex-wrap gap-2">
           {theme?.variants.map((variant) => {
             const selected = variant.id === variantId;
             return (
@@ -70,24 +59,13 @@ export function ThemePicker({
                 aria-pressed={selected}
                 onClick={() => onVariantChange(variant.id)}
                 className={cn(
-                  "flex flex-col gap-2 overflow-hidden rounded-lg border p-2 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "rounded-full border px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   selected
                     ? "border-primary bg-accent text-accent-foreground"
-                    : "hover:border-primary/60",
+                    : "text-muted-foreground hover:border-primary/60 hover:text-foreground",
                 )}
               >
-                {variant.thumbnail && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={variant.thumbnail}
-                    alt=""
-                    aria-hidden
-                    className="aspect-square w-full rounded-md border object-cover"
-                  />
-                )}
-                <span className="text-center text-xs font-medium sm:text-sm">
-                  {t(variant.id)}
-                </span>
+                {t(variant.id)}
               </button>
             );
           })}

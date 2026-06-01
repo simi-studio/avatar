@@ -66,7 +66,7 @@ Implement the `ImageProvider` interface (see [docs/providers.md](./docs/provider
 
 ### A new style
 
-Add an `AvatarStyle` to `styles/avatar-styles.ts` with a self-owned or commercially licensed thumbnail.
+Add an `AvatarStyle` to `styles/avatar-styles.ts` with an `id`, `name`, `description`, and `promptTemplate`. Styles render as text chips, so no thumbnail asset is needed.
 
 ### A new theme/variant
 

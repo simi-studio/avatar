@@ -40,21 +40,18 @@ export type AvatarStyle = {
   name: string;
   description: string;
   promptTemplate: string;
-  thumbnail?: string;
 };
 
 export type AvatarVariant = {
   id: string;
   name: string;
   promptFragment: string;
-  thumbnail?: string;
 };
 
 export type AvatarTheme = {
   id: string;
   name: string;
   basePrompt: string;
-  thumbnail?: string;
   variants: AvatarVariant[];
 };
 

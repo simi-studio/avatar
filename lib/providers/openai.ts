@@ -78,6 +78,7 @@ async function parseOpenAIResponse(
 
 async function generateThemed(
   input: ProviderGenerateInput,
+  label?: string,
 ): Promise<GeneratedImage[]> {
   const res = await fetchWithTimeout(
     `${OPENAI_BASE_URL}/v1/images/generations`,
@@ -96,7 +97,7 @@ async function generateThemed(
     },
     PROVIDER_TIMEOUT_MS,
   );
-  return parseOpenAIResponse(res);
+  return parseOpenAIResponse(res, label);
 }
 
 async function editImage(
@@ -126,10 +127,18 @@ async function editImage(
 export const openaiProvider: ImageProvider = {
   id: "openai",
   name: "OpenAI",
-  supportedModes: ["text", "single", "couple", "themed"],
+  supportedModes: ["text", "couple-text", "single", "couple", "themed"],
 
   async generateAvatar(input) {
     if (!isPhotoMode(input.mode)) {
+      // couple-text: two text-to-image avatars sharing the prompt, labeled A / B.
+      if (input.mode === "couple-text") {
+        const [resA, resB] = await Promise.all([
+          generateThemed(input, "A"),
+          generateThemed(input, "B"),
+        ]);
+        return [...resA, ...resB];
+      }
       // text / themed: pure text-to-image, no upload.
       return generateThemed(input);
     }

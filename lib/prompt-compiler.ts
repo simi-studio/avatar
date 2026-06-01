@@ -1,4 +1,5 @@
 import type { ProviderId } from "@/lib/constants";
+import { isCoupleMode } from "@/lib/constants";
 import type { AvatarStyle, AvatarTheme, AvatarVariant } from "@/lib/types";
 import type { AvatarIntent, IntentLevel } from "@/lib/avatar-intent";
 import {
@@ -87,6 +88,11 @@ function buildSubject(input: CompileAvatarPromptInput): string {
   if (intent.mode === "text") {
     return intent.subjectDescription ?? "a friendly portrait avatar";
   }
+  if (intent.mode === "couple-text") {
+    return intent.subjectDescription
+      ? `one avatar of a matching couple avatar set, ${intent.subjectDescription}`
+      : "one avatar of a matching couple avatar set";
+  }
   return intent.subjectDescription
     ? `the uploaded portrait subject, ${intent.subjectDescription}`
     : "the uploaded portrait subject";
@@ -116,7 +122,7 @@ function openAIPrompt(input: CompileAvatarPromptInput): string {
       ? LIKENESS_TEXT[intent.likeness]
       : undefined,
     CREATIVITY_TEXT[intent.creativity],
-    intent.mode === "couple" && intent.pairedConsistency
+    isCoupleMode(intent.mode) && intent.pairedConsistency
       ? "Keep palette, lighting, background, and composition consistent across both avatars."
       : undefined,
     intent.variation
@@ -148,7 +154,7 @@ function miniMaxPrompt(input: CompileAvatarPromptInput): string {
       ? LIKENESS_TEXT[intent.likeness]
       : undefined,
     CREATIVITY_TEXT[intent.creativity],
-    intent.mode === "couple" && intent.pairedConsistency
+    isCoupleMode(intent.mode) && intent.pairedConsistency
       ? "consistent pair, shared lighting, shared background, shared palette"
       : undefined,
     intent.variation ? "fresh variation, same intent" : undefined,

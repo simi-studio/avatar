@@ -28,7 +28,7 @@ The calibration matrix records how each built-in style should be worded for each
 
 - `__tests__/lib/provider-calibration.test.ts` verifies every provider/style pair has a fragment, known bias, and recovery hint.
 - `__tests__/lib/prompt-compiler.test.ts` verifies the same intent compiles differently for OpenAI and MiniMax.
-- Preview assets are self-owned SVGs under `public/previews/` and are referenced by every built-in style and theme variant.
+- Built-in styles and theme variants render as text chips (no preview thumbnails), keeping the form compact and avoiding bundled raster/SVG preview assets.
 
 ## Maintenance Rules
 

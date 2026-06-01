@@ -34,12 +34,13 @@ flowchart TD
 
 All modes share one provider abstraction, intent model, prompt compiler, and `/api/generate` endpoint. They differ only in input shape and provider request family.
 
-| Mode     | Input    | Endpoint family                  | Output |
-| -------- | -------- | -------------------------------- | ------ |
-| `text`   | none     | text-to-image                    | 1      |
-| `single` | 1 image  | image-to-image                   | 1      |
-| `couple` | 2 images | image-to-image ×2 (shared style) | 2      |
-| `themed` | none     | text-to-image                    | 1      |
+| Mode          | Input    | Endpoint family                  | Output |
+| ------------- | -------- | -------------------------------- | ------ |
+| `text`        | none     | text-to-image                    | 1      |
+| `couple-text` | none     | text-to-image ×2 (shared style)  | 2      |
+| `single`      | 1 image  | image-to-image                   | 1      |
+| `couple`      | 2 images | image-to-image ×2 (shared style) | 2      |
+| `themed`      | none     | text-to-image                    | 1      |
 
 ## Module boundaries
 

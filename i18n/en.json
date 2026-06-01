@@ -63,10 +63,12 @@
   "Mode": {
     "label": "Mode",
     "text": "Describe",
+    "couple-text": "Couple",
     "themed": "Themed",
     "single": "Single",
     "couple": "Couple",
     "textDescription": "Pick a style, add a short description, and generate — no photo needed.",
+    "couple-textDescription": "Describe a couple and generate a style-matched pair — no photos needed.",
     "themedDescription": "Generate from a theme and prompt — no photo needed.",
     "singleDescription": "Restyle your own photo into an avatar.",
     "coupleDescription": "Generate a style-consistent pair for two people."

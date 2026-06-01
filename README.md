@@ -9,6 +9,7 @@ Simi Avatar is an open-source, **BYOK (Bring Your Own API Key)** AI avatar gener
 | Source                         | Mode         | Upload   | What it does                                                    |
 | ------------------------------ | ------------ | -------- | --------------------------------------------------------------- |
 | **Text to avatar** _(default)_ | **Describe** | none     | Pick a style + short description and generate — no photo needed |
+| **Text to avatar**             | **Couple**   | none     | Describe a couple and generate a style-matched pair — no photos |
 | **Text to avatar**             | **Themed**   | none     | Generate from a prompt only — e.g. **dog-themed team avatars**  |
 | **From a photo**               | **Single**   | 1 photo  | Restyle your photo into an avatar (10 built-in styles)          |
 | **From a photo**               | **Couple**   | 2 photos | Generate a style-consistent paired set for two people           |

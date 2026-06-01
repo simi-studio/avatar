@@ -10,6 +10,7 @@ import {
   DEFAULT_MODE_BY_SOURCE,
   IMAGE_SIZES,
   MODES_BY_SOURCE,
+  isCoupleMode,
   sourceForMode,
   type ErrorCode,
   type GenerationMode,
@@ -201,12 +202,12 @@ export function GenerationForm() {
     styleId: mode === "themed" ? undefined : styleId,
     themeId: mode === "themed" ? themeId : undefined,
     variantId: mode === "themed" ? variantId : undefined,
-    pairedConsistency: mode === "couple" ? pairedConsistency : undefined,
+    pairedConsistency: isCoupleMode(mode) ? pairedConsistency : undefined,
   };
 
   const canGenerate =
     Boolean(apiKey) &&
-    (mode === "text"
+    (mode === "text" || mode === "couple-text"
       ? Boolean(styleId)
       : mode === "themed"
         ? Boolean(themeId) && Boolean(variantId)
@@ -243,8 +244,14 @@ export function GenerationForm() {
       if (requestIntent.variantId) {
         form.append("variantId", requestIntent.variantId);
       }
-    } else if (requestMode === "text") {
+    } else if (requestMode === "text" || requestMode === "couple-text") {
       if (requestIntent.styleId) form.append("styleId", requestIntent.styleId);
+      if (requestMode === "couple-text") {
+        form.append(
+          "pairedConsistency",
+          String(requestIntent.pairedConsistency),
+        );
+      }
     } else {
       if (requestIntent.styleId) form.append("styleId", requestIntent.styleId);
       if (imageA) form.append("images", imageA.file, imageA.file.name);
@@ -291,7 +298,7 @@ export function GenerationForm() {
     void onGenerate(nextIntent);
   }
 
-  const promptIsPrimary = mode === "text";
+  const promptIsPrimary = mode === "text" || mode === "couple-text";
   const intentControlValue: IntentControlValue = {
     goal,
     likeness,
@@ -342,6 +349,26 @@ export function GenerationForm() {
 
           {mode === "text" && (
             <StylePicker value={styleId} onChange={setStyleId} />
+          )}
+
+          {mode === "couple-text" && (
+            <>
+              <StylePicker value={styleId} onChange={setStyleId} />
+              <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={pairedConsistency}
+                  onChange={(event) =>
+                    setPairedConsistency(event.target.checked)
+                  }
+                  className="h-4 w-4 rounded border-input"
+                />
+                {tf("pairedConsistency")}
+              </label>
+              <p className="text-xs text-muted-foreground">
+                {t("estimatedCostCouple")}
+              </p>
+            </>
           )}
 
           {mode === "single" && (

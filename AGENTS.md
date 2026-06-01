@@ -10,7 +10,7 @@
 
 ## Project overview
 
-Simi Avatar is an open-source BYOK AI avatar generator. MVP supports three generation modes (`single`, `couple`, `themed`), two providers (OpenAI and MiniMax), English + Simplified Chinese UI, and English-only repository documentation.
+Simi Avatar is an open-source BYOK AI avatar generator. MVP supports five generation modes (`text`, `couple-text`, `single`, `couple`, `themed`), two providers (OpenAI and MiniMax), English + Simplified Chinese UI, and English-only repository documentation.
 
 The project is currently docs-first. Before implementation, read:
 

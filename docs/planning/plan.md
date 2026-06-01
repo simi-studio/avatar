@@ -51,6 +51,7 @@ Shipped after the original M1–M5 scope, all gated by the same lint/typecheck/t
 
 - [x] **Two input sources**: a top-level switch between **Text to avatar** (default, no upload — pick a style + short description) and **From a photo** (single/couple restyle). Modes are nested under each source.
 - [x] **Text-to-avatar mode** (`text`): low-friction text-to-image generation with no face reference, supported by both OpenAI and MiniMax.
+- [x] **Text couple mode** (`couple-text`): describe a couple and generate a style-matched pair (two labeled A/B generations, shared style + paired consistency) with no photo upload.
 - [x] **Provider-specific prompt suggestions**: starter prompt chips tailored to OpenAI vs MiniMax, shown for description-first modes.
 - [x] **Dark / light theme**: local system-aware theme toggle in the header, EN/zh-CN labels.
 - [x] **Makefile task runner**: `make help/check/qa/deploy/deploy-prod` wrappers over the npm scripts.
@@ -66,4 +67,4 @@ Shipped from the Recommended Next 10 queue, preserving BYOK/no-login/no-database
 - [x] **Direct controls**: likeness/creativity, composition/background, palette/mood/accessories/avoid-list in the generate page.
 - [x] **One-click refinement**: closer likeness, more realistic, cuter, cleaner background, and try variation from the result view.
 - [x] **Calibration matrix**: provider/style prompt fragments, known bias, recovery hints, and tests for every built-in style/provider pair.
-- [x] **Preview assets**: self-owned SVG previews for every built-in style, theme, and theme variant.
+- [x] **Compact chip pickers**: built-in styles and theme variants render as text chips (no preview thumbnails), keeping the generate form short and the Generate button reachable without excessive scrolling.

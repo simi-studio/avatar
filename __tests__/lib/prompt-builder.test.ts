@@ -67,6 +67,20 @@ describe("buildPrompt", () => {
     expect(single).not.toContain("consistent across both avatars");
   });
 
+  it("builds a couple-text prompt as a matching pair with no face reference", () => {
+    const style = getStyleById("anime");
+    const prompt = buildPrompt({
+      mode: "couple-text",
+      style,
+      userPrompt: "a happy couple on a beach",
+      pairedConsistency: true,
+    });
+    expect(prompt).toContain("matching couple avatar set");
+    expect(prompt).toContain("a happy couple on a beach");
+    expect(prompt).toContain("consistent across both avatars");
+    expect(prompt).not.toContain("Preserve facial identity");
+  });
+
   it("builds a themed prompt with theme base + variant fragment and no face reference", () => {
     const prompt = buildPrompt({
       mode: "themed",

@@ -116,11 +116,19 @@ async function callMiniMax(
 export const minimaxProvider: ImageProvider = {
   id: "minimax",
   name: "MiniMax",
-  supportedModes: ["text", "single", "couple", "themed"],
+  supportedModes: ["text", "couple-text", "single", "couple", "themed"],
   resolveBaseUrl: resolveMiniMaxBaseUrl,
 
   async generateAvatar(input) {
     if (!isPhotoMode(input.mode)) {
+      // couple-text: two text-to-image avatars sharing the prompt, labeled A / B.
+      if (input.mode === "couple-text") {
+        const [resA, resB] = await Promise.all([
+          callMiniMax(input, undefined, "A"),
+          callMiniMax(input, undefined, "B"),
+        ]);
+        return [...resA, ...resB];
+      }
       // text / themed: pure text-to-image, no upload.
       return callMiniMax(input, undefined);
     }

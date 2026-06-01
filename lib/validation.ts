@@ -65,6 +65,7 @@ export type ModeInput = {
 /**
  * Validate that the inputs match the selected mode (prd.md §11.1):
  * - `text` requires no image but a style (text-to-avatar, the default mode).
+ * - `couple-text` requires no image but a style (text-to-couple pair).
  * - `single` requires exactly 1 image and a style.
  * - `couple` requires exactly 2 images and a style.
  * - `themed` requires no image but a theme and variant.
@@ -82,7 +83,7 @@ export function validateModeInput(input: ModeInput): ErrorCode | null {
     return null;
   }
 
-  // text / single / couple all require a style.
+  // text / couple-text / single / couple all require a style.
   if (!input.styleId) {
     return "INVALID_MODE_INPUT";
   }

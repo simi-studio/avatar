@@ -87,6 +87,31 @@ describe("openai adapter", () => {
     );
   });
 
+  it("generates a labeled A/B pair for couple-text mode", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(() =>
+        Promise.resolve(jsonResponse({ data: [{ b64_json: "PAIR" }] })),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const images = await openaiProvider.generateAvatar({
+      apiKey: "sk-test",
+      mode: "couple-text",
+      prompt: "a matching couple avatar set",
+      size: "1024x1024",
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      "https://api.openai.com/v1/images/generations",
+    );
+    expect(images).toEqual([
+      { base64: "PAIR", mimeType: "image/png", label: "A" },
+      { base64: "PAIR", mimeType: "image/png", label: "B" },
+    ]);
+  });
+
   it("throws a normalized error on auth failure", async () => {
     const fetchMock = vi
       .fn()

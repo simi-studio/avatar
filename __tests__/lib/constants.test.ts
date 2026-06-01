@@ -5,6 +5,7 @@ import {
   GENERATION_MODES,
   MODES_BY_SOURCE,
   REQUIRED_IMAGE_COUNT,
+  isCoupleMode,
   isPhotoMode,
   sourceForMode,
 } from "@/lib/constants";
@@ -12,6 +13,7 @@ import {
 describe("input-source helpers", () => {
   it("maps each mode to the correct input source", () => {
     expect(sourceForMode("text")).toBe("text");
+    expect(sourceForMode("couple-text")).toBe("text");
     expect(sourceForMode("themed")).toBe("text");
     expect(sourceForMode("single")).toBe("photo");
     expect(sourceForMode("couple")).toBe("photo");
@@ -19,9 +21,17 @@ describe("input-source helpers", () => {
 
   it("flags only photo modes as requiring an upload", () => {
     expect(isPhotoMode("text")).toBe(false);
+    expect(isPhotoMode("couple-text")).toBe(false);
     expect(isPhotoMode("themed")).toBe(false);
     expect(isPhotoMode("single")).toBe(true);
     expect(isPhotoMode("couple")).toBe(true);
+  });
+
+  it("flags both couple modes as producing a paired set", () => {
+    expect(isCoupleMode("couple")).toBe(true);
+    expect(isCoupleMode("couple-text")).toBe(true);
+    expect(isCoupleMode("text")).toBe(false);
+    expect(isCoupleMode("single")).toBe(false);
   });
 
   it("keeps the source mode lists consistent with the source mapping", () => {
@@ -40,6 +50,7 @@ describe("input-source helpers", () => {
 
   it("requires no upload for text-based modes and uploads for photo modes", () => {
     expect(REQUIRED_IMAGE_COUNT.text).toBe(0);
+    expect(REQUIRED_IMAGE_COUNT["couple-text"]).toBe(0);
     expect(REQUIRED_IMAGE_COUNT.themed).toBe(0);
     expect(REQUIRED_IMAGE_COUNT.single).toBe(1);
     expect(REQUIRED_IMAGE_COUNT.couple).toBe(2);

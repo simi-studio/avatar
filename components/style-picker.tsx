@@ -18,7 +18,7 @@ export function StylePicker({
   return (
     <div className="flex flex-col gap-2">
       <Label>{t("label")}</Label>
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+      <div className="flex flex-wrap gap-2">
         {AVATAR_STYLES.map((style) => {
           const selected = style.id === value;
           return (
@@ -28,24 +28,13 @@ export function StylePicker({
               aria-pressed={selected}
               onClick={() => onChange(style.id)}
               className={cn(
-                "flex flex-col gap-2 overflow-hidden rounded-lg border p-2 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "rounded-full border px-3 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 selected
                   ? "border-primary bg-accent text-accent-foreground"
-                  : "hover:border-primary/60",
+                  : "text-muted-foreground hover:border-primary/60 hover:text-foreground",
               )}
             >
-              {style.thumbnail && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={style.thumbnail}
-                  alt=""
-                  aria-hidden
-                  className="aspect-square w-full rounded-md border object-cover"
-                />
-              )}
-              <span className="text-center text-xs font-medium sm:text-sm">
-                {t(style.id)}
-              </span>
+              {t(style.id)}
             </button>
           );
         })}

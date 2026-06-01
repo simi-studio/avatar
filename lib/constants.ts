@@ -5,7 +5,13 @@ export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? "Simi Avatar";
 export const GITHUB_URL =
   process.env.NEXT_PUBLIC_GITHUB_URL ?? "https://github.com/simi-studio/avatar";
 
-export const GENERATION_MODES = ["text", "themed", "single", "couple"] as const;
+export const GENERATION_MODES = [
+  "text",
+  "couple-text",
+  "themed",
+  "single",
+  "couple",
+] as const;
 export type GenerationMode = (typeof GENERATION_MODES)[number];
 
 /**
@@ -17,7 +23,7 @@ export type InputSource = (typeof INPUT_SOURCES)[number];
 
 /** Sub-modes available under each input source. */
 export const MODES_BY_SOURCE: Record<InputSource, readonly GenerationMode[]> = {
-  text: ["text", "themed"],
+  text: ["text", "couple-text", "themed"],
   photo: ["single", "couple"],
 };
 
@@ -36,6 +42,11 @@ export function sourceForMode(mode: GenerationMode): InputSource {
 /** True when the mode requires an uploaded photo. */
 export function isPhotoMode(mode: GenerationMode): boolean {
   return sourceForMode(mode) === "photo";
+}
+
+/** True when the mode produces a matching pair of avatars (photo or text). */
+export function isCoupleMode(mode: GenerationMode): boolean {
+  return mode === "couple" || mode === "couple-text";
 }
 
 export const PROVIDERS = ["openai", "minimax"] as const;
@@ -67,6 +78,7 @@ export const CLIENT_TIMEOUT_MS = 60_000;
 /** Number of input images required per mode. */
 export const REQUIRED_IMAGE_COUNT: Record<GenerationMode, number> = {
   text: 0,
+  "couple-text": 0,
   themed: 0,
   single: 1,
   couple: 2,

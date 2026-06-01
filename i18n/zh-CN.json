@@ -63,10 +63,12 @@
   "Mode": {
     "label": "模式",
     "text": "描述",
+    "couple-text": "情侣",
     "themed": "主题",
     "single": "单人",
     "couple": "情侣",
     "textDescription": "选择风格，写一句简单描述，即可生成——无需照片。",
+    "couple-textDescription": "用文字描述情侣，生成风格一致的成对头像——无需照片。",
     "themedDescription": "根据主题和提示词生成——无需照片。",
     "singleDescription": "将你自己的照片重绘为头像。",
     "coupleDescription": "为两个人生成风格一致的成对头像。"

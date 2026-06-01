@@ -68,17 +68,20 @@ Enter API key → choose source → pick goal/style/intent controls → generate
 
 > Simi Avatar is not just "upload a photo, get an avatar." It is built around a provider-neutral **AvatarIntent** that captures what the user wants, then compiles that intent into provider-specific prompts and request options. Modes still describe input shape; intent describes the desired avatar.
 
-| Source         | Mode     | id       | Input photos | Description                                           | Underlying call                 |
-| -------------- | -------- | -------- | ------------ | ----------------------------------------------------- | ------------------------------- |
-| Text to avatar | Describe | `text`   | **none**     | Pick a goal/style and describe the avatar             | text-to-image                   |
-| Text to avatar | Themed   | `themed` | **none**     | Generate from theme + variant + intent controls       | text-to-image                   |
-| From a photo   | Single   | `single` | 1 (required) | Restyle the user's own photo into an avatar           | image-to-image                  |
-| From a photo   | Couple   | `couple` | 2 (required) | Generate a style-consistent paired set for two people | image-to-image ×2, shared style |
+| Source         | Mode     | id            | Input photos | Description                                           | Underlying call                 |
+| -------------- | -------- | ------------- | ------------ | ----------------------------------------------------- | ------------------------------- |
+| Text to avatar | Describe | `text`        | **none**     | Pick a goal/style and describe the avatar             | text-to-image                   |
+| Text to avatar | Couple   | `couple-text` | **none**     | Describe a couple and generate a style-matched pair   | text-to-image ×2, shared style  |
+| Text to avatar | Themed   | `themed`      | **none**     | Generate from theme + variant + intent controls       | text-to-image                   |
+| From a photo   | Single   | `single`      | 1 (required) | Restyle the user's own photo into an avatar           | image-to-image                  |
+| From a photo   | Couple   | `couple`      | 2 (required) | Generate a style-consistent paired set for two people | image-to-image ×2, shared style |
 
 **Couple mode design notes:**
 
+- Couple avatars come in two flavors: photo-based (`couple`, two uploaded photos) and text-based (`couple-text`, no upload — describe the pair).
 - The user uploads two photos (A, B). The system applies the **same style and consistency constraints** to both and outputs a paired set.
 - A "paired consistency" option shares palette, background, lighting, and composition so the two avatars look visually unified.
+- `couple-text` reuses the same style + paired-consistency controls but generates both avatars purely from text, with no face reference.
 - Optional "same-frame composite" enhancement (V1.1). MVP does "generate separately, align style."
 - Implemented as two generation requests with the same `styleId` + base prompt (see §8, §11).
 
@@ -168,18 +171,19 @@ Users can click **Clear Key** at any time to remove the locally stored API key.
 
 **Layout:**
 
-- Top: **input source switch (Text to avatar / From a photo)**, then a mode switch within each source (Describe / Themed for text; Single / Couple for photo)
+- Top: **input source switch (Text to avatar / From a photo)**, then a mode switch within each source (Describe / Couple / Themed for text; Single / Couple for photo)
 - Left input area (changes by mode): Provider / API Key / Avatar intent / Upload Image(s) / Style / Theme + Variant / Description or Optional Prompt / Size / Generate
 - Right preview area: source preview (single/couple) / status / result(s) / download / refinement actions
 
 **Mode-aware form** (the UI renders different inputs per mode):
 
-| Mode     | Upload       | Style                                             | Theme                           | Intent controls                                                                     | Output     |
-| -------- | ------------ | ------------------------------------------------- | ------------------------------- | ----------------------------------------------------------------------------------- | ---------- |
-| `text`   | none         | style picker                                      | —                               | goal, creativity, composition, background, palette/mood/accessories/avoid           | 1          |
-| `single` | 1 (required) | style picker                                      | —                               | goal, likeness, creativity, composition, background, palette/mood/accessories/avoid | 1          |
-| `couple` | 2 (required) | shared style picker + "paired consistency" toggle | —                               | goal, likeness, creativity, composition, background, palette/mood/accessories/avoid | 2 (paired) |
-| `themed` | none         | —                                                 | theme (Dogs…) + variant (breed) | goal, creativity, composition, background, palette/mood/accessories/avoid           | 1          |
+| Mode          | Upload       | Style                                             | Theme                           | Intent controls                                                                     | Output     |
+| ------------- | ------------ | ------------------------------------------------- | ------------------------------- | ----------------------------------------------------------------------------------- | ---------- |
+| `text`        | none         | style picker                                      | —                               | goal, creativity, composition, background, palette/mood/accessories/avoid           | 1          |
+| `couple-text` | none         | shared style picker + "paired consistency" toggle | —                               | goal, creativity, composition, background, palette/mood/accessories/avoid           | 2 (paired) |
+| `single`      | 1 (required) | style picker                                      | —                               | goal, likeness, creativity, composition, background, palette/mood/accessories/avoid | 1          |
+| `couple`      | 2 (required) | shared style picker + "paired consistency" toggle | —                               | goal, likeness, creativity, composition, background, palette/mood/accessories/avoid | 2 (paired) |
+| `themed`      | none         | —                                                 | theme (Dogs…) + variant (breed) | goal, creativity, composition, background, palette/mood/accessories/avoid           | 1          |
 
 **States**: define six UI states — idle / uploading / ready / generating / success / error — with skeleton loaders and a retryable error state.
 
@@ -209,7 +213,7 @@ MVP supports **OpenAI** and **MiniMax** (see §8). The provider selector also ex
 
 10 built-in styles: Anime, Pixar 3D, Cyberpunk, Professional Headshot, LinkedIn, Fantasy Hero, Comic Book, Watercolor, Retro Game, Sci-Fi.
 
-> Style thumbnails must be self-owned or commercially licensed.
+> Styles are presented as compact text chips (no preview thumbnails) to keep the form short and the Generate button reachable without excessive scrolling.
 
 #### Theme & variant (themed mode)
 
@@ -228,7 +232,7 @@ MVP supports `512x512` / `1024x1024`, default `1024x1024`. Sizes must align with
 
 #### Cost transparency
 
-Under BYOK, the user pays. Show an **estimated per-generation cost** near the Generate button for the current provider/size; couple mode should note it is two generations.
+Under BYOK, the user pays. Show an **estimated per-generation cost** near the Generate button for the current provider/size; couple modes (`couple` and `couple-text`) should note it is two generations.
 
 ### 6.3 Team preset sharing (themed collaboration)
 
@@ -251,7 +255,7 @@ Let users get stable results without learning provider-specific prompt habits. T
 
 ```ts
 type AvatarIntent = {
-  mode: "text" | "single" | "couple" | "themed";
+  mode: "text" | "couple-text" | "single" | "couple" | "themed";
   goal:
     | "professional-profile"
     | "social-avatar"
@@ -277,7 +281,7 @@ type AvatarIntent = {
 
 ### 7.3 Provider compiler rules
 
-- `text` / `themed`: no face reference; compile goal/style/theme/description and controls into text-to-image prompts.
+- `text` / `couple-text` / `themed`: no face reference; compile goal/style/theme/description and controls into text-to-image prompts. `couple-text` shares prompt/style/intent across both calls.
 - `single` / `couple`: include source-reference instructions and likeness/creativity tradeoff; couple shares prompt/style/intent across both calls.
 - OpenAI: natural-language prompt profile.
 - MiniMax: concise comma-separated descriptor profile.
@@ -298,21 +302,18 @@ type AvatarStyle = {
   name: string;
   description: string;
   promptTemplate: string;
-  thumbnail?: string;
 };
 
 type AvatarVariant = {
   id: string; // e.g. "shiba-inu"
   name: string; // e.g. "Shiba Inu"
   promptFragment: string;
-  thumbnail?: string;
 };
 
 type AvatarTheme = {
   id: string; // e.g. "dogs"
   name: string; // e.g. "Dogs"
   basePrompt: string;
-  thumbnail?: string;
   variants: AvatarVariant[];
 };
 ```
@@ -407,13 +408,13 @@ interface ImageProvider {
     apiKey: string;
     region?: string; // e.g. "global" | "china" for MiniMax
     mode: GenerationMode;
-    images?: File[]; // text: 0; single: 1; couple: 2; themed: 0
+    images?: File[]; // text/couple-text/themed: 0; single: 1; couple: 2
     prompt: string;
     styleId?: string;
     themeId?: string;
     variantId?: string;
     size: "512x512" | "1024x1024";
-  }): Promise<GeneratedImage[]>; // single/themed: 1; couple: 2
+  }): Promise<GeneratedImage[]>; // text/single/themed: 1; couple/couple-text: 2
 }
 ```
 
@@ -490,15 +491,15 @@ type GeneratedImage = {
 Body is `multipart/form-data` (with images) or `application/json` (themed, no image). Logical payload:
 
 ```ts
-type GenerationMode = "text" | "single" | "couple" | "themed";
+type GenerationMode = "text" | "couple-text" | "single" | "couple" | "themed";
 
 type GenerateRequest = {
   provider: "openai" | "minimax";
   region?: "global" | "china"; // MiniMax only
   apiKey: string;
   mode: GenerationMode;
-  images?: File[]; // text: omitted; single: 1; couple: 2; themed: omitted
-  styleId?: string; // required for text/single/couple; optional for themed
+  images?: File[]; // text/couple-text/themed: omitted; single: 1; couple: 2
+  styleId?: string; // required for text/couple-text/single/couple; optional for themed
   themeId?: string; // required for themed (e.g. "dogs")
   variantId?: string; // required for themed (e.g. "shiba-inu")
   userPrompt?: string;
@@ -518,7 +519,7 @@ type GenerateResponse = {
 };
 ```
 
-**Server validates per mode**: `text` needs a `styleId` and no image; `single` needs exactly 1 image; `couple` exactly 2; `themed` accepts no image but needs `themeId` + `variantId`. Invalid combinations return `INVALID_MODE_INPUT`.
+**Server validates per mode**: `text` needs a `styleId` and no image; `couple-text` needs a `styleId` and no image (outputs a pair); `single` needs exactly 1 image; `couple` exactly 2; `themed` accepts no image but needs `themeId` + `variantId`. Invalid combinations return `INVALID_MODE_INPUT`.
 
 ### 11.2 Error codes
 
