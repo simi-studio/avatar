@@ -50,20 +50,20 @@ npx wrangler secret put TURNSTILE_SECRET_KEY
   "vars": {
     "NEXT_PUBLIC_APP_NAME": "Simi Avatar",
     "NEXT_PUBLIC_GITHUB_URL": "https://github.com/simi-studio/avatar",
-    "NEXT_PUBLIC_DEFAULT_LOCALE": "en"
-  }
+    "NEXT_PUBLIC_DEFAULT_LOCALE": "en",
+  },
 }
 ```
 
 ## Runtime limits
 
-| Concern | Note |
-| ------- | ---- |
-| Request body | Compress/downscale images client-side; server caps and returns `IMAGE_TOO_LARGE`. base64 inflates ~33%. |
-| CPU / duration | Image generation takes 10–30s. Use the synchronous request→wait→response model with a ~60s client timeout (`PROVIDER_TIMEOUT`). |
-| Plan differences | Cloudflare **Free** has tighter CPU-time and subrequest limits than **Paid**; heavy/public demos should use a Paid plan. |
-| Concurrency | No server queue in MVP; throttle the public demo via per-IP rate limiting. |
-| Outbound | Only the fixed provider hosts are called (OpenAI, MiniMax global/china). |
+| Concern          | Note                                                                                                                            |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| Request body     | Compress/downscale images client-side; server caps and returns `IMAGE_TOO_LARGE`. base64 inflates ~33%.                         |
+| CPU / duration   | Image generation takes 10–30s. Use the synchronous request→wait→response model with a ~60s client timeout (`PROVIDER_TIMEOUT`). |
+| Plan differences | Cloudflare **Free** has tighter CPU-time and subrequest limits than **Paid**; heavy/public demos should use a Paid plan.        |
+| Concurrency      | No server queue in MVP; throttle the public demo via per-IP rate limiting.                                                      |
+| Outbound         | Only the fixed provider hosts are called (OpenAI, MiniMax global/china).                                                        |
 
 ## Custom domain (optional)
 

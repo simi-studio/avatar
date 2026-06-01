@@ -28,7 +28,12 @@ export async function SiteHeader() {
           <Button asChild variant="ghost" size="sm">
             <Link href="/about">{t("Nav.about")}</Link>
           </Button>
-          <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+          <Button
+            asChild
+            variant="ghost"
+            size="sm"
+            className="hidden sm:inline-flex"
+          >
             <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
               <Github className="h-4 w-4" aria-hidden />
               <span className="sr-only sm:not-sr-only">GitHub</span>

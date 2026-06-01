@@ -33,4 +33,19 @@ describe("prompt suggestions", () => {
       );
     }
   });
+
+  it("adds goal and style-aware suggestions when context is available", () => {
+    const suggestions = getPromptSuggestions({
+      provider: "openai",
+      mode: "text",
+      goal: "professional-profile",
+      styleId: "professional-headshot",
+    });
+    expect(suggestions[0]?.id).toBe("goal-professional-profile");
+    expect(
+      suggestions.some(
+        (suggestion) => suggestion.id === "style-professional-headshot",
+      ),
+    ).toBe(true);
+  });
 });

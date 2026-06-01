@@ -4,19 +4,19 @@ import type {
   AvatarVariant,
   GenerationMode,
 } from "@/lib/types";
-
-const QUALITY =
-  "clean composition, high-quality details, centered portrait, sharp focus";
-
-const PAIRED_CONSISTENCY =
-  "matching color palette, background, lighting and composition so the pair looks like a cohesive set";
+import type { ProviderId } from "@/lib/constants";
+import type { AvatarIntent } from "@/lib/avatar-intent";
+import { createAvatarIntent } from "@/lib/avatar-intent";
+import { compileAvatarPrompt } from "@/lib/prompt-compiler";
 
 export type BuildPromptInput = {
+  provider?: ProviderId;
   mode: GenerationMode;
   style?: AvatarStyle;
   theme?: AvatarTheme;
   variant?: AvatarVariant;
   userPrompt?: string;
+  intent?: AvatarIntent;
   /** Couple mode: keep palette/background/lighting/composition consistent. */
   pairedConsistency?: boolean;
 };
@@ -36,40 +36,22 @@ export type BuildPromptInput = {
  */
 export function buildPrompt(input: BuildPromptInput): string {
   const userPrompt = input.userPrompt?.trim() || undefined;
+  const intent =
+    input.intent ??
+    createAvatarIntent({
+      mode: input.mode,
+      styleId: input.style?.id,
+      themeId: input.theme?.id,
+      variantId: input.variant?.id,
+      subjectDescription: userPrompt,
+      pairedConsistency: input.pairedConsistency,
+    });
 
-  if (input.mode === "text") {
-    return [
-      userPrompt ?? "a friendly portrait avatar",
-      input.style ? `${input.style.name} style` : undefined,
-      input.style?.promptTemplate,
-      QUALITY,
-    ]
-      .filter(Boolean)
-      .join(", ");
-  }
-
-  if (input.mode === "themed") {
-    return [
-      input.theme?.basePrompt,
-      input.variant?.promptFragment,
-      input.style?.promptTemplate,
-      QUALITY,
-      userPrompt,
-    ]
-      .filter(Boolean)
-      .join(", ");
-  }
-
-  return [
-    `Transform the uploaded portrait into a ${input.style?.name ?? "stylized"} avatar.`,
-    "Keep the person's main facial features recognizable.",
-    QUALITY,
-    input.mode === "couple" && input.pairedConsistency
-      ? PAIRED_CONSISTENCY
-      : undefined,
-    input.style?.promptTemplate,
-    userPrompt,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  return compileAvatarPrompt({
+    provider: input.provider ?? "openai",
+    intent,
+    style: input.style,
+    theme: input.theme,
+    variant: input.variant,
+  }).prompt;
 }

@@ -135,6 +135,44 @@
     "pairedConsistency": "成对一致性",
     "pairedConsistencyHint": "在两个头像间共享配色、背景、光线和构图。"
   },
+  "Intent": {
+    "label": "头像意图",
+    "goalLabel": "用途",
+    "likenessLabel": "相似度",
+    "creativityLabel": "创意度",
+    "compositionLabel": "构图",
+    "backgroundLabel": "背景",
+    "paletteLabel": "色调",
+    "palettePlaceholder": "例如：青绿色和暖灰色",
+    "moodLabel": "氛围",
+    "moodPlaceholder": "例如：自信、友善",
+    "accessoriesLabel": "配饰",
+    "accessoriesPlaceholder": "例如：眼镜、连帽衫",
+    "avoidLabel": "避免项",
+    "avoidPlaceholder": "例如：文字、Logo、杂乱背景",
+    "goals": {
+      "professional-profile": "职业头像",
+      "social-avatar": "社交头像",
+      "team-character": "团队角色",
+      "character": "角色头像"
+    },
+    "levels": {
+      "low": "低",
+      "medium": "中",
+      "high": "高"
+    },
+    "compositions": {
+      "headshot": "头像特写",
+      "half-body": "半身",
+      "full-body": "全身"
+    },
+    "backgrounds": {
+      "plain": "纯净",
+      "studio": "影棚",
+      "scene": "场景",
+      "transparent-like": "近似抠图"
+    }
+  },
   "Suggestions": {
     "label": "没有头绪？试试一个起始提示词：",
     "friendly-professional": "友善专业",
@@ -144,7 +182,21 @@
     "clean-headshot": "干净头像",
     "anime-vibe": "动漫风",
     "cinematic": "电影感",
-    "pastel-soft": "柔和马卡龙"
+    "pastel-soft": "柔和马卡龙",
+    "goal-professional-profile": "职业用途",
+    "goal-social-avatar": "社交用途",
+    "goal-team-character": "团队用途",
+    "goal-character": "角色用途",
+    "selected-style": "当前风格"
+  },
+  "Refinement": {
+    "label": "继续调整",
+    "closer-likeness": "更像本人",
+    "more-realistic": "更写实",
+    "more-cute": "更可爱",
+    "cleaner-background": "背景更干净",
+    "variation": "再来一版",
+    "costNote": "每次调整都会重新生成一次。"
   },
   "Appearance": {
     "toggle": "切换主题",

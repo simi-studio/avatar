@@ -1,5 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 
 import en from "@/i18n/en.json";
@@ -61,7 +67,9 @@ describe("GenerationForm", () => {
     expect(screen.queryByText(en.Upload.label)).not.toBeInTheDocument();
 
     // Switching to the photo source reveals the single-mode uploader.
-    fireEvent.click(screen.getByRole("tab", { name: new RegExp(en.Source.photo) }));
+    fireEvent.click(
+      screen.getByRole("tab", { name: new RegExp(en.Source.photo) }),
+    );
     expect(screen.getByText(en.Upload.label)).toBeInTheDocument();
   });
 
@@ -86,12 +94,25 @@ describe("GenerationForm", () => {
       expect(screen.getByAltText(en.Result.altSingle)).toBeInTheDocument(),
     );
     expect(fetchMock).toHaveBeenCalledWith("/api/generate", expect.anything());
+    const requestInit = fetchMock.mock.calls[0]?.[1] as RequestInit | undefined;
+    const body = requestInit?.body;
+    expect(body).toBeInstanceOf(FormData);
+    const form = body as FormData;
+    const intent = JSON.parse(String(form.get("intent"))) as Record<
+      string,
+      unknown
+    >;
+    expect(intent.mode).toBe("text");
+    expect(intent.goal).toBe("professional-profile");
+    expect(intent.styleId).toBe("anime");
   });
 
   it("inserts a provider suggestion into the description field", () => {
     renderForm();
     fireEvent.click(
-      screen.getByRole("button", { name: en.Suggestions["friendly-professional"] }),
+      screen.getByRole("button", {
+        name: en.Suggestions["friendly-professional"],
+      }),
     );
     const description = screen.getByLabelText(
       en.Form.descriptionLabel,
@@ -101,7 +122,9 @@ describe("GenerationForm", () => {
 
   it("disables generate until a single-mode setup is complete", () => {
     renderForm();
-    fireEvent.click(screen.getByRole("tab", { name: new RegExp(en.Source.photo) }));
+    fireEvent.click(
+      screen.getByRole("tab", { name: new RegExp(en.Source.photo) }),
+    );
     const generate = screen.getByRole("button", { name: en.Generate.generate });
     expect(generate).toBeDisabled();
   });
@@ -113,7 +136,9 @@ describe("GenerationForm", () => {
     });
     const { container } = renderForm();
 
-    fireEvent.click(screen.getByRole("tab", { name: new RegExp(en.Source.photo) }));
+    fireEvent.click(
+      screen.getByRole("tab", { name: new RegExp(en.Source.photo) }),
+    );
 
     fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
       target: { value: "sk-test-key" },
@@ -144,10 +169,15 @@ describe("GenerationForm", () => {
   });
 
   it("surfaces a normalized error code on failure", async () => {
-    setFetch({ success: false, error: { code: "INVALID_API_KEY", message: "x" } });
+    setFetch({
+      success: false,
+      error: { code: "INVALID_API_KEY", message: "x" },
+    });
     const { container } = renderForm();
 
-    fireEvent.click(screen.getByRole("tab", { name: new RegExp(en.Source.photo) }));
+    fireEvent.click(
+      screen.getByRole("tab", { name: new RegExp(en.Source.photo) }),
+    );
 
     fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
       target: { value: "bad-key" },
@@ -157,7 +187,9 @@ describe("GenerationForm", () => {
     ) as HTMLInputElement;
     fireEvent.change(fileInput, {
       target: {
-        files: [new File([new Uint8Array([1])], "me.png", { type: "image/png" })],
+        files: [
+          new File([new Uint8Array([1])], "me.png", { type: "image/png" }),
+        ],
       },
     });
     await waitFor(() =>
@@ -167,9 +199,7 @@ describe("GenerationForm", () => {
     fireEvent.click(screen.getByRole("button", { name: en.Generate.generate }));
 
     await waitFor(() =>
-      expect(
-        screen.getByText(en.Errors.INVALID_API_KEY),
-      ).toBeInTheDocument(),
+      expect(screen.getByText(en.Errors.INVALID_API_KEY)).toBeInTheDocument(),
     );
   });
 });

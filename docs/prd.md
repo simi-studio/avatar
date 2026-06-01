@@ -2,17 +2,17 @@
 
 > One-liner: Simi Avatar is an open-source, no-signup, no-database, no-subscription **BYOK (Bring Your Own API Key) AI avatar generator**. Users plug in their own AI provider API key and generate personalized avatars from two input sources — **text-to-avatar** (the default: pick a style and describe the avatar, no photo needed) and **from a photo** (single-person photo restyle or couple paired avatars) — plus themed avatars generated purely from a prompt, and can self-host with one command.
 
-| Field | Value |
-| ----- | ----- |
-| Status | Draft (pending review) |
-| Version | v0.3 |
-| Last updated | 2026-06-01 |
-| GitHub | https://github.com/simi-studio/avatar |
-| Positioning | Open Source / No signup / Non-commercial / BYOK |
-| App stack | Next.js + TypeScript + Tailwind CSS + Shadcn UI |
-| License | MIT |
-| Plan | [planning/plan.md](./planning/plan.md) |
-| Doc map | [README.md](../README.md) / [docs map](./README.md) |
+| Field        | Value                                               |
+| ------------ | --------------------------------------------------- |
+| Status       | Draft (pending review)                              |
+| Version      | v0.3                                                |
+| Last updated | 2026-06-01                                          |
+| GitHub       | https://github.com/simi-studio/avatar               |
+| Positioning  | Open Source / No signup / Non-commercial / BYOK     |
+| App stack    | Next.js + TypeScript + Tailwind CSS + Shadcn UI     |
+| License      | MIT                                                 |
+| Plan         | [planning/plan.md](./planning/plan.md)              |
+| Doc map      | [README.md](../README.md) / [docs map](./README.md) |
 
 ---
 
@@ -61,18 +61,19 @@ The MVP solves exactly one problem: **let users generate avatars with their own 
 Core flow:
 
 ```
-Enter API key → upload image → pick a style → click Generate → preview → download
+Enter API key → choose source → pick goal/style/intent controls → generate → refine → download
 ```
 
-### 2.3 Product shape: three generation modes (core concept)
+### 2.3 Product shape: input sources, modes, and intent
 
-> Simi Avatar is not just "upload a photo, get an avatar." It is built around a single **GenerationMode** abstraction that powers playful use cases. All modes share the same provider abstraction, prompt engine, and `/api/generate` endpoint; they differ only in **input shape** and **prompt assembly**.
+> Simi Avatar is not just "upload a photo, get an avatar." It is built around a provider-neutral **AvatarIntent** that captures what the user wants, then compiles that intent into provider-specific prompts and request options. Modes still describe input shape; intent describes the desired avatar.
 
-| Mode | id | Input photos | Description | Typical use | Underlying call |
-| ---- | -- | ------------ | ----------- | ----------- | --------------- |
-| Single | `single` | 1 (required) | Restyle the user's own photo into an avatar | Personal restyled avatar | image-to-image |
-| Couple | `couple` | 2 (required) | Generate a style-consistent paired set for two people | Couple / best-friend avatars | image-to-image ×2, shared style |
-| Themed | `themed` | **none** | Generate from prompt + theme preset only | Dog-themed team avatars, mascots, virtual characters | text-to-image |
+| Source         | Mode     | id       | Input photos | Description                                           | Underlying call                 |
+| -------------- | -------- | -------- | ------------ | ----------------------------------------------------- | ------------------------------- |
+| Text to avatar | Describe | `text`   | **none**     | Pick a goal/style and describe the avatar             | text-to-image                   |
+| Text to avatar | Themed   | `themed` | **none**     | Generate from theme + variant + intent controls       | text-to-image                   |
+| From a photo   | Single   | `single` | 1 (required) | Restyle the user's own photo into an avatar           | image-to-image                  |
+| From a photo   | Couple   | `couple` | 2 (required) | Generate a style-consistent paired set for two people | image-to-image ×2, shared style |
 
 **Couple mode design notes:**
 
@@ -100,14 +101,14 @@ User registration, login, paid subscription, credit system, database, avatar his
 
 > MVP optimizes for "validate the product and attract developers," so metrics lean toward open-source reach and flow success rate.
 
-| Dimension | Metric | MVP target (4 weeks post-launch) |
-| --------- | ------ | -------------------------------- |
-| Reliability | Generation success rate (excluding invalid user keys) | ≥ 95% |
-| Experience | Home LCP (mobile 4G) | < 2.5s |
-| Experience | Median time from generate page to first image | < 30s (provider-dependent) |
-| Reach | GitHub stars | ≥ 100 |
-| Reach | Successful external self-hosts (issues/feedback) | ≥ 5 |
-| Quality | Critical-path unit coverage (prompt/validation) | ≥ 80% |
+| Dimension   | Metric                                                | MVP target (4 weeks post-launch) |
+| ----------- | ----------------------------------------------------- | -------------------------------- |
+| Reliability | Generation success rate (excluding invalid user keys) | ≥ 95%                            |
+| Experience  | Home LCP (mobile 4G)                                  | < 2.5s                           |
+| Experience  | Median time from generate page to first image         | < 30s (provider-dependent)       |
+| Reach       | GitHub stars                                          | ≥ 100                            |
+| Reach       | Successful external self-hosts (issues/feedback)      | ≥ 5                              |
+| Quality     | Critical-path unit coverage (prompt/validation)       | ≥ 80%                            |
 
 ---
 
@@ -168,16 +169,17 @@ Users can click **Clear Key** at any time to remove the locally stored API key.
 **Layout:**
 
 - Top: **input source switch (Text to avatar / From a photo)**, then a mode switch within each source (Describe / Themed for text; Single / Couple for photo)
-- Left input area (changes by mode): Provider / API Key / Upload Image(s) / Style / Theme + Variant / Description or Optional Prompt / Size / Generate
-- Right preview area: source preview (single/couple) / status / result(s) / download
+- Left input area (changes by mode): Provider / API Key / Avatar intent / Upload Image(s) / Style / Theme + Variant / Description or Optional Prompt / Size / Generate
+- Right preview area: source preview (single/couple) / status / result(s) / download / refinement actions
 
 **Mode-aware form** (the UI renders different inputs per mode):
 
-| Mode | Upload | Style | Theme | Output |
-| ---- | ------ | ----- | ----- | ------ |
-| `single` | 1 (required) | style picker | — | 1 |
-| `couple` | 2 (required) | shared style picker + "paired consistency" toggle | — | 2 (paired) |
-| `themed` | none | optional base style | theme (Dogs…) + variant (breed) | 1 |
+| Mode     | Upload       | Style                                             | Theme                           | Intent controls                                                                     | Output     |
+| -------- | ------------ | ------------------------------------------------- | ------------------------------- | ----------------------------------------------------------------------------------- | ---------- |
+| `text`   | none         | style picker                                      | —                               | goal, creativity, composition, background, palette/mood/accessories/avoid           | 1          |
+| `single` | 1 (required) | style picker                                      | —                               | goal, likeness, creativity, composition, background, palette/mood/accessories/avoid | 1          |
+| `couple` | 2 (required) | shared style picker + "paired consistency" toggle | —                               | goal, likeness, creativity, composition, background, palette/mood/accessories/avoid | 2 (paired) |
+| `themed` | none         | —                                                 | theme (Dogs…) + variant (breed) | goal, creativity, composition, background, palette/mood/accessories/avoid           | 1          |
 
 **States**: define six UI states — idle / uploading / ready / generating / success / error — with skeleton loaders and a retryable error state.
 
@@ -239,57 +241,56 @@ Under BYOK, the user pays. Show an **estimated per-generation cost** near the Ge
 
 ---
 
-## 7. Prompt engine
+## 7. Intent and prompt compiler
 
 ### 7.1 Goal
 
-Let users get stable results without hand-writing complex prompts, and split image-to-image vs text-to-image assembly by mode.
+Let users get stable results without learning provider-specific prompt habits. The app captures one canonical `AvatarIntent`, then compiles it into OpenAI-optimized and MiniMax-optimized prompts.
 
-### 7.2 Mode-aware prompt rules
-
-- `text` (text-to-image): style template + user description + quality description, with **no face reference** — the default low-friction mode.
-- `single` / `couple` (image-to-image): style template + user prompt + quality description, emphasizing "keep the main facial features."
-- `themed` (text-to-image): theme base prompt + variant fragment + optional style + user prompt, with **no face reference**.
+### 7.2 AvatarIntent
 
 ```ts
-type GenerationMode = "text" | "single" | "couple" | "themed";
-
-function buildPrompt(input: {
-  mode: GenerationMode;
-  style?: AvatarStyle;
-  theme?: AvatarTheme;
-  variant?: AvatarVariant;
-  userPrompt?: string;
-}): string {
-  const quality =
-    "clean composition, high-quality details, centered portrait, sharp focus";
-  if (input.mode === "themed") {
-    return [
-      input.theme?.basePrompt,
-      input.variant?.promptFragment,
-      input.style?.promptTemplate,
-      quality,
-      input.userPrompt,
-    ]
-      .filter(Boolean)
-      .join(", ");
-  }
-  // single / couple
-  return [
-    `Transform the uploaded portrait into a ${input.style?.name} avatar.`,
-    "Keep the person's main facial features recognizable.",
-    quality,
-    input.style?.promptTemplate,
-    input.userPrompt,
-  ]
-    .filter(Boolean)
-    .join(" ");
-}
+type AvatarIntent = {
+  mode: "text" | "single" | "couple" | "themed";
+  goal:
+    | "professional-profile"
+    | "social-avatar"
+    | "team-character"
+    | "character";
+  styleId?: string;
+  themeId?: string;
+  variantId?: string;
+  subjectDescription?: string;
+  likeness: "low" | "medium" | "high";
+  creativity: "low" | "medium" | "high";
+  composition: "headshot" | "half-body" | "full-body";
+  background: "plain" | "studio" | "scene" | "transparent-like";
+  palette?: string;
+  mood?: string;
+  accessories?: string;
+  avoid?: string;
+  pairedConsistency?: boolean;
+  variation?: boolean;
+  size: "512x512" | "1024x1024";
+};
 ```
 
-> `couple` mode uses the **same prompt + same styleId** for both images to keep the pair consistent.
+### 7.3 Provider compiler rules
 
-### 7.3 Style / theme / variant types
+- `text` / `themed`: no face reference; compile goal/style/theme/description and controls into text-to-image prompts.
+- `single` / `couple`: include source-reference instructions and likeness/creativity tradeoff; couple shares prompt/style/intent across both calls.
+- OpenAI: natural-language prompt profile.
+- MiniMax: concise comma-separated descriptor profile.
+- Avoid-list: compiled as safe prompt text for current providers; native negative prompt fields are modeled but not sent unless a provider profile explicitly supports them.
+- Style calibration: every built-in style has provider-specific prompt fragments, known bias, and recovery hints in `lib/provider-calibration.ts`.
+
+```ts
+compileAvatarPrompt({ provider, intent, style, theme, variant });
+```
+
+The UI never assembles provider prompt strings directly.
+
+### 7.4 Style / theme / variant types
 
 ```ts
 type AvatarStyle = {
@@ -301,16 +302,17 @@ type AvatarStyle = {
 };
 
 type AvatarVariant = {
-  id: string;            // e.g. "shiba-inu"
-  name: string;          // e.g. "Shiba Inu"
+  id: string; // e.g. "shiba-inu"
+  name: string; // e.g. "Shiba Inu"
   promptFragment: string;
   thumbnail?: string;
 };
 
 type AvatarTheme = {
-  id: string;            // e.g. "dogs"
-  name: string;          // e.g. "Dogs"
+  id: string; // e.g. "dogs"
+  name: string; // e.g. "Dogs"
   basePrompt: string;
+  thumbnail?: string;
   variants: AvatarVariant[];
 };
 ```
@@ -332,9 +334,21 @@ const dogsTheme: AvatarTheme = {
   basePrompt:
     "a cute anthropomorphic dog character avatar, friendly, expressive eyes, clean background",
   variants: [
-    { id: "shiba-inu", name: "Shiba Inu", promptFragment: "shiba inu, orange and cream fur, curled tail" },
-    { id: "corgi", name: "Corgi", promptFragment: "welsh corgi, short legs, big ears" },
-    { id: "husky", name: "Husky", promptFragment: "siberian husky, blue eyes, grey and white fur" },
+    {
+      id: "shiba-inu",
+      name: "Shiba Inu",
+      promptFragment: "shiba inu, orange and cream fur, curled tail",
+    },
+    {
+      id: "corgi",
+      name: "Corgi",
+      promptFragment: "welsh corgi, short legs, big ears",
+    },
+    {
+      id: "husky",
+      name: "Husky",
+      promptFragment: "siberian husky, blue eyes, grey and white fur",
+    },
     // ...golden-retriever, poodle, border-collie, dalmatian, pug
   ],
 };
@@ -348,10 +362,10 @@ const dogsTheme: AvatarTheme = {
 
 MVP ships **two** providers so the abstraction is validated from day one and the maintainer can develop/test against MiniMax:
 
-| Provider | Single / Couple (image-to-image) | Themed (text-to-image) | Notes |
-| -------- | -------------------------------- | ---------------------- | ----- |
-| **OpenAI** | `gpt-image-1` via `/v1/images/edits` (DALL·E 3 has no edits) | `gpt-image-1` via `/v1/images/generations` | Fix the model to `gpt-image-1`; align with its supported sizes |
-| **MiniMax** | `image-01` via `/v1/image_generation` with `subject_reference` | `image-01` via `/v1/image_generation` (prompt only) | Region-aware base URL; see §8.2 |
+| Provider    | Single / Couple (image-to-image)                               | Text / Themed (text-to-image)                       | Notes                                                          |
+| ----------- | -------------------------------------------------------------- | --------------------------------------------------- | -------------------------------------------------------------- |
+| **OpenAI**  | `gpt-image-1` via `/v1/images/edits` (DALL·E 3 has no edits)   | `gpt-image-1` via `/v1/images/generations`          | Fix the model to `gpt-image-1`; align with its supported sizes |
+| **MiniMax** | `image-01` via `/v1/image_generation` with `subject_reference` | `image-01` via `/v1/image_generation` (prompt only) | Region-aware base URL; see §8.2                                |
 
 > **Important model clarification**: MiniMax **M3 is a text/coding model**, not an image model. Avatar generation uses MiniMax's **image** models — `image-01` (and `image-01-live` for illustrated/cartoon styles). The maintainer's "test with MiniMax" workflow targets `image-01`.
 >
@@ -361,10 +375,10 @@ MVP ships **two** providers so the abstraction is validated from day one and the
 
 MiniMax operates two separate platforms with **different base URLs and separate API keys**. The provider must expose a region switch:
 
-| Region | Base URL | Console |
-| ------ | -------- | ------- |
-| Global | `https://api.minimax.io` | platform.minimax.io |
-| China | `https://api.minimaxi.com` | platform.minimaxi.com |
+| Region | Base URL                   | Console               |
+| ------ | -------------------------- | --------------------- |
+| Global | `https://api.minimax.io`   | platform.minimax.io   |
+| China  | `https://api.minimaxi.com` | platform.minimaxi.com |
 
 - Image endpoint (both regions): `POST {baseUrl}/v1/image_generation`
 - Auth: `Authorization: Bearer <apiKey>`
@@ -383,7 +397,7 @@ V1.1: Fal.ai, Replicate, Stability AI.
 type GenerationMode = "text" | "single" | "couple" | "themed";
 
 interface ImageProvider {
-  id: string;            // "openai" | "minimax"
+  id: string; // "openai" | "minimax"
   name: string;
   /** Some providers may support only a subset of modes */
   supportedModes: GenerationMode[];
@@ -391,9 +405,9 @@ interface ImageProvider {
   resolveBaseUrl?(region?: string): string;
   generateAvatar(input: {
     apiKey: string;
-    region?: string;     // e.g. "global" | "china" for MiniMax
+    region?: string; // e.g. "global" | "china" for MiniMax
     mode: GenerationMode;
-    images?: File[];     // text: 0; single: 1; couple: 2; themed: 0
+    images?: File[]; // text: 0; single: 1; couple: 2; themed: 0
     prompt: string;
     styleId?: string;
     themeId?: string;
@@ -422,10 +436,10 @@ type GeneratedImage = {
 
 **MVP uses Scheme B (Worker proxy) with an explicit commitment boundary:**
 
-| Scheme | Pros | Cons |
-| ------ | ---- | ---- |
-| A. Browser → provider directly | Key never touches the server; strongest privacy | Subject to provider CORS; exposes request shape to the client |
-| **B. Worker proxy (MVP)** | Avoids CORS, unifies error handling, enables rate limiting / abuse protection | Key and image pass through Worker memory (never persisted, never logged) |
+| Scheme                         | Pros                                                                          | Cons                                                                     |
+| ------------------------------ | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| A. Browser → provider directly | Key never touches the server; strongest privacy                               | Subject to provider CORS; exposes request shape to the client            |
+| **B. Worker proxy (MVP)**      | Avoids CORS, unifies error handling, enables rate limiting / abuse protection | Key and image pass through Worker memory (never persisted, never logged) |
 
 **Hard commitments for Scheme B (enforced in the security doc and in code):**
 
@@ -483,11 +497,12 @@ type GenerateRequest = {
   region?: "global" | "china"; // MiniMax only
   apiKey: string;
   mode: GenerationMode;
-  images?: File[];        // text: omitted; single: 1; couple: 2; themed: omitted
-  styleId?: string;       // required for text/single/couple; optional for themed
-  themeId?: string;       // required for themed (e.g. "dogs")
-  variantId?: string;     // required for themed (e.g. "shiba-inu")
+  images?: File[]; // text: omitted; single: 1; couple: 2; themed: omitted
+  styleId?: string; // required for text/single/couple; optional for themed
+  themeId?: string; // required for themed (e.g. "dogs")
+  variantId?: string; // required for themed (e.g. "shiba-inu")
   userPrompt?: string;
+  intent?: AvatarIntent; // canonical intent; legacy fields remain as fallback
   size: "512x512" | "1024x1024";
 };
 
@@ -497,7 +512,7 @@ type GenerateResponse = {
     url?: string;
     base64?: string;
     mimeType: string;
-    label?: string;       // couple: "A" / "B"
+    label?: string; // couple: "A" / "B"
   }>;
   error?: { code: string; message: string };
 };
@@ -706,13 +721,13 @@ README / deploy / providers / security docs complete and in English; MIT License
 
 > Stage breakdown and acceptance detail live in [planning/plan.md](./planning/plan.md) and [planning/epics/](./planning/epics/).
 
-| Stage | Goal | Deliverable |
-| ----- | ---- | ----------- |
-| M1 (Foundation) | Init Next.js / TS / Tailwind / Shadcn; i18n scaffold (EN+zh-CN); home; generate-page layout; mode-switch skeleton | Home + generate page reachable, base UI done |
-| M2 (Single loop) | Key input + sessionStorage; upload + EXIF strip; styles; mode-aware prompt builder; OpenAI + MiniMax adapters; `/api/generate` | Generate a single avatar with your own OpenAI **or** MiniMax key |
-| M3 (Playful modes) | `couple` paired generation; `themed` text-to-image; Dogs theme + breeds; team preset link | All three modes work; dog-themed team set reuses a preset |
-| M4 (Experience & security) | Error handling; download/regenerate; Clear Key; mode×input validation; timeout & rate limit; log redaction; mobile + a11y; core unit tests | Feature loop + test baseline done |
-| M5 (Open source & deploy) | README / deploy / providers / security docs; legal pages; Wrangler config; CI; deploy Workers + bind domain | Open-sourced on GitHub, demo reachable, docs guide self-host |
+| Stage                      | Goal                                                                                                                                       | Deliverable                                                      |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- |
+| M1 (Foundation)            | Init Next.js / TS / Tailwind / Shadcn; i18n scaffold (EN+zh-CN); home; generate-page layout; mode-switch skeleton                          | Home + generate page reachable, base UI done                     |
+| M2 (Single loop)           | Key input + sessionStorage; upload + EXIF strip; styles; mode-aware prompt builder; OpenAI + MiniMax adapters; `/api/generate`             | Generate a single avatar with your own OpenAI **or** MiniMax key |
+| M3 (Playful modes)         | `couple` paired generation; `themed` text-to-image; Dogs theme + breeds; team preset link                                                  | All three modes work; dog-themed team set reuses a preset        |
+| M4 (Experience & security) | Error handling; download/regenerate; Clear Key; mode×input validation; timeout & rate limit; log redaction; mobile + a11y; core unit tests | Feature loop + test baseline done                                |
+| M5 (Open source & deploy)  | README / deploy / providers / security docs; legal pages; Wrangler config; CI; deploy Workers + bind domain                                | Open-sourced on GitHub, demo reachable, docs guide self-host     |
 
 ---
 
@@ -728,14 +743,14 @@ README / deploy / providers / security docs complete and in English; MIT License
 
 ### 22.1 Risk register
 
-| Risk | Impact | Mitigation |
-| ---- | ------ | ---------- |
-| `gpt-image-1` / `image-01` face fidelity below expectation | Core experience | State "stylized, not photographic" in docs; offer styles and prompt tuning |
-| Generation time approaches host execution limits | Timeouts | Client compression, sensible timeout, plan-difference note (§10.3) |
-| Public demo abuse | Cost / availability | Turnstile + per-IP rate limiting (§12.4) |
-| Key passing through Worker raises trust concerns | Adoption | Explicit commitment boundary (§9); browser-direct mode in V1.1 |
-| Confusing MiniMax M3 (text) with image models | Wrong integration | Docs pin image models `image-01`/`image-01-live` and region base URLs (§8.1–8.2) |
-| Provider API / size changes | Broken flow | Provider abstraction; pin/validate model & size enums |
+| Risk                                                       | Impact              | Mitigation                                                                       |
+| ---------------------------------------------------------- | ------------------- | -------------------------------------------------------------------------------- |
+| `gpt-image-1` / `image-01` face fidelity below expectation | Core experience     | State "stylized, not photographic" in docs; offer styles and prompt tuning       |
+| Generation time approaches host execution limits           | Timeouts            | Client compression, sensible timeout, plan-difference note (§10.3)               |
+| Public demo abuse                                          | Cost / availability | Turnstile + per-IP rate limiting (§12.4)                                         |
+| Key passing through Worker raises trust concerns           | Adoption            | Explicit commitment boundary (§9); browser-direct mode in V1.1                   |
+| Confusing MiniMax M3 (text) with image models              | Wrong integration   | Docs pin image models `image-01`/`image-01-live` and region base URLs (§8.1–8.2) |
+| Provider API / size changes                                | Broken flow         | Provider abstraction; pin/validate model & size enums                            |
 
 ### 22.2 Open questions
 
@@ -748,17 +763,18 @@ README / deploy / providers / security docs complete and in English; MIT License
 
 ## 23. Decision log
 
-| ID | Decision | Rationale |
-| -- | -------- | --------- |
-| D1 | No signup in MVP | Lower complexity and barrier; better for open-source reach |
-| D2 | No monetization in MVP | Goal is to validate the product and attract developers |
-| D3 | No database in MVP | No accounts/history/subscription; BYOK needs no server-side key persistence |
-| D4 | Cloudflare Workers as the reference deployment (not core stack) | Convenient self-host target via OpenNext; the app stays host-agnostic |
-| D5 | MVP supports OpenAI **and** MiniMax | Validate the abstraction from day one; maintainer develops/tests against MiniMax `image-01` |
-| D6 | OpenAI uses `gpt-image-1` edits for image-to-image | Avatars are image-to-image; DALL·E 3 lacks edits (§8.1) |
-| D7 | Key via Worker proxy (Scheme B) | Avoid CORS, unify errors/rate limiting; hard "in-memory only, never persisted/logged" constraint (§9) |
-| D8 | Single `GenerationMode` abstraction | single/couple/themed share one provider/prompt/API; only input & assembly differ (§2.3) |
-| D9 | Themed mode is text-to-image, no upload | No personal photo needed; lowers privacy concern and barrier; uses generations endpoint (§8.1) |
-| D10 | Team preset via stateless URL encoding | Reuse without a database; preset never carries a key (§6.3) |
-| D11 | MiniMax is region-aware (Global vs China) | Separate base URLs and keys; UI must make region explicit (§8.2) |
-| D12 | Docs in English; app i18n EN + zh-CN, default English, locale auto-detected | Open-source audience is global; deployed app adapts to user origin (§13) |
+| ID  | Decision                                                                    | Rationale                                                                                             |
+| --- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| D1  | No signup in MVP                                                            | Lower complexity and barrier; better for open-source reach                                            |
+| D2  | No monetization in MVP                                                      | Goal is to validate the product and attract developers                                                |
+| D3  | No database in MVP                                                          | No accounts/history/subscription; BYOK needs no server-side key persistence                           |
+| D4  | Cloudflare Workers as the reference deployment (not core stack)             | Convenient self-host target via OpenNext; the app stays host-agnostic                                 |
+| D5  | MVP supports OpenAI **and** MiniMax                                         | Validate the abstraction from day one; maintainer develops/tests against MiniMax `image-01`           |
+| D6  | OpenAI uses `gpt-image-1` edits for image-to-image                          | Avatars are image-to-image; DALL·E 3 lacks edits (§8.1)                                               |
+| D7  | Key via Worker proxy (Scheme B)                                             | Avoid CORS, unify errors/rate limiting; hard "in-memory only, never persisted/logged" constraint (§9) |
+| D8  | Single `GenerationMode` abstraction                                         | single/couple/themed share one provider/prompt/API; only input & assembly differ (§2.3)               |
+| D9  | Themed mode is text-to-image, no upload                                     | No personal photo needed; lowers privacy concern and barrier; uses generations endpoint (§8.1)        |
+| D10 | Team preset via stateless URL encoding                                      | Reuse without a database; preset never carries a key (§6.3)                                           |
+| D11 | MiniMax is region-aware (Global vs China)                                   | Separate base URLs and keys; UI must make region explicit (§8.2)                                      |
+| D12 | Docs in English; app i18n EN + zh-CN, default English, locale auto-detected | Open-source audience is global; deployed app adapts to user origin (§13)                              |
+| D13 | Provider-neutral `AvatarIntent` compiles to provider-specific prompts       | Users express intent once; OpenAI and MiniMax receive wording tuned to their behavior (§7)            |

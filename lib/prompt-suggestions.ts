@@ -1,4 +1,6 @@
-import type { ProviderId } from "@/lib/constants";
+import type { GenerationMode, ProviderId } from "@/lib/constants";
+import type { AvatarGoal } from "@/lib/avatar-intent";
+import { getStyleCalibration } from "@/lib/provider-calibration";
 
 /**
  * A best-practice example prompt for text-to-avatar generation. The `text` is
@@ -8,8 +10,16 @@ import type { ProviderId } from "@/lib/constants";
  */
 export type PromptSuggestion = {
   id: string;
+  labelKey?: string;
   /** English prompt content the user can insert and edit. */
   text: string;
+};
+
+export type PromptSuggestionInput = {
+  provider: ProviderId;
+  mode?: GenerationMode;
+  styleId?: string;
+  goal?: AvatarGoal;
 };
 
 /**
@@ -57,7 +67,89 @@ export const PROMPT_SUGGESTIONS: Record<ProviderId, PromptSuggestion[]> = {
   ],
 };
 
+const GOAL_PROMPT_SUGGESTIONS: Record<
+  ProviderId,
+  Record<AvatarGoal, PromptSuggestion>
+> = {
+  openai: {
+    "professional-profile": {
+      id: "goal-professional-profile",
+      labelKey: "goal-professional-profile",
+      text: "A polished professional profile avatar with a confident warm expression, realistic studio lighting, clean background, trustworthy and approachable",
+    },
+    "social-avatar": {
+      id: "goal-social-avatar",
+      labelKey: "goal-social-avatar",
+      text: "A memorable social avatar with a friendly expression, bright balanced colors, simple background, expressive but natural portrait composition",
+    },
+    "team-character": {
+      id: "goal-team-character",
+      labelKey: "goal-team-character",
+      text: "A cohesive team character avatar with warm expression, clean shared visual style, simple background, playful but professional energy",
+    },
+    character: {
+      id: "goal-character",
+      labelKey: "goal-character",
+      text: "A distinctive character avatar with cinematic mood, one signature accessory, readable silhouette, expressive face, high-quality portrait detail",
+    },
+  },
+  minimax: {
+    "professional-profile": {
+      id: "goal-professional-profile",
+      labelKey: "goal-professional-profile",
+      text: "professional profile avatar, confident warm expression, realistic studio lighting, clean background, trustworthy, approachable",
+    },
+    "social-avatar": {
+      id: "goal-social-avatar",
+      labelKey: "goal-social-avatar",
+      text: "social avatar, friendly expression, bright balanced colors, simple background, expressive natural portrait",
+    },
+    "team-character": {
+      id: "goal-team-character",
+      labelKey: "goal-team-character",
+      text: "team character avatar, cohesive visual style, warm expression, simple background, playful professional energy",
+    },
+    character: {
+      id: "goal-character",
+      labelKey: "goal-character",
+      text: "character avatar, cinematic mood, signature accessory, readable silhouette, expressive face, high detail",
+    },
+  },
+};
+
 /** Return the starter prompts tuned for the given provider. */
-export function getPromptSuggestions(provider: ProviderId): PromptSuggestion[] {
-  return PROMPT_SUGGESTIONS[provider] ?? [];
+export function getPromptSuggestions(
+  input: ProviderId | PromptSuggestionInput,
+): PromptSuggestion[] {
+  const provider = typeof input === "string" ? input : input.provider;
+  const goal = typeof input === "string" ? undefined : input.goal;
+  const styleId = typeof input === "string" ? undefined : input.styleId;
+  const mode = typeof input === "string" ? undefined : input.mode;
+  const base = PROMPT_SUGGESTIONS[provider] ?? [];
+  const goalSuggestion = goal
+    ? GOAL_PROMPT_SUGGESTIONS[provider][goal]
+    : undefined;
+  const calibration = getStyleCalibration(provider, styleId);
+  const styleSuggestion = calibration
+    ? {
+        id: `style-${calibration.styleId}`,
+        labelKey: "selected-style",
+        text:
+          provider === "openai"
+            ? `Use this calibrated style direction: ${calibration.promptFragment}. ${calibration.recoveryHint}`
+            : `${calibration.promptFragment}, ${calibration.recoveryHint}`,
+      }
+    : undefined;
+
+  if (!goalSuggestion && !styleSuggestion) return base;
+
+  return [
+    goalSuggestion,
+    styleSuggestion,
+    ...base.filter((suggestion) =>
+      mode === "themed" ? suggestion.id !== "outdoor-natural" : true,
+    ),
+  ]
+    .filter((suggestion): suggestion is PromptSuggestion => Boolean(suggestion))
+    .slice(0, 4);
 }

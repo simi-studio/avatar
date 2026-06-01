@@ -6,15 +6,17 @@ Simi Avatar is an open-source, **BYOK (Bring Your Own API Key)** AI avatar gener
 
 ## Features
 
-| Source | Mode | Upload | What it does |
-| ------ | ---- | ------ | ------------ |
-| **Text to avatar** *(default)* | **Describe** | none | Pick a style + short description and generate — no photo needed |
-| **Text to avatar** | **Themed** | none | Generate from a prompt only — e.g. **dog-themed team avatars** |
-| **From a photo** | **Single** | 1 photo | Restyle your photo into an avatar (10 built-in styles) |
-| **From a photo** | **Couple** | 2 photos | Generate a style-consistent paired set for two people |
+| Source                         | Mode         | Upload   | What it does                                                    |
+| ------------------------------ | ------------ | -------- | --------------------------------------------------------------- |
+| **Text to avatar** _(default)_ | **Describe** | none     | Pick a style + short description and generate — no photo needed |
+| **Text to avatar**             | **Themed**   | none     | Generate from a prompt only — e.g. **dog-themed team avatars**  |
+| **From a photo**               | **Single**   | 1 photo  | Restyle your photo into an avatar (10 built-in styles)          |
+| **From a photo**               | **Couple**   | 2 photos | Generate a style-consistent paired set for two people           |
 
 - 🔑 **BYOK** — use your own OpenAI or MiniMax API key; nothing is stored
 - ✍️ **Text-to-avatar** — start from a style + description, no upload required
+- 🎯 **Intent-first controls** — choose goal, likeness, creativity, composition, background, palette, accessories, and avoid-list
+- 🔁 **One-click refinement** — try closer likeness, more realistic, cuter, cleaner background, or another variation
 - 🐶 **Themed team avatars** — pick a breed per teammate, share a stateless team preset link
 - 🌗 **Dark / light theme** — system-aware toggle
 - 🛡️ **Privacy-first** — keys live in `sessionStorage`; never written to any database or log
@@ -24,10 +26,10 @@ Simi Avatar is an open-source, **BYOK (Bring Your Own API Key)** AI avatar gener
 
 ## Supported providers (MVP)
 
-| Provider | Models | Notes |
-| -------- | ------ | ----- |
-| OpenAI | `gpt-image-1` | image-to-image (edits) + text-to-image (generations) |
-| MiniMax | `image-01`, `image-01-live` | Region-aware: **Global** (`api.minimax.io`) or **China** (`api.minimaxi.com`) |
+| Provider | Models                      | Notes                                                                         |
+| -------- | --------------------------- | ----------------------------------------------------------------------------- |
+| OpenAI   | `gpt-image-1`               | image-to-image (edits) + text-to-image (generations)                          |
+| MiniMax  | `image-01`, `image-01-live` | Region-aware: **Global** (`api.minimax.io`) or **China** (`api.minimaxi.com`) |
 
 > Note: MiniMax **M3 is a text/coding model** — avatar generation uses MiniMax's **image** models (`image-01`). Pick your MiniMax region in the provider selector; keys are not interchangeable between regions.
 
@@ -66,16 +68,17 @@ Your image and API key are used **only** for the current generation request. Sim
 
 ## Documentation
 
-| Doc | Purpose |
-| --- | ------- |
-| [docs/prd.md](./docs/prd.md) | Product requirements |
-| [docs/architecture.md](./docs/architecture.md) | Architecture & data flow |
-| [docs/providers.md](./docs/providers.md) | Provider interface & how to add one |
-| [docs/security.md](./docs/security.md) | Security & privacy model |
-| [docs/cloudflare-deploy.md](./docs/cloudflare-deploy.md) | Deployment guide |
-| [docs/agent-workflow.md](./docs/agent-workflow.md) | Shared AI-agent workflow for Codex CLI, Claude Code, and GitHub Copilot |
-| [docs/planning/plan.md](./docs/planning/plan.md) | Roadmap & milestones |
-| [docs/README.md](./docs/README.md) | Doc map |
+| Doc                                                            | Purpose                                                                 |
+| -------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| [docs/prd.md](./docs/prd.md)                                   | Product requirements                                                    |
+| [docs/architecture.md](./docs/architecture.md)                 | Architecture & data flow                                                |
+| [docs/providers.md](./docs/providers.md)                       | Provider interface & how to add one                                     |
+| [docs/provider-calibration.md](./docs/provider-calibration.md) | Provider/style prompt calibration matrix                                |
+| [docs/security.md](./docs/security.md)                         | Security & privacy model                                                |
+| [docs/cloudflare-deploy.md](./docs/cloudflare-deploy.md)       | Deployment guide                                                        |
+| [docs/agent-workflow.md](./docs/agent-workflow.md)             | Shared AI-agent workflow for Codex CLI, Claude Code, and GitHub Copilot |
+| [docs/planning/plan.md](./docs/planning/plan.md)               | Roadmap & milestones                                                    |
+| [docs/README.md](./docs/README.md)                             | Doc map                                                                 |
 
 ## Contributing
 

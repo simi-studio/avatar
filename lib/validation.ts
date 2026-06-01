@@ -1,5 +1,6 @@
 import {
   ACCEPTED_IMAGE_TYPES,
+  GENERATION_MODES,
   IMAGE_SIZES,
   MAX_IMAGE_BYTES,
   MINIMAX_REGIONS,
@@ -23,6 +24,10 @@ export function isValidSize(size: string): size is ImageSize {
 
 export function isValidProvider(value: string): value is ProviderId {
   return (PROVIDERS as readonly string[]).includes(value);
+}
+
+export function isValidMode(value: string): value is GenerationMode {
+  return (GENERATION_MODES as readonly string[]).includes(value);
 }
 
 export function isValidRegion(value: string): value is MiniMaxRegion {

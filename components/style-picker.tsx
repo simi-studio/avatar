@@ -28,13 +28,24 @@ export function StylePicker({
               aria-pressed={selected}
               onClick={() => onChange(style.id)}
               className={cn(
-                "rounded-lg border px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "flex flex-col gap-2 overflow-hidden rounded-lg border p-2 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 selected
                   ? "border-primary bg-accent text-accent-foreground"
                   : "hover:border-primary/60",
               )}
             >
-              {t(style.id)}
+              {style.thumbnail && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={style.thumbnail}
+                  alt=""
+                  aria-hidden
+                  className="aspect-square w-full rounded-md border object-cover"
+                />
+              )}
+              <span className="text-center text-xs font-medium sm:text-sm">
+                {t(style.id)}
+              </span>
             </button>
           );
         })}

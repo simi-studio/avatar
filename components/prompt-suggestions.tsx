@@ -2,7 +2,8 @@
 
 import { useTranslations } from "next-intl";
 
-import type { ProviderId } from "@/lib/constants";
+import type { GenerationMode, ProviderId } from "@/lib/constants";
+import type { AvatarGoal } from "@/lib/avatar-intent";
 import { getPromptSuggestions } from "@/lib/prompt-suggestions";
 import { cn } from "@/lib/utils";
 
@@ -12,15 +13,21 @@ import { cn } from "@/lib/utils";
  */
 export function PromptSuggestions({
   provider,
+  mode,
+  styleId,
+  goal,
   onSelect,
   className,
 }: {
   provider: ProviderId;
+  mode?: GenerationMode;
+  styleId?: string;
+  goal?: AvatarGoal;
   onSelect: (text: string) => void;
   className?: string;
 }) {
   const t = useTranslations("Suggestions");
-  const suggestions = getPromptSuggestions(provider);
+  const suggestions = getPromptSuggestions({ provider, mode, styleId, goal });
 
   if (suggestions.length === 0) return null;
 
@@ -38,7 +45,7 @@ export function PromptSuggestions({
             title={suggestion.text}
             className="rounded-full border px-3 py-1 text-xs text-muted-foreground transition-colors hover:border-primary/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            {t(suggestion.id)}
+            {t(suggestion.labelKey ?? suggestion.id)}
           </button>
         ))}
       </div>

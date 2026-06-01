@@ -26,7 +26,10 @@ type OpenAIErrorBody = {
 };
 
 /** Map an OpenAI HTTP status + error body to a normalized error code. */
-export function mapOpenAIError(status: number, body: OpenAIErrorBody): ErrorCode {
+export function mapOpenAIError(
+  status: number,
+  body: OpenAIErrorBody,
+): ErrorCode {
   const code = body.error?.code ?? "";
   const type = body.error?.type ?? "";
 

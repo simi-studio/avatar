@@ -2,22 +2,22 @@
 
 > Product roadmap and milestones. Upstream: [prd.md](../prd.md). Epics: [epics/](./epics/).
 
-| Field | Value |
-| ----- | ----- |
-| Status | MVP code complete (M1–M5 implemented; Cloudflare deploy pending) |
-| Scope | MVP (M1–M5) |
-| Providers (MVP) | OpenAI + MiniMax |
-| Languages (MVP) | English (default) + Simplified Chinese |
+| Field           | Value                                                            |
+| --------------- | ---------------------------------------------------------------- |
+| Status          | MVP code complete (M1–M5 implemented; Cloudflare deploy pending) |
+| Scope           | MVP (M1–M5)                                                      |
+| Providers (MVP) | OpenAI + MiniMax                                                 |
+| Languages (MVP) | English (default) + Simplified Chinese                           |
 
 ## Milestones
 
-| Milestone | Goal | Epic |
-| --------- | ---- | ---- |
-| M1 | Project foundation, i18n scaffold, home + generate layout | [epic-1.1](./epics/epic-1.1-foundation.md) |
-| M2 | Single-mode closed loop (OpenAI + MiniMax) | [epic-2.1](./epics/epic-2.1-single-mode.md) |
-| M3 | Couple + themed + team preset | [epic-3.1](./epics/epic-3.1-couple-and-themed.md) |
-| M4 | Experience, security & quality | [epic-4.1](./epics/epic-4.1-experience-and-security.md) |
-| M5 | Open source, docs & deployment | [epic-5.1](./epics/epic-5.1-open-source-and-deploy.md) |
+| Milestone | Goal                                                      | Epic                                                    |
+| --------- | --------------------------------------------------------- | ------------------------------------------------------- |
+| M1        | Project foundation, i18n scaffold, home + generate layout | [epic-1.1](./epics/epic-1.1-foundation.md)              |
+| M2        | Single-mode closed loop (OpenAI + MiniMax)                | [epic-2.1](./epics/epic-2.1-single-mode.md)             |
+| M3        | Couple + themed + team preset                             | [epic-3.1](./epics/epic-3.1-couple-and-themed.md)       |
+| M4        | Experience, security & quality                            | [epic-4.1](./epics/epic-4.1-experience-and-security.md) |
+| M5        | Open source, docs & deployment                            | [epic-5.1](./epics/epic-5.1-open-source-and-deploy.md)  |
 
 ## Stage goals
 
@@ -56,3 +56,14 @@ Shipped after the original M1–M5 scope, all gated by the same lint/typecheck/t
 - [x] **Makefile task runner**: `make help/check/qa/deploy/deploy-prod` wrappers over the npm scripts.
 - [x] **Production deploy config**: gitignored `wrangler.prod.jsonc` (+ committed `.example`) for binding a custom domain without leaking production-private details into the open-source repo.
 
+## Intent-first generation (M7)
+
+Shipped from the Recommended Next 10 queue, preserving BYOK/no-login/no-database constraints:
+
+- [x] **AvatarIntent model**: canonical intent fields for goal, style/theme, likeness, creativity, composition, background, palette, mood, accessories, avoid-list, paired consistency, and variation.
+- [x] **Provider-specific prompt compiler**: one intent compiles into OpenAI natural-language prompts and MiniMax concise descriptor prompts, with modeled request options.
+- [x] **Goal-first presets**: professional profile, social avatar, team character, and character presets fill editable intent controls.
+- [x] **Direct controls**: likeness/creativity, composition/background, palette/mood/accessories/avoid-list in the generate page.
+- [x] **One-click refinement**: closer likeness, more realistic, cuter, cleaner background, and try variation from the result view.
+- [x] **Calibration matrix**: provider/style prompt fragments, known bias, recovery hints, and tests for every built-in style/provider pair.
+- [x] **Preview assets**: self-owned SVG previews for every built-in style, theme, and theme variant.

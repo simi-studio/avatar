@@ -1,18 +1,11 @@
 /** Shared, non-sensitive constants for Simi Avatar. */
 
-export const APP_NAME =
-  process.env.NEXT_PUBLIC_APP_NAME ?? "Simi Avatar";
+export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? "Simi Avatar";
 
 export const GITHUB_URL =
-  process.env.NEXT_PUBLIC_GITHUB_URL ??
-  "https://github.com/simi-studio/avatar";
+  process.env.NEXT_PUBLIC_GITHUB_URL ?? "https://github.com/simi-studio/avatar";
 
-export const GENERATION_MODES = [
-  "text",
-  "themed",
-  "single",
-  "couple",
-] as const;
+export const GENERATION_MODES = ["text", "themed", "single", "couple"] as const;
 export type GenerationMode = (typeof GENERATION_MODES)[number];
 
 /**

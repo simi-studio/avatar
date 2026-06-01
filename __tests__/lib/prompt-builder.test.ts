@@ -12,7 +12,7 @@ describe("buildPrompt", () => {
       userPrompt: "a friendly portrait with a warm smile",
     });
     expect(prompt).toContain("a friendly portrait with a warm smile");
-    expect(prompt).toContain("Anime");
+    expect(prompt).toContain("anime avatar");
     expect(prompt).not.toContain("facial features");
   });
 
@@ -30,8 +30,8 @@ describe("buildPrompt", () => {
       style: getStyleById("anime"),
       userPrompt: "blue background",
     });
-    expect(prompt).toContain("Anime");
-    expect(prompt).toContain("Keep the person's main facial features");
+    expect(prompt).toContain("anime avatar");
+    expect(prompt).toContain("Preserve facial identity closely");
     expect(prompt).toContain("blue background");
   });
 
@@ -40,7 +40,7 @@ describe("buildPrompt", () => {
     const a = buildPrompt({ mode: "couple", style, userPrompt: "park" });
     const b = buildPrompt({ mode: "couple", style, userPrompt: "park" });
     expect(a).toBe(b);
-    expect(a).toContain("Pixar 3D");
+    expect(a).toContain("3D animated character");
   });
 
   it("adds a paired-consistency fragment only for couple mode when enabled", () => {
@@ -55,8 +55,8 @@ describe("buildPrompt", () => {
       style,
       pairedConsistency: false,
     });
-    expect(consistent).toContain("cohesive set");
-    expect(independent).not.toContain("cohesive set");
+    expect(consistent).toContain("consistent across both avatars");
+    expect(independent).not.toContain("consistent across both avatars");
 
     // The flag is ignored outside couple mode.
     const single = buildPrompt({
@@ -64,7 +64,7 @@ describe("buildPrompt", () => {
       style,
       pairedConsistency: true,
     });
-    expect(single).not.toContain("cohesive set");
+    expect(single).not.toContain("consistent across both avatars");
   });
 
   it("builds a themed prompt with theme base + variant fragment and no face reference", () => {

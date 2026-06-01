@@ -34,13 +34,24 @@ export function ThemePicker({
                 aria-pressed={selected}
                 onClick={() => onThemeChange(option.id)}
                 className={cn(
-                  "rounded-lg border px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "flex flex-col gap-2 overflow-hidden rounded-lg border p-2 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   selected
                     ? "border-primary bg-accent text-accent-foreground"
                     : "hover:border-primary/60",
                 )}
               >
-                {t(option.id)}
+                {option.thumbnail && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={option.thumbnail}
+                    alt=""
+                    aria-hidden
+                    className="aspect-square w-full rounded-md border object-cover"
+                  />
+                )}
+                <span className="text-center text-xs font-medium sm:text-sm">
+                  {t(option.id)}
+                </span>
               </button>
             );
           })}
@@ -59,13 +70,24 @@ export function ThemePicker({
                 aria-pressed={selected}
                 onClick={() => onVariantChange(variant.id)}
                 className={cn(
-                  "rounded-lg border px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "flex flex-col gap-2 overflow-hidden rounded-lg border p-2 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   selected
                     ? "border-primary bg-accent text-accent-foreground"
                     : "hover:border-primary/60",
                 )}
               >
-                {t(variant.id)}
+                {variant.thumbnail && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={variant.thumbnail}
+                    alt=""
+                    aria-hidden
+                    className="aspect-square w-full rounded-md border object-cover"
+                  />
+                )}
+                <span className="text-center text-xs font-medium sm:text-sm">
+                  {t(variant.id)}
+                </span>
               </button>
             );
           })}

@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 import type {
   ErrorCode,
   GenerateResponse,
-  GenerationMode,
   ImageSize,
   MiniMaxRegion,
   ProviderId,
@@ -11,7 +10,12 @@ import type {
 import { ProviderError } from "@/lib/types";
 import { DEFAULT_IMAGE_SIZE } from "@/lib/constants";
 import { getProvider } from "@/lib/providers";
-import { buildPrompt } from "@/lib/prompt-builder";
+import {
+  createAvatarIntent,
+  normalizeAvatarIntent,
+  parseAvatarIntentJson,
+} from "@/lib/avatar-intent";
+import { compileAvatarPrompt } from "@/lib/prompt-compiler";
 import {
   checkRateLimit,
   clientIdentifier,
@@ -22,6 +26,7 @@ import { getStyleById } from "@/styles/avatar-styles";
 import { getThemeById, getVariant } from "@/styles/avatar-themes";
 import {
   isValidSize,
+  isValidMode,
   validateImageFile,
   validateModeInput,
   validateProviderRegion,
@@ -57,7 +62,7 @@ type ParsedRequest = {
   provider: string;
   region?: string;
   apiKey: string;
-  mode: GenerationMode;
+  mode: string;
   images: File[];
   styleId?: string;
   themeId?: string;
@@ -65,6 +70,8 @@ type ParsedRequest = {
   userPrompt?: string;
   pairedConsistency?: boolean;
   size: string;
+  intentRaw?: unknown;
+  intentJson?: string;
 };
 
 async function parseRequest(req: Request): Promise<ParsedRequest | null> {
@@ -76,7 +83,7 @@ async function parseRequest(req: Request): Promise<ParsedRequest | null> {
       provider: String(body.provider ?? ""),
       region: body.region ? String(body.region) : undefined,
       apiKey: String(body.apiKey ?? ""),
-      mode: String(body.mode ?? "") as GenerationMode,
+      mode: String(body.mode ?? ""),
       images: [],
       styleId: body.styleId ? String(body.styleId) : undefined,
       themeId: body.themeId ? String(body.themeId) : undefined,
@@ -84,6 +91,7 @@ async function parseRequest(req: Request): Promise<ParsedRequest | null> {
       userPrompt: body.userPrompt ? String(body.userPrompt) : undefined,
       pairedConsistency: body.pairedConsistency === true,
       size: String(body.size ?? DEFAULT_IMAGE_SIZE),
+      intentRaw: body.intent,
     };
   }
 
@@ -100,7 +108,7 @@ async function parseRequest(req: Request): Promise<ParsedRequest | null> {
       provider: get("provider") ?? "",
       region: get("region"),
       apiKey: get("apiKey") ?? "",
-      mode: (get("mode") ?? "") as GenerationMode,
+      mode: get("mode") ?? "",
       images,
       styleId: get("styleId"),
       themeId: get("themeId"),
@@ -108,13 +116,16 @@ async function parseRequest(req: Request): Promise<ParsedRequest | null> {
       userPrompt: get("userPrompt"),
       pairedConsistency: get("pairedConsistency") === "true",
       size: get("size") ?? DEFAULT_IMAGE_SIZE,
+      intentJson: get("intent"),
     };
   }
 
   return null;
 }
 
-export async function POST(req: Request): Promise<NextResponse<GenerateResponse>> {
+export async function POST(
+  req: Request,
+): Promise<NextResponse<GenerateResponse>> {
   const limit = configuredLimit();
   if (limit > 0) {
     const { allowed, retryAfterSeconds } = checkRateLimit(
@@ -139,6 +150,8 @@ export async function POST(req: Request): Promise<NextResponse<GenerateResponse>
     return errorResponse("INVALID_MODE_INPUT");
   }
 
+  if (!isValidMode(parsed.mode)) return errorResponse("INVALID_MODE_INPUT");
+
   const regionError = validateProviderRegion(parsed.provider, parsed.region);
   if (regionError) return errorResponse(regionError);
 
@@ -151,37 +164,53 @@ export async function POST(req: Request): Promise<NextResponse<GenerateResponse>
     if (imageError) return errorResponse(imageError);
   }
 
-  const modeError = validateModeInput({
+  const fallbackIntent = createAvatarIntent({
     mode: parsed.mode,
-    imageCount: parsed.images.length,
     styleId: parsed.styleId,
     themeId: parsed.themeId,
     variantId: parsed.variantId,
+    subjectDescription: parsed.userPrompt,
+    pairedConsistency: parsed.pairedConsistency,
+    size: parsed.size as ImageSize,
+  });
+  const intent = parsed.intentRaw
+    ? normalizeAvatarIntent(parsed.intentRaw, fallbackIntent)
+    : parseAvatarIntentJson(parsed.intentJson, fallbackIntent);
+
+  const modeError = validateModeInput({
+    mode: intent.mode,
+    imageCount: parsed.images.length,
+    styleId: intent.styleId,
+    themeId: intent.themeId,
+    variantId: intent.variantId,
   });
   if (modeError) return errorResponse(modeError);
 
-  const prompt = buildPrompt({
-    mode: parsed.mode,
-    style: getStyleById(parsed.styleId),
-    theme: getThemeById(parsed.themeId),
-    variant: getVariant(parsed.themeId, parsed.variantId),
-    userPrompt: parsed.userPrompt,
-    pairedConsistency: parsed.pairedConsistency,
-  });
-
   const provider = getProvider(parsed.provider as ProviderId);
+  const style = getStyleById(intent.styleId);
+  const theme = getThemeById(intent.themeId);
+  const variant = getVariant(intent.themeId, intent.variantId);
+  const compiled = compileAvatarPrompt({
+    provider: parsed.provider as ProviderId,
+    intent,
+    style,
+    theme,
+    variant,
+  });
 
   try {
     const images = await provider.generateAvatar({
       apiKey: parsed.apiKey,
       region: parsed.region as MiniMaxRegion | undefined,
-      mode: parsed.mode,
+      mode: intent.mode,
       images: parsed.images,
-      prompt,
-      styleId: parsed.styleId,
-      themeId: parsed.themeId,
-      variantId: parsed.variantId,
-      size: parsed.size as ImageSize,
+      prompt: compiled.prompt,
+      negativePrompt: compiled.negativePrompt,
+      referenceStrength: compiled.referenceStrength,
+      styleId: intent.styleId,
+      themeId: intent.themeId,
+      variantId: intent.variantId,
+      size: intent.size,
     });
     return NextResponse.json({ success: true, images });
   } catch (error) {

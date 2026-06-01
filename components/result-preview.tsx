@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { Download, Loader2, AlertCircle } from "lucide-react";
 
 import type { ErrorCode, GeneratedImage } from "@/lib/types";
+import { REFINEMENT_ACTIONS, type RefinementAction } from "@/lib/avatar-intent";
 import { Button } from "@/components/ui/button";
 
 export type GenerationStatus =
@@ -30,19 +31,28 @@ export function ResultPreview({
   status,
   images,
   errorCode,
+  onRefine,
+  refinementDisabled = false,
 }: {
   status: GenerationStatus;
   images: GeneratedImage[];
   errorCode: ErrorCode | null;
+  onRefine?: (action: RefinementAction) => void;
+  refinementDisabled?: boolean;
 }) {
   const t = useTranslations("Generate");
   const tr = useTranslations("Result");
   const tErr = useTranslations("Errors");
+  const tRefine = useTranslations("Refinement");
 
   function download(image: GeneratedImage, index: number) {
     const link = document.createElement("a");
     link.href = imageSrc(image);
-    const suffix = image.label ? `-${image.label}` : index > 0 ? `-${index}` : "";
+    const suffix = image.label
+      ? `-${image.label}`
+      : index > 0
+        ? `-${index}`
+        : "";
     link.download = `simi-avatar${suffix}.${extensionFor(image.mimeType)}`;
     document.body.appendChild(link);
     link.click();
@@ -102,6 +112,30 @@ export function ResultPreview({
             </figure>
           ))}
         </div>
+        {onRefine && (
+          <div className="flex flex-col gap-2 border-t pt-4">
+            <span className="text-xs font-medium text-muted-foreground">
+              {tRefine("label")}
+            </span>
+            <div className="flex flex-wrap gap-2">
+              {REFINEMENT_ACTIONS.map((action) => (
+                <Button
+                  key={action}
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={refinementDisabled}
+                  onClick={() => onRefine(action)}
+                >
+                  {tRefine(action)}
+                </Button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {tRefine("costNote")}
+            </p>
+          </div>
+        )}
       </div>
     );
   }

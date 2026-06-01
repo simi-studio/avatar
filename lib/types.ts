@@ -54,6 +54,7 @@ export type AvatarTheme = {
   id: string;
   name: string;
   basePrompt: string;
+  thumbnail?: string;
   variants: AvatarVariant[];
 };
 
@@ -64,6 +65,8 @@ export type ProviderGenerateInput = {
   mode: GenerationMode;
   images?: File[];
   prompt: string;
+  negativePrompt?: string;
+  referenceStrength?: number;
   styleId?: string;
   themeId?: string;
   variantId?: string;

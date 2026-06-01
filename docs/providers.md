@@ -15,17 +15,19 @@ type GeneratedImage = {
 };
 
 interface ImageProvider {
-  id: string;            // "openai" | "minimax"
+  id: string; // "openai" | "minimax"
   name: string;
   supportedModes: GenerationMode[];
   /** Region-specific base URL (e.g. MiniMax global vs china). */
   resolveBaseUrl?(region?: string): string;
   generateAvatar(input: {
     apiKey: string;
-    region?: string;     // "global" | "china" (MiniMax)
+    region?: string; // "global" | "china" (MiniMax)
     mode: GenerationMode;
-    images?: File[];     // text:0 single:1 couple:2 themed:0
+    images?: File[]; // text:0 single:1 couple:2 themed:0
     prompt: string;
+    negativePrompt?: string;
+    referenceStrength?: number;
     styleId?: string;
     themeId?: string;
     variantId?: string;
@@ -38,10 +40,10 @@ interface ImageProvider {
 
 ### OpenAI
 
-| Mode | Endpoint | Model |
-| ---- | -------- | ----- |
-| single / couple | `POST /v1/images/edits` (image-to-image) | `gpt-image-1` |
-| themed | `POST /v1/images/generations` (text-to-image) | `gpt-image-1` |
+| Mode            | Endpoint                                      | Model         |
+| --------------- | --------------------------------------------- | ------------- |
+| text / themed   | `POST /v1/images/generations` (text-to-image) | `gpt-image-1` |
+| single / couple | `POST /v1/images/edits` (image-to-image)      | `gpt-image-1` |
 
 - Base URL: `https://api.openai.com`
 - Auth: `Authorization: Bearer <apiKey>`
@@ -54,15 +56,15 @@ interface ImageProvider {
 
 MiniMax runs two independent platforms. **Keys are not interchangeable across regions.** The UI must surface a region switch.
 
-| Region | Base URL | Console |
-| ------ | -------- | ------- |
-| Global | `https://api.minimax.io` | platform.minimax.io |
-| China | `https://api.minimaxi.com` | platform.minimaxi.com |
+| Region | Base URL                   | Console               |
+| ------ | -------------------------- | --------------------- |
+| Global | `https://api.minimax.io`   | platform.minimax.io   |
+| China  | `https://api.minimaxi.com` | platform.minimaxi.com |
 
-| Mode | Endpoint | Notes |
-| ---- | -------- | ----- |
+| Mode            | Endpoint                                                   | Notes                                                 |
+| --------------- | ---------------------------------------------------------- | ----------------------------------------------------- |
+| text / themed   | `POST {baseUrl}/v1/image_generation` (prompt only)         | No reference image                                    |
 | single / couple | `POST {baseUrl}/v1/image_generation` + `subject_reference` | Pass the source face/subject as a character reference |
-| themed | `POST {baseUrl}/v1/image_generation` (prompt only) | No reference image |
 
 - Auth: `Authorization: Bearer <apiKey>`
 - Model: `image-01` (default) or `image-01-live`
@@ -78,10 +80,14 @@ const MINIMAX_BASE = {
 } as const;
 
 function resolveBaseUrl(region: string = "global") {
-  return MINIMAX_BASE[region as keyof typeof MINIMAX_BASE] ?? MINIMAX_BASE.global;
+  return (
+    MINIMAX_BASE[region as keyof typeof MINIMAX_BASE] ?? MINIMAX_BASE.global
+  );
 }
 
-async function minimaxGenerate(input: /* ... */ any): Promise<GeneratedImage[]> {
+async function minimaxGenerate(
+  input: /* ... */ any,
+): Promise<GeneratedImage[]> {
   const baseUrl = resolveBaseUrl(input.region);
   const body: Record<string, unknown> = {
     model: "image-01",
@@ -90,7 +96,9 @@ async function minimaxGenerate(input: /* ... */ any): Promise<GeneratedImage[]> 
     response_format: "base64",
   };
   if (input.mode !== "themed" && input.images?.length) {
-    body.subject_reference = [/* character ref built from input.images */];
+    body.subject_reference = [
+      /* character ref built from input.images */
+    ];
   }
   const res = await fetch(`${baseUrl}/v1/image_generation`, {
     method: "POST",
@@ -106,6 +114,16 @@ async function minimaxGenerate(input: /* ... */ any): Promise<GeneratedImage[]> 
 
 > For `couple`, call the endpoint twice with the same prompt/style — once per person — and label the results `A` / `B`.
 
+## Prompt compilation and calibration
+
+The UI captures a provider-neutral `AvatarIntent` instead of treating the visible text box as the final provider prompt. The server compiles that intent through:
+
+- `lib/avatar-intent.ts` for canonical fields, goal presets, and refinement actions.
+- `lib/prompt-compiler.ts` for provider-specific prompt wording and safe request options.
+- `lib/provider-calibration.ts` for per-provider/per-style fragments, known bias, and recovery hints.
+
+OpenAI receives richer natural-language prompts; MiniMax receives concise comma-separated descriptors. Current providers use soft avoid-list text rather than speculative native negative-prompt parameters. See [provider-calibration.md](./provider-calibration.md).
+
 ## Adding a new provider
 
 1. Create `lib/providers/<id>.ts` implementing `ImageProvider`.
@@ -118,19 +136,19 @@ async function minimaxGenerate(input: /* ... */ any): Promise<GeneratedImage[]> 
 
 ## Normalized error model
 
-| Code | Meaning |
-| ---- | ------- |
-| `INVALID_API_KEY` | Auth failed / malformed key |
-| `INSUFFICIENT_CREDITS` | Quota/balance exhausted |
-| `INVALID_IMAGE` | Unreadable/invalid image |
-| `IMAGE_TOO_LARGE` | Exceeds body/size limit |
-| `UNSUPPORTED_FILE_TYPE` | Not JPG/PNG/WEBP |
-| `INVALID_MODE_INPUT` | Mode/input mismatch (e.g. couple with 1 image) |
-| `INVALID_REGION` | Key/region/base-url mismatch (MiniMax) |
-| `PROVIDER_TIMEOUT` | Upstream timed out |
-| `CONTENT_REJECTED` | Blocked by provider content policy |
-| `RATE_LIMITED` | Throttled |
-| `UNKNOWN_ERROR` | Unmapped failure |
+| Code                    | Meaning                                        |
+| ----------------------- | ---------------------------------------------- |
+| `INVALID_API_KEY`       | Auth failed / malformed key                    |
+| `INSUFFICIENT_CREDITS`  | Quota/balance exhausted                        |
+| `INVALID_IMAGE`         | Unreadable/invalid image                       |
+| `IMAGE_TOO_LARGE`       | Exceeds body/size limit                        |
+| `UNSUPPORTED_FILE_TYPE` | Not JPG/PNG/WEBP                               |
+| `INVALID_MODE_INPUT`    | Mode/input mismatch (e.g. couple with 1 image) |
+| `INVALID_REGION`        | Key/region/base-url mismatch (MiniMax)         |
+| `PROVIDER_TIMEOUT`      | Upstream timed out                             |
+| `CONTENT_REJECTED`      | Blocked by provider content policy             |
+| `RATE_LIMITED`          | Throttled                                      |
+| `UNKNOWN_ERROR`         | Unmapped failure                               |
 
 ## Planned providers (V1.1)
 

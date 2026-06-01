@@ -21,6 +21,18 @@ import {
 import type { GeneratedImage, GenerateResponse } from "@/lib/types";
 import { useSessionApiKey } from "@/lib/use-session-key";
 import { decodePreset, type TeamPreset } from "@/lib/preset";
+import {
+  GOAL_PRESETS,
+  applyGoalPreset,
+  applyRefinementAction,
+  createAvatarIntent,
+  type AvatarBackground,
+  type AvatarComposition,
+  type AvatarGoal,
+  type AvatarIntent,
+  type IntentLevel,
+  type RefinementAction,
+} from "@/lib/avatar-intent";
 import { AVATAR_STYLES } from "@/styles/avatar-styles";
 import { AVATAR_THEMES } from "@/styles/avatar-themes";
 import { Button } from "@/components/ui/button";
@@ -28,6 +40,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  IntentControls,
+  type IntentControlValue,
+} from "@/components/intent-controls";
 import { SourceSelector } from "@/components/source-selector";
 import { ModeSelector } from "@/components/mode-selector";
 import { ProviderSelector } from "@/components/provider-selector";
@@ -36,14 +52,14 @@ import { StylePicker } from "@/components/style-picker";
 import { ThemePicker } from "@/components/theme-picker";
 import { PromptSuggestions } from "@/components/prompt-suggestions";
 import { TeamPresetShare } from "@/components/team-preset-share";
-import {
-  ImageUploader,
-  type UploadedImage,
-} from "@/components/image-uploader";
+import { ImageUploader, type UploadedImage } from "@/components/image-uploader";
 import {
   ResultPreview,
   type GenerationStatus,
 } from "@/components/result-preview";
+
+const DEFAULT_GOAL: AvatarGoal = "professional-profile";
+const DEFAULT_GOAL_PRESET = GOAL_PRESETS[DEFAULT_GOAL];
 
 export function GenerationForm() {
   const t = useTranslations("Generate");
@@ -63,7 +79,7 @@ export function GenerationForm() {
   const [imageA, setImageA] = useState<UploadedImage | null>(null);
   const [imageB, setImageB] = useState<UploadedImage | null>(null);
   const [styleId, setStyleId] = useState<string | undefined>(
-    AVATAR_STYLES[0]?.id,
+    DEFAULT_GOAL_PRESET.styleId ?? AVATAR_STYLES[0]?.id,
   );
   const [themeId, setThemeId] = useState<string | undefined>(
     AVATAR_THEMES[0]?.id,
@@ -71,6 +87,25 @@ export function GenerationForm() {
   const [variantId, setVariantId] = useState<string>();
   const [pairedConsistency, setPairedConsistency] = useState(true);
   const [userPrompt, setUserPrompt] = useState("");
+  const [goal, setGoal] = useState<AvatarGoal>(DEFAULT_GOAL);
+  const [likeness, setLikeness] = useState<IntentLevel>(
+    DEFAULT_GOAL_PRESET.likeness,
+  );
+  const [creativity, setCreativity] = useState<IntentLevel>(
+    DEFAULT_GOAL_PRESET.creativity,
+  );
+  const [composition, setComposition] = useState<AvatarComposition>(
+    DEFAULT_GOAL_PRESET.composition,
+  );
+  const [background, setBackground] = useState<AvatarBackground>(
+    DEFAULT_GOAL_PRESET.background,
+  );
+  const [palette, setPalette] = useState(DEFAULT_GOAL_PRESET.palette ?? "");
+  const [mood, setMood] = useState(DEFAULT_GOAL_PRESET.mood ?? "");
+  const [accessories, setAccessories] = useState(
+    DEFAULT_GOAL_PRESET.accessories ?? "",
+  );
+  const [avoid, setAvoid] = useState(DEFAULT_GOAL_PRESET.avoid ?? "");
   const [size, setSize] = useState<ImageSize>(DEFAULT_IMAGE_SIZE);
 
   const [status, setStatus] = useState<GenerationStatus>("idle");
@@ -78,6 +113,64 @@ export function GenerationForm() {
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
 
   const source: InputSource = sourceForMode(mode);
+
+  function buildIntent(overrides: Partial<AvatarIntent> = {}): AvatarIntent {
+    return createAvatarIntent({
+      mode,
+      goal,
+      styleId,
+      themeId,
+      variantId,
+      subjectDescription: userPrompt,
+      likeness,
+      creativity,
+      composition,
+      background,
+      palette,
+      mood,
+      accessories,
+      avoid,
+      pairedConsistency,
+      size,
+      ...overrides,
+    });
+  }
+
+  function syncIntent(intent: AvatarIntent) {
+    setMode(intent.mode);
+    setGoal(intent.goal);
+    setLikeness(intent.likeness);
+    setCreativity(intent.creativity);
+    setComposition(intent.composition);
+    setBackground(intent.background);
+    setPalette(intent.palette ?? "");
+    setMood(intent.mood ?? "");
+    setAccessories(intent.accessories ?? "");
+    setAvoid(intent.avoid ?? "");
+    setUserPrompt(intent.subjectDescription ?? "");
+    setPairedConsistency(intent.pairedConsistency ?? pairedConsistency);
+    setSize(intent.size);
+    if (intent.styleId) setStyleId(intent.styleId);
+    if (intent.themeId) setThemeId(intent.themeId);
+    if (intent.variantId) setVariantId(intent.variantId);
+  }
+
+  function onGoalChange(nextGoal: AvatarGoal) {
+    syncIntent(applyGoalPreset(buildIntent(), nextGoal));
+  }
+
+  function onIntentControlChange(patch: Partial<IntentControlValue>) {
+    if (patch.likeness) setLikeness(patch.likeness);
+    if (patch.creativity) setCreativity(patch.creativity);
+    if (patch.composition) setComposition(patch.composition);
+    if (patch.background) setBackground(patch.background);
+    if (typeof patch.palette === "string") setPalette(patch.palette);
+    if (typeof patch.mood === "string") setMood(patch.mood);
+    if (typeof patch.accessories === "string") {
+      setAccessories(patch.accessories);
+    }
+    if (typeof patch.avoid === "string") setAvoid(patch.avoid);
+  }
 
   // Load a shared team preset (non-sensitive base setup) from the URL once.
   useEffect(() => {
@@ -121,7 +214,10 @@ export function GenerationForm() {
           ? Boolean(imageA) && Boolean(styleId)
           : Boolean(imageA) && Boolean(imageB) && Boolean(styleId));
 
-  async function onGenerate() {
+  async function onGenerate(intentOverride?: AvatarIntent) {
+    const requestIntent = intentOverride ?? buildIntent();
+    const requestMode = requestIntent.mode;
+
     if (!apiKey) {
       setErrorCode("MISSING_API_KEY");
       setStatus("error");
@@ -135,21 +231,29 @@ export function GenerationForm() {
     form.append("provider", provider);
     if (provider === "minimax") form.append("region", region);
     form.append("apiKey", apiKey);
-    form.append("mode", mode);
-    form.append("size", size);
-    if (userPrompt.trim()) form.append("userPrompt", userPrompt.trim());
+    form.append("mode", requestMode);
+    form.append("size", requestIntent.size);
+    if (requestIntent.subjectDescription) {
+      form.append("userPrompt", requestIntent.subjectDescription);
+    }
+    form.append("intent", JSON.stringify(requestIntent));
 
-    if (mode === "themed") {
-      if (themeId) form.append("themeId", themeId);
-      if (variantId) form.append("variantId", variantId);
-    } else if (mode === "text") {
-      if (styleId) form.append("styleId", styleId);
+    if (requestMode === "themed") {
+      if (requestIntent.themeId) form.append("themeId", requestIntent.themeId);
+      if (requestIntent.variantId) {
+        form.append("variantId", requestIntent.variantId);
+      }
+    } else if (requestMode === "text") {
+      if (requestIntent.styleId) form.append("styleId", requestIntent.styleId);
     } else {
-      if (styleId) form.append("styleId", styleId);
+      if (requestIntent.styleId) form.append("styleId", requestIntent.styleId);
       if (imageA) form.append("images", imageA.file, imageA.file.name);
-      if (mode === "couple") {
+      if (requestMode === "couple") {
         if (imageB) form.append("images", imageB.file, imageB.file.name);
-        form.append("pairedConsistency", String(pairedConsistency));
+        form.append(
+          "pairedConsistency",
+          String(requestIntent.pairedConsistency),
+        );
       }
     }
 
@@ -181,7 +285,24 @@ export function GenerationForm() {
     }
   }
 
+  function onRefine(action: RefinementAction) {
+    const nextIntent = applyRefinementAction(buildIntent(), action);
+    syncIntent(nextIntent);
+    void onGenerate(nextIntent);
+  }
+
   const promptIsPrimary = mode === "text";
+  const intentControlValue: IntentControlValue = {
+    goal,
+    likeness,
+    creativity,
+    composition,
+    background,
+    palette,
+    mood,
+    accessories,
+    avoid,
+  };
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -210,6 +331,13 @@ export function GenerationForm() {
             onToggleSave={toggleSave}
             show={showKey}
             onToggleShow={() => setShowKey((v) => !v)}
+          />
+
+          <IntentControls
+            mode={mode}
+            value={intentControlValue}
+            onGoalChange={onGoalChange}
+            onChange={onIntentControlChange}
           />
 
           {mode === "text" && (
@@ -288,6 +416,9 @@ export function GenerationForm() {
             {promptIsPrimary && (
               <PromptSuggestions
                 provider={provider}
+                mode={mode}
+                styleId={styleId}
+                goal={goal}
                 onSelect={setUserPrompt}
               />
             )}
@@ -313,7 +444,7 @@ export function GenerationForm() {
           <div className="flex flex-wrap items-center gap-3">
             <Button
               type="button"
-              onClick={onGenerate}
+              onClick={() => void onGenerate()}
               disabled={!canGenerate || status === "generating"}
             >
               {status === "generating" ? t("generating") : t("generate")}
@@ -332,6 +463,8 @@ export function GenerationForm() {
             status={status}
             images={images}
             errorCode={errorCode}
+            onRefine={onRefine}
+            refinementDisabled={!canGenerate || status === "generating"}
           />
         </CardContent>
       </Card>

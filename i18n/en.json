@@ -135,6 +135,44 @@
     "pairedConsistency": "Paired consistency",
     "pairedConsistencyHint": "Share palette, background, lighting and composition across both avatars."
   },
+  "Intent": {
+    "label": "Avatar intent",
+    "goalLabel": "Goal",
+    "likenessLabel": "Likeness",
+    "creativityLabel": "Creativity",
+    "compositionLabel": "Composition",
+    "backgroundLabel": "Background",
+    "paletteLabel": "Palette",
+    "palettePlaceholder": "e.g. teal and warm gray",
+    "moodLabel": "Mood",
+    "moodPlaceholder": "e.g. confident and friendly",
+    "accessoriesLabel": "Accessories",
+    "accessoriesPlaceholder": "e.g. glasses, hoodie",
+    "avoidLabel": "Avoid",
+    "avoidPlaceholder": "e.g. text, logos, busy background",
+    "goals": {
+      "professional-profile": "Professional profile",
+      "social-avatar": "Social avatar",
+      "team-character": "Team character",
+      "character": "Character"
+    },
+    "levels": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "compositions": {
+      "headshot": "Headshot",
+      "half-body": "Half body",
+      "full-body": "Full body"
+    },
+    "backgrounds": {
+      "plain": "Plain",
+      "studio": "Studio",
+      "scene": "Scene",
+      "transparent-like": "Cutout-like"
+    }
+  },
   "Suggestions": {
     "label": "Need ideas? Try a starter prompt:",
     "friendly-professional": "Friendly professional",
@@ -144,7 +182,21 @@
     "clean-headshot": "Clean headshot",
     "anime-vibe": "Anime vibe",
     "cinematic": "Cinematic",
-    "pastel-soft": "Soft pastel"
+    "pastel-soft": "Soft pastel",
+    "goal-professional-profile": "Profile goal",
+    "goal-social-avatar": "Social goal",
+    "goal-team-character": "Team goal",
+    "goal-character": "Character goal",
+    "selected-style": "Selected style"
+  },
+  "Refinement": {
+    "label": "Refine",
+    "closer-likeness": "Closer likeness",
+    "more-realistic": "More realistic",
+    "more-cute": "Cuter",
+    "cleaner-background": "Cleaner background",
+    "variation": "Try variation",
+    "costNote": "Each refinement runs another generation."
   },
   "Appearance": {
     "toggle": "Toggle theme",
