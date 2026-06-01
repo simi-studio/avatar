@@ -52,21 +52,56 @@ afterEach(() => {
 });
 
 describe("GenerationForm", () => {
-  it("renders single mode inputs by default and switches to themed", () => {
+  it("defaults to text mode (no upload) and switches to photo source", () => {
     renderForm();
 
-    // Single mode shows the upload area and style picker.
-    expect(screen.getByText(en.Upload.label)).toBeInTheDocument();
+    // Text mode shows the style picker and prompt suggestions, no upload.
     expect(screen.getByText(en.Style.anime)).toBeInTheDocument();
-
-    // Switch to themed: theme picker appears, single upload label goes away.
-    fireEvent.click(screen.getByRole("tab", { name: en.Mode.themed }));
-    expect(screen.getByText(en.Theme.label)).toBeInTheDocument();
+    expect(screen.getByText(en.Suggestions.label)).toBeInTheDocument();
     expect(screen.queryByText(en.Upload.label)).not.toBeInTheDocument();
+
+    // Switching to the photo source reveals the single-mode uploader.
+    fireEvent.click(screen.getByRole("tab", { name: new RegExp(en.Source.photo) }));
+    expect(screen.getByText(en.Upload.label)).toBeInTheDocument();
+  });
+
+  it("runs the text-mode happy path without any upload", async () => {
+    const fetchMock = setFetch({
+      success: true,
+      images: [{ base64: "AAAA", mimeType: "image/png" }],
+    });
+    renderForm();
+
+    fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
+      target: { value: "sk-test-key" },
+    });
+    // Anime is selectable; a style is required for text mode.
+    fireEvent.click(screen.getByRole("button", { name: en.Style.anime }));
+
+    const generate = screen.getByRole("button", { name: en.Generate.generate });
+    await waitFor(() => expect(generate).toBeEnabled());
+    fireEvent.click(generate);
+
+    await waitFor(() =>
+      expect(screen.getByAltText(en.Result.altSingle)).toBeInTheDocument(),
+    );
+    expect(fetchMock).toHaveBeenCalledWith("/api/generate", expect.anything());
+  });
+
+  it("inserts a provider suggestion into the description field", () => {
+    renderForm();
+    fireEvent.click(
+      screen.getByRole("button", { name: en.Suggestions["friendly-professional"] }),
+    );
+    const description = screen.getByLabelText(
+      en.Form.descriptionLabel,
+    ) as HTMLTextAreaElement;
+    expect(description.value.length).toBeGreaterThan(0);
   });
 
   it("disables generate until a single-mode setup is complete", () => {
     renderForm();
+    fireEvent.click(screen.getByRole("tab", { name: new RegExp(en.Source.photo) }));
     const generate = screen.getByRole("button", { name: en.Generate.generate });
     expect(generate).toBeDisabled();
   });
@@ -77,6 +112,8 @@ describe("GenerationForm", () => {
       images: [{ base64: "AAAA", mimeType: "image/png" }],
     });
     const { container } = renderForm();
+
+    fireEvent.click(screen.getByRole("tab", { name: new RegExp(en.Source.photo) }));
 
     fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
       target: { value: "sk-test-key" },
@@ -109,6 +146,8 @@ describe("GenerationForm", () => {
   it("surfaces a normalized error code on failure", async () => {
     setFetch({ success: false, error: { code: "INVALID_API_KEY", message: "x" } });
     const { container } = renderForm();
+
+    fireEvent.click(screen.getByRole("tab", { name: new RegExp(en.Source.photo) }));
 
     fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
       target: { value: "bad-key" },

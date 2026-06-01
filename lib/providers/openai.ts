@@ -5,6 +5,7 @@ import type {
 } from "@/lib/types";
 import { ProviderError } from "@/lib/types";
 import type { ErrorCode, ImageSize } from "@/lib/constants";
+import { isPhotoMode } from "@/lib/constants";
 import { fetchWithTimeout, toGeneratedImage } from "./shared";
 
 const OPENAI_BASE_URL = "https://api.openai.com";
@@ -122,10 +123,11 @@ async function editImage(
 export const openaiProvider: ImageProvider = {
   id: "openai",
   name: "OpenAI",
-  supportedModes: ["single", "couple", "themed"],
+  supportedModes: ["text", "single", "couple", "themed"],
 
   async generateAvatar(input) {
-    if (input.mode === "themed") {
+    if (!isPhotoMode(input.mode)) {
+      // text / themed: pure text-to-image, no upload.
       return generateThemed(input);
     }
 

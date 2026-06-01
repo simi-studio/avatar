@@ -5,6 +5,7 @@ import type {
 } from "@/lib/types";
 import { ProviderError } from "@/lib/types";
 import type { ErrorCode, ImageSize, MiniMaxRegion } from "@/lib/constants";
+import { isPhotoMode } from "@/lib/constants";
 import { fetchWithTimeout, fileToDataUrl, toGeneratedImage } from "./shared";
 
 const MINIMAX_BASE_URL: Record<MiniMaxRegion, string> = {
@@ -72,7 +73,7 @@ async function callMiniMax(
     response_format: "base64",
   };
 
-  if (input.mode !== "themed" && image) {
+  if (isPhotoMode(input.mode) && image) {
     body.subject_reference = [
       { type: "character", image_file: [await fileToDataUrl(image)] },
     ];
@@ -115,11 +116,12 @@ async function callMiniMax(
 export const minimaxProvider: ImageProvider = {
   id: "minimax",
   name: "MiniMax",
-  supportedModes: ["single", "couple", "themed"],
+  supportedModes: ["text", "single", "couple", "themed"],
   resolveBaseUrl: resolveMiniMaxBaseUrl,
 
   async generateAvatar(input) {
-    if (input.mode === "themed") {
+    if (!isPhotoMode(input.mode)) {
+      // text / themed: pure text-to-image, no upload.
       return callMiniMax(input, undefined);
     }
 

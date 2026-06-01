@@ -5,6 +5,25 @@ import { getStyleById } from "@/styles/avatar-styles";
 import { getThemeById, getVariant } from "@/styles/avatar-themes";
 
 describe("buildPrompt", () => {
+  it("builds a text-mode prompt from description + style with no face reference", () => {
+    const prompt = buildPrompt({
+      mode: "text",
+      style: getStyleById("anime"),
+      userPrompt: "a friendly portrait with a warm smile",
+    });
+    expect(prompt).toContain("a friendly portrait with a warm smile");
+    expect(prompt).toContain("Anime");
+    expect(prompt).not.toContain("facial features");
+  });
+
+  it("falls back to a default subject when text mode has no description", () => {
+    const prompt = buildPrompt({
+      mode: "text",
+      style: getStyleById("anime"),
+    });
+    expect(prompt).toContain("a friendly portrait avatar");
+  });
+
   it("builds a single-mode prompt that preserves facial features", () => {
     const prompt = buildPrompt({
       mode: "single",

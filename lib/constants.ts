@@ -7,8 +7,43 @@ export const GITHUB_URL =
   process.env.NEXT_PUBLIC_GITHUB_URL ??
   "https://github.com/simi-studio/avatar";
 
-export const GENERATION_MODES = ["single", "couple", "themed"] as const;
+export const GENERATION_MODES = [
+  "text",
+  "themed",
+  "single",
+  "couple",
+] as const;
 export type GenerationMode = (typeof GENERATION_MODES)[number];
+
+/**
+ * Primary input source. Text avatars need no upload (the default, lowest
+ * friction entry point); photo avatars restyle an uploaded portrait.
+ */
+export const INPUT_SOURCES = ["text", "photo"] as const;
+export type InputSource = (typeof INPUT_SOURCES)[number];
+
+/** Sub-modes available under each input source. */
+export const MODES_BY_SOURCE: Record<InputSource, readonly GenerationMode[]> = {
+  text: ["text", "themed"],
+  photo: ["single", "couple"],
+};
+
+export const DEFAULT_MODE_BY_SOURCE: Record<InputSource, GenerationMode> = {
+  text: "text",
+  photo: "single",
+};
+
+/** Resolve which input source a mode belongs to. */
+export function sourceForMode(mode: GenerationMode): InputSource {
+  return (MODES_BY_SOURCE.photo as readonly GenerationMode[]).includes(mode)
+    ? "photo"
+    : "text";
+}
+
+/** True when the mode requires an uploaded photo. */
+export function isPhotoMode(mode: GenerationMode): boolean {
+  return sourceForMode(mode) === "photo";
+}
 
 export const PROVIDERS = ["openai", "minimax"] as const;
 export type ProviderId = (typeof PROVIDERS)[number];
@@ -38,9 +73,10 @@ export const CLIENT_TIMEOUT_MS = 60_000;
 
 /** Number of input images required per mode. */
 export const REQUIRED_IMAGE_COUNT: Record<GenerationMode, number> = {
+  text: 0,
+  themed: 0,
   single: 1,
   couple: 2,
-  themed: 0,
 };
 
 /** Normalized error codes shared by client and server. */

@@ -2,13 +2,19 @@
 
 import { useTranslations } from "next-intl";
 
-import { GENERATION_MODES, type GenerationMode } from "@/lib/constants";
+import { type GenerationMode } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
+/**
+ * Sub-mode selector shown beneath the input-source toggle. The available modes
+ * depend on the current source (text → text/themed, photo → single/couple).
+ */
 export function ModeSelector({
+  modes,
   value,
   onChange,
 }: {
+  modes: readonly GenerationMode[];
   value: GenerationMode;
   onChange: (mode: GenerationMode) => void;
 }) {
@@ -22,7 +28,7 @@ export function ModeSelector({
         aria-label={t("label")}
         className="inline-flex rounded-lg border bg-muted p-1"
       >
-        {GENERATION_MODES.map((mode) => {
+        {modes.map((mode) => {
           const selected = mode === value;
           return (
             <button

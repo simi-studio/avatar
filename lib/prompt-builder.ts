@@ -24,6 +24,8 @@ export type BuildPromptInput = {
 /**
  * Mode-aware prompt assembly (prd.md §7).
  *
+ * - `text` (text-to-image): user description + chosen style template + quality,
+ *   with no face reference. This is the default, lowest-friction mode.
  * - `themed` (text-to-image): theme base prompt + variant fragment + optional
  *   style + quality + user prompt, with no face reference.
  * - `single` / `couple` (image-to-image): style template + face-preservation
@@ -34,6 +36,17 @@ export type BuildPromptInput = {
  */
 export function buildPrompt(input: BuildPromptInput): string {
   const userPrompt = input.userPrompt?.trim() || undefined;
+
+  if (input.mode === "text") {
+    return [
+      userPrompt ?? "a friendly portrait avatar",
+      input.style ? `${input.style.name} style` : undefined,
+      input.style?.promptTemplate,
+      QUALITY,
+    ]
+      .filter(Boolean)
+      .join(", ");
+  }
 
   if (input.mode === "themed") {
     return [

@@ -53,14 +53,23 @@
       "error": "Something went wrong."
     }
   },
+  "Source": {
+    "label": "Avatar source",
+    "text": "Text to avatar",
+    "photo": "From a photo",
+    "textDescription": "Describe an avatar — no photo needed.",
+    "photoDescription": "Upload a photo and restyle it."
+  },
   "Mode": {
     "label": "Mode",
+    "text": "Describe",
+    "themed": "Themed",
     "single": "Single",
     "couple": "Couple",
-    "themed": "Themed",
+    "textDescription": "Pick a style, add a short description, and generate — no photo needed.",
+    "themedDescription": "Generate from a theme and prompt — no photo needed.",
     "singleDescription": "Restyle your own photo into an avatar.",
-    "coupleDescription": "Generate a style-consistent pair for two people.",
-    "themedDescription": "Generate from a theme and prompt — no photo needed."
+    "coupleDescription": "Generate a style-consistent pair for two people."
   },
   "Provider": {
     "label": "Provider",
@@ -120,9 +129,28 @@
   "Form": {
     "promptLabel": "Optional prompt",
     "promptPlaceholder": "e.g. blue background, soft lighting, friendly smile",
+    "descriptionLabel": "Describe your avatar",
+    "descriptionPlaceholder": "e.g. a friendly portrait with a warm smile, soft studio lighting",
     "sizeLabel": "Size",
     "pairedConsistency": "Paired consistency",
     "pairedConsistencyHint": "Share palette, background, lighting and composition across both avatars."
+  },
+  "Suggestions": {
+    "label": "Need ideas? Try a starter prompt:",
+    "friendly-professional": "Friendly professional",
+    "creative-portrait": "Creative portrait",
+    "outdoor-natural": "Outdoor natural",
+    "bold-editorial": "Bold editorial",
+    "clean-headshot": "Clean headshot",
+    "anime-vibe": "Anime vibe",
+    "cinematic": "Cinematic",
+    "pastel-soft": "Soft pastel"
+  },
+  "Appearance": {
+    "toggle": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
   },
   "Preset": {
     "copyLink": "Copy team preset link",
@@ -155,7 +183,7 @@
   },
   "About": {
     "title": "About Simi Avatar",
-    "intro": "Simi Avatar is an open-source, no-signup, BYOK AI avatar generator. You bring your own provider API key and generate avatars in three modes.",
+    "intro": "Simi Avatar is an open-source, no-signup, BYOK AI avatar generator. You bring your own provider API key and generate avatars from a text description or from your own photo.",
     "modelsTitle": "Supported models",
     "modelsBody": "OpenAI gpt-image-1 and MiniMax image-01 (Global and China regions).",
     "securityTitle": "Security",

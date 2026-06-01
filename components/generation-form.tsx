@@ -7,27 +7,34 @@ import { useTranslations } from "next-intl";
 import {
   CLIENT_TIMEOUT_MS,
   DEFAULT_IMAGE_SIZE,
+  DEFAULT_MODE_BY_SOURCE,
   IMAGE_SIZES,
+  MODES_BY_SOURCE,
+  sourceForMode,
   type ErrorCode,
   type GenerationMode,
   type ImageSize,
+  type InputSource,
   type MiniMaxRegion,
   type ProviderId,
 } from "@/lib/constants";
 import type { GeneratedImage, GenerateResponse } from "@/lib/types";
 import { useSessionApiKey } from "@/lib/use-session-key";
 import { decodePreset, type TeamPreset } from "@/lib/preset";
+import { AVATAR_STYLES } from "@/styles/avatar-styles";
 import { AVATAR_THEMES } from "@/styles/avatar-themes";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { SourceSelector } from "@/components/source-selector";
 import { ModeSelector } from "@/components/mode-selector";
 import { ProviderSelector } from "@/components/provider-selector";
 import { ApiKeyInput } from "@/components/api-key-input";
 import { StylePicker } from "@/components/style-picker";
 import { ThemePicker } from "@/components/theme-picker";
+import { PromptSuggestions } from "@/components/prompt-suggestions";
 import { TeamPresetShare } from "@/components/team-preset-share";
 import {
   ImageUploader,
@@ -42,9 +49,11 @@ export function GenerationForm() {
   const t = useTranslations("Generate");
   const tf = useTranslations("Form");
   const tUpload = useTranslations("Upload");
+
   const searchParams = useSearchParams();
 
-  const [mode, setMode] = useState<GenerationMode>("single");
+  // `text` is the default, lowest-friction entry point: no upload required.
+  const [mode, setMode] = useState<GenerationMode>("text");
   const [provider, setProvider] = useState<ProviderId>("openai");
   const [region, setRegion] = useState<MiniMaxRegion>("global");
   const [showKey, setShowKey] = useState(false);
@@ -53,7 +62,9 @@ export function GenerationForm() {
 
   const [imageA, setImageA] = useState<UploadedImage | null>(null);
   const [imageB, setImageB] = useState<UploadedImage | null>(null);
-  const [styleId, setStyleId] = useState<string>();
+  const [styleId, setStyleId] = useState<string | undefined>(
+    AVATAR_STYLES[0]?.id,
+  );
   const [themeId, setThemeId] = useState<string | undefined>(
     AVATAR_THEMES[0]?.id,
   );
@@ -65,6 +76,8 @@ export function GenerationForm() {
   const [status, setStatus] = useState<GenerationStatus>("idle");
   const [images, setImages] = useState<GeneratedImage[]>([]);
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
+
+  const source: InputSource = sourceForMode(mode);
 
   // Load a shared team preset (non-sensitive base setup) from the URL once.
   useEffect(() => {
@@ -82,6 +95,12 @@ export function GenerationForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Switch the input source and reset to that source's default sub-mode.
+  function onSourceChange(next: InputSource) {
+    if (next === source) return;
+    setMode(DEFAULT_MODE_BY_SOURCE[next]);
+  }
+
   const currentPreset: TeamPreset = {
     mode,
     provider,
@@ -94,11 +113,13 @@ export function GenerationForm() {
 
   const canGenerate =
     Boolean(apiKey) &&
-    (mode === "single"
-      ? Boolean(imageA) && Boolean(styleId)
-      : mode === "couple"
-        ? Boolean(imageA) && Boolean(imageB) && Boolean(styleId)
-        : Boolean(themeId) && Boolean(variantId));
+    (mode === "text"
+      ? Boolean(styleId)
+      : mode === "themed"
+        ? Boolean(themeId) && Boolean(variantId)
+        : mode === "single"
+          ? Boolean(imageA) && Boolean(styleId)
+          : Boolean(imageA) && Boolean(imageB) && Boolean(styleId));
 
   async function onGenerate() {
     if (!apiKey) {
@@ -121,6 +142,8 @@ export function GenerationForm() {
     if (mode === "themed") {
       if (themeId) form.append("themeId", themeId);
       if (variantId) form.append("variantId", variantId);
+    } else if (mode === "text") {
+      if (styleId) form.append("styleId", styleId);
     } else {
       if (styleId) form.append("styleId", styleId);
       if (imageA) form.append("images", imageA.file, imageA.file.name);
@@ -158,6 +181,8 @@ export function GenerationForm() {
     }
   }
 
+  const promptIsPrimary = mode === "text";
+
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <Card>
@@ -165,7 +190,12 @@ export function GenerationForm() {
           <CardTitle>{t("inputHeading")}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-6">
-          <ModeSelector value={mode} onChange={setMode} />
+          <SourceSelector value={source} onChange={onSourceChange} />
+          <ModeSelector
+            modes={MODES_BY_SOURCE[source]}
+            value={mode}
+            onChange={setMode}
+          />
           <ProviderSelector
             provider={provider}
             onProviderChange={setProvider}
@@ -181,6 +211,10 @@ export function GenerationForm() {
             show={showKey}
             onToggleShow={() => setShowKey((v) => !v)}
           />
+
+          {mode === "text" && (
+            <StylePicker value={styleId} onChange={setStyleId} />
+          )}
 
           {mode === "single" && (
             <>
@@ -238,13 +272,25 @@ export function GenerationForm() {
           )}
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="prompt">{tf("promptLabel")}</Label>
+            <Label htmlFor="prompt">
+              {promptIsPrimary ? tf("descriptionLabel") : tf("promptLabel")}
+            </Label>
             <Textarea
               id="prompt"
               value={userPrompt}
-              placeholder={tf("promptPlaceholder")}
+              placeholder={
+                promptIsPrimary
+                  ? tf("descriptionPlaceholder")
+                  : tf("promptPlaceholder")
+              }
               onChange={(event) => setUserPrompt(event.target.value)}
             />
+            {promptIsPrimary && (
+              <PromptSuggestions
+                provider={provider}
+                onSelect={setUserPrompt}
+              />
+            )}
           </div>
 
           <div className="flex flex-col gap-2">

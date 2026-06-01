@@ -53,14 +53,23 @@
       "error": "出现了一些问题。"
     }
   },
+  "Source": {
+    "label": "头像来源",
+    "text": "文字生成",
+    "photo": "使用照片",
+    "textDescription": "用文字描述头像——无需照片。",
+    "photoDescription": "上传照片并重新风格化。"
+  },
   "Mode": {
     "label": "模式",
+    "text": "描述",
+    "themed": "主题",
     "single": "单人",
     "couple": "情侣",
-    "themed": "主题",
+    "textDescription": "选择风格，写一句简单描述，即可生成——无需照片。",
+    "themedDescription": "根据主题和提示词生成——无需照片。",
     "singleDescription": "将你自己的照片重绘为头像。",
-    "coupleDescription": "为两个人生成风格一致的成对头像。",
-    "themedDescription": "根据主题和提示词生成——无需照片。"
+    "coupleDescription": "为两个人生成风格一致的成对头像。"
   },
   "Provider": {
     "label": "提供方",
@@ -120,9 +129,28 @@
   "Form": {
     "promptLabel": "可选提示词",
     "promptPlaceholder": "例如：蓝色背景，柔和光线，友善微笑",
+    "descriptionLabel": "描述你的头像",
+    "descriptionPlaceholder": "例如：友善的肖像，温暖的微笑，柔和的影棚光线",
     "sizeLabel": "尺寸",
     "pairedConsistency": "成对一致性",
     "pairedConsistencyHint": "在两个头像间共享配色、背景、光线和构图。"
+  },
+  "Suggestions": {
+    "label": "没有头绪？试试一个起始提示词：",
+    "friendly-professional": "友善专业",
+    "creative-portrait": "创意肖像",
+    "outdoor-natural": "户外自然",
+    "bold-editorial": "大片质感",
+    "clean-headshot": "干净头像",
+    "anime-vibe": "动漫风",
+    "cinematic": "电影感",
+    "pastel-soft": "柔和马卡龙"
+  },
+  "Appearance": {
+    "toggle": "切换主题",
+    "light": "浅色",
+    "dark": "深色",
+    "system": "跟随系统"
   },
   "Preset": {
     "copyLink": "复制团队预设链接",
@@ -155,7 +183,7 @@
   },
   "About": {
     "title": "关于 Simi Avatar",
-    "intro": "Simi Avatar 是一个开源、无需注册、自带 Key（BYOK）的 AI 头像生成器。你使用自己的提供方 API Key，在三种模式下生成头像。",
+    "intro": "Simi Avatar 是一个开源、无需注册、自带 Key（BYOK）的 AI 头像生成器。你使用自己的提供方 API Key，可通过文字描述或你自己的照片生成头像。",
     "modelsTitle": "支持的模型",
     "modelsBody": "OpenAI gpt-image-1 和 MiniMax image-01（全球版与中国版）。",
     "securityTitle": "安全",
