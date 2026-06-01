@@ -24,6 +24,30 @@ describe("buildPrompt", () => {
     expect(a).toContain("Pixar 3D");
   });
 
+  it("adds a paired-consistency fragment only for couple mode when enabled", () => {
+    const style = getStyleById("pixar-3d");
+    const consistent = buildPrompt({
+      mode: "couple",
+      style,
+      pairedConsistency: true,
+    });
+    const independent = buildPrompt({
+      mode: "couple",
+      style,
+      pairedConsistency: false,
+    });
+    expect(consistent).toContain("cohesive set");
+    expect(independent).not.toContain("cohesive set");
+
+    // The flag is ignored outside couple mode.
+    const single = buildPrompt({
+      mode: "single",
+      style,
+      pairedConsistency: true,
+    });
+    expect(single).not.toContain("cohesive set");
+  });
+
   it("builds a themed prompt with theme base + variant fragment and no face reference", () => {
     const prompt = buildPrompt({
       mode: "themed",

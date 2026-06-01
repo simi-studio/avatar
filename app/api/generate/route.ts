@@ -54,6 +54,7 @@ type ParsedRequest = {
   themeId?: string;
   variantId?: string;
   userPrompt?: string;
+  pairedConsistency?: boolean;
   size: string;
 };
 
@@ -72,6 +73,7 @@ async function parseRequest(req: Request): Promise<ParsedRequest | null> {
       themeId: body.themeId ? String(body.themeId) : undefined,
       variantId: body.variantId ? String(body.variantId) : undefined,
       userPrompt: body.userPrompt ? String(body.userPrompt) : undefined,
+      pairedConsistency: body.pairedConsistency === true,
       size: String(body.size ?? DEFAULT_IMAGE_SIZE),
     };
   }
@@ -95,6 +97,7 @@ async function parseRequest(req: Request): Promise<ParsedRequest | null> {
       themeId: get("themeId"),
       variantId: get("variantId"),
       userPrompt: get("userPrompt"),
+      pairedConsistency: get("pairedConsistency") === "true",
       size: get("size") ?? DEFAULT_IMAGE_SIZE,
     };
   }
@@ -140,6 +143,7 @@ export async function POST(req: Request): Promise<NextResponse<GenerateResponse>
     theme: getThemeById(parsed.themeId),
     variant: getVariant(parsed.themeId, parsed.variantId),
     userPrompt: parsed.userPrompt,
+    pairedConsistency: parsed.pairedConsistency,
   });
 
   const provider = getProvider(parsed.provider as ProviderId);

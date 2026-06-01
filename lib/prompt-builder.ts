@@ -8,12 +8,17 @@ import type {
 const QUALITY =
   "clean composition, high-quality details, centered portrait, sharp focus";
 
+const PAIRED_CONSISTENCY =
+  "matching color palette, background, lighting and composition so the pair looks like a cohesive set";
+
 export type BuildPromptInput = {
   mode: GenerationMode;
   style?: AvatarStyle;
   theme?: AvatarTheme;
   variant?: AvatarVariant;
   userPrompt?: string;
+  /** Couple mode: keep palette/background/lighting/composition consistent. */
+  pairedConsistency?: boolean;
 };
 
 /**
@@ -46,6 +51,9 @@ export function buildPrompt(input: BuildPromptInput): string {
     `Transform the uploaded portrait into a ${input.style?.name ?? "stylized"} avatar.`,
     "Keep the person's main facial features recognizable.",
     QUALITY,
+    input.mode === "couple" && input.pairedConsistency
+      ? PAIRED_CONSISTENCY
+      : undefined,
     input.style?.promptTemplate,
     userPrompt,
   ]

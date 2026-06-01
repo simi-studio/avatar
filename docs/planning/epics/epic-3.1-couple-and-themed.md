@@ -5,7 +5,7 @@
 | Field | Value |
 | ----- | ----- |
 | Milestone | M3 |
-| Status | Not started |
+| Status | Done |
 | Depends on | Epic 2.1 (GenerationMode abstraction, provider interface) |
 
 ## Goal
@@ -18,24 +18,24 @@ Add two playful modes and team collaboration on top of the shared abstraction:
 ## Checklist
 
 ### Couple
-- [ ] `image-uploader` supports two images (Person A / Person B)
-- [ ] Shared style + "paired consistency" toggle (palette/background/lighting/composition)
-- [ ] Provider: two calls per person, same prompt + styleId (OpenAI edits / MiniMax `subject_reference`)
-- [ ] `result-preview` supports multi-image results; A/B download separately
-- [ ] Cost hint notes two generations
+- [x] `image-uploader` supports two images (Person A / Person B)
+- [x] Shared style + "paired consistency" toggle (palette/background/lighting/composition)
+- [x] Provider: two calls per person, same prompt + styleId (OpenAI edits / MiniMax `subject_reference`)
+- [x] `result-preview` supports multi-image results; A/B download separately
+- [x] Cost hint notes two generations
 
 ### Themed
-- [ ] `styles/avatar-themes.ts`: Dogs theme + breed variants (Shiba/Corgi/Golden/Husky/Poodle/Border Collie/Dalmatian/Pug)
-- [ ] `theme-picker`: theme + variant; themed hides the upload area
-- [ ] `prompt-builder` themed branch: base prompt + variant fragment + optional style + user prompt (no face reference)
-- [ ] Provider: themed → text-to-image (OpenAI `generations` / MiniMax `image_generation` prompt-only)
-- [ ] Personal prompt input
+- [x] `styles/avatar-themes.ts`: Dogs theme + breed variants (Shiba/Corgi/Golden/Husky/Poodle/Border Collie/Dalmatian/Pug)
+- [x] `theme-picker`: theme + variant; themed hides the upload area
+- [x] `prompt-builder` themed branch: base prompt + variant fragment + optional style + user prompt (no face reference)
+- [x] Provider: themed → text-to-image (OpenAI `generations` / MiniMax `image_generation` prompt-only)
+- [x] Personal prompt input
 
 ### Team preset
-- [ ] `lib/preset.ts`: URL-safe encode/decode (base64url), field allowlist
-- [ ] **Security**: preset code contains no API key; decode drops any key-like field
-- [ ] `team-preset-share`: "Copy team preset link" button
-- [ ] Generate page parses `?mode=themed&theme=&style=&preset=` and loads the base setup
+- [x] `lib/preset.ts`: URL-safe encode/decode (base64url), field allowlist
+- [x] **Security**: preset code contains no API key; decode drops any key-like field
+- [x] `team-preset-share`: "Copy team preset link" button
+- [x] Generate page parses `?mode=themed&theme=&style=&preset=` and loads the base setup
 
 ## Acceptance
 

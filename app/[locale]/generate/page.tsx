@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 
 import { GenerationForm } from "@/components/generation-form";
@@ -17,7 +18,9 @@ export default async function GeneratePage({
         <h1 className="text-3xl font-bold tracking-tight">{t("title")}</h1>
         <p className="text-muted-foreground">{t("subtitle")}</p>
       </header>
-      <GenerationForm />
+      <Suspense>
+        <GenerationForm />
+      </Suspense>
     </div>
   );
 }
