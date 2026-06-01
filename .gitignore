@@ -12,6 +12,9 @@ dist/
 # Cloudflare / Wrangler
 .wrangler/
 .dev.vars
+# Private production deploy config (keep production domain/account out of the repo)
+wrangler.prod.jsonc
+!wrangler.prod.jsonc.example
 
 # Coverage and test output
 coverage/
