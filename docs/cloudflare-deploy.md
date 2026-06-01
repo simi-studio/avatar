@@ -67,9 +67,33 @@ npx wrangler secret put TURNSTILE_SECRET_KEY
 
 ## Custom domain (optional)
 
-1. Add your domain to Cloudflare.
-2. In the Worker settings, add a route or custom domain (e.g. `avatar.example.com`).
-3. DNS is managed automatically when the domain is on Cloudflare.
+By default `npm run deploy` publishes to a `*.workers.dev` subdomain, which is
+the right choice for forks. To bind your **own** custom domain without putting
+production-specific details into this open-source repo, use a private,
+gitignored production config:
+
+```bash
+# 1. Make sure your domain is already added to Cloudflare.
+# 2. Create your private prod config from the template:
+cp wrangler.prod.jsonc.example wrangler.prod.jsonc
+
+# 3. Edit wrangler.prod.jsonc and set the route pattern to your domain, e.g.
+#    "routes": [{ "pattern": "avatar.example.com", "custom_domain": true }]
+
+# 4. Provide your Cloudflare account id (kept out of the repo):
+export CLOUDFLARE_ACCOUNT_ID=<your-account-id>
+
+# 5. Authenticate and deploy to the custom domain:
+npx wrangler login
+npm run deploy:prod        # or: make deploy-prod
+```
+
+- `wrangler.prod.jsonc` is gitignored; only `wrangler.prod.jsonc.example` is
+  committed, so the production domain and account id never land in the repo.
+- `deploy:prod` runs the OpenNext build and then
+  `wrangler deploy --config wrangler.prod.jsonc`.
+- Cloudflare provisions the DNS record and TLS automatically when the domain is
+  on Cloudflare.
 
 ## Post-deploy checklist
 

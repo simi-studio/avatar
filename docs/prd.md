@@ -1,6 +1,6 @@
 # Simi Avatar — Product Requirements Document (PRD)
 
-> One-liner: Simi Avatar is an open-source, no-signup, no-database, no-subscription **BYOK (Bring Your Own API Key) AI avatar generator**. Users plug in their own AI provider API key and generate personalized avatars in three modes — single-person photo restyle, couple paired avatars, and themed avatars generated purely from a prompt with no photo upload (e.g. a dog-themed team set) — and can self-host with one command.
+> One-liner: Simi Avatar is an open-source, no-signup, no-database, no-subscription **BYOK (Bring Your Own API Key) AI avatar generator**. Users plug in their own AI provider API key and generate personalized avatars from two input sources — **text-to-avatar** (the default: pick a style and describe the avatar, no photo needed) and **from a photo** (single-person photo restyle or couple paired avatars) — plus themed avatars generated purely from a prompt, and can self-host with one command.
 
 | Field | Value |
 | ----- | ----- |
@@ -167,8 +167,8 @@ Users can click **Clear Key** at any time to remove the locally stored API key.
 
 **Layout:**
 
-- Top: **mode switch (Single / Couple / Themed)**
-- Left input area (changes by mode): Provider / API Key / Upload Image(s) / Style / Theme + Variant / Optional Prompt / Size / Generate
+- Top: **input source switch (Text to avatar / From a photo)**, then a mode switch within each source (Describe / Themed for text; Single / Couple for photo)
+- Left input area (changes by mode): Provider / API Key / Upload Image(s) / Style / Theme + Variant / Description or Optional Prompt / Size / Generate
 - Right preview area: source preview (single/couple) / status / result(s) / download
 
 **Mode-aware form** (the UI renders different inputs per mode):
@@ -247,11 +247,12 @@ Let users get stable results without hand-writing complex prompts, and split ima
 
 ### 7.2 Mode-aware prompt rules
 
+- `text` (text-to-image): style template + user description + quality description, with **no face reference** — the default low-friction mode.
 - `single` / `couple` (image-to-image): style template + user prompt + quality description, emphasizing "keep the main facial features."
 - `themed` (text-to-image): theme base prompt + variant fragment + optional style + user prompt, with **no face reference**.
 
 ```ts
-type GenerationMode = "single" | "couple" | "themed";
+type GenerationMode = "text" | "single" | "couple" | "themed";
 
 function buildPrompt(input: {
   mode: GenerationMode;
@@ -379,7 +380,7 @@ V1.1: Fal.ai, Replicate, Stability AI.
 ### 8.4 Provider abstraction
 
 ```ts
-type GenerationMode = "single" | "couple" | "themed";
+type GenerationMode = "text" | "single" | "couple" | "themed";
 
 interface ImageProvider {
   id: string;            // "openai" | "minimax"
@@ -392,7 +393,7 @@ interface ImageProvider {
     apiKey: string;
     region?: string;     // e.g. "global" | "china" for MiniMax
     mode: GenerationMode;
-    images?: File[];     // single: 1; couple: 2; themed: 0
+    images?: File[];     // text: 0; single: 1; couple: 2; themed: 0
     prompt: string;
     styleId?: string;
     themeId?: string;
@@ -475,15 +476,15 @@ type GeneratedImage = {
 Body is `multipart/form-data` (with images) or `application/json` (themed, no image). Logical payload:
 
 ```ts
-type GenerationMode = "single" | "couple" | "themed";
+type GenerationMode = "text" | "single" | "couple" | "themed";
 
 type GenerateRequest = {
   provider: "openai" | "minimax";
   region?: "global" | "china"; // MiniMax only
   apiKey: string;
   mode: GenerationMode;
-  images?: File[];        // single: 1; couple: 2; themed: omitted
-  styleId?: string;       // required for single/couple; optional for themed
+  images?: File[];        // text: omitted; single: 1; couple: 2; themed: omitted
+  styleId?: string;       // required for text/single/couple; optional for themed
   themeId?: string;       // required for themed (e.g. "dogs")
   variantId?: string;     // required for themed (e.g. "shiba-inu")
   userPrompt?: string;
@@ -502,7 +503,7 @@ type GenerateResponse = {
 };
 ```
 
-**Server validates per mode**: `single` needs exactly 1 image; `couple` exactly 2; `themed` accepts no image but needs `themeId` + `variantId`. Invalid combinations return `INVALID_MODE_INPUT`.
+**Server validates per mode**: `text` needs a `styleId` and no image; `single` needs exactly 1 image; `couple` exactly 2; `themed` accepts no image but needs `themeId` + `variantId`. Invalid combinations return `INVALID_MODE_INPUT`.
 
 ### 11.2 Error codes
 

@@ -56,7 +56,7 @@ All modes share one provider abstraction, prompt engine, and `/api/generate` end
 ## Provider abstraction
 
 ```ts
-type GenerationMode = "single" | "couple" | "themed";
+type GenerationMode = "text" | "single" | "couple" | "themed";
 
 interface ImageProvider {
   id: string;            // "openai" | "minimax"
@@ -67,7 +67,7 @@ interface ImageProvider {
     apiKey: string;
     region?: string;
     mode: GenerationMode;
-    images?: File[];     // single:1 couple:2 themed:0
+    images?: File[];     // text:0 single:1 couple:2 themed:0
     prompt: string;
     styleId?: string;
     themeId?: string;

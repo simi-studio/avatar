@@ -6,14 +6,17 @@ Simi Avatar is an open-source, **BYOK (Bring Your Own API Key)** AI avatar gener
 
 ## Features
 
-| Mode | Upload | What it does |
-| ---- | ------ | ------------ |
-| **Single** | 1 photo | Restyle your photo into an avatar (10 built-in styles) |
-| **Couple** | 2 photos | Generate a style-consistent paired set for two people |
-| **Themed** | none | Generate from a prompt only — e.g. **dog-themed team avatars** |
+| Source | Mode | Upload | What it does |
+| ------ | ---- | ------ | ------------ |
+| **Text to avatar** *(default)* | **Describe** | none | Pick a style + short description and generate — no photo needed |
+| **Text to avatar** | **Themed** | none | Generate from a prompt only — e.g. **dog-themed team avatars** |
+| **From a photo** | **Single** | 1 photo | Restyle your photo into an avatar (10 built-in styles) |
+| **From a photo** | **Couple** | 2 photos | Generate a style-consistent paired set for two people |
 
 - 🔑 **BYOK** — use your own OpenAI or MiniMax API key; nothing is stored
+- ✍️ **Text-to-avatar** — start from a style + description, no upload required
 - 🐶 **Themed team avatars** — pick a breed per teammate, share a stateless team preset link
+- 🌗 **Dark / light theme** — system-aware toggle
 - 🛡️ **Privacy-first** — keys live in `sessionStorage`; never written to any database or log
 - 🌍 **i18n** — English + Simplified Chinese, auto-detected from your locale (default English)
 - 🧩 **Extensible providers** — add a new provider by implementing one interface
@@ -41,12 +44,19 @@ Open http://localhost:3000, click **Launch App**, choose a provider, paste your 
 
 No environment variables are required to run — you bring your key in the UI. See [.env.example](./.env.example) for optional settings.
 
+> Prefer a task runner? `make help` lists the common targets (`make dev`, `make check`, `make deploy`).
+
 ## Deploy (Cloudflare Workers)
 
 ```bash
 npm run build
 npm run deploy
 ```
+
+To deploy to your **own custom domain** without leaking production-private
+details into the repo, copy `wrangler.prod.jsonc.example` to the gitignored
+`wrangler.prod.jsonc`, set your domain, and run `npm run deploy:prod`
+(or `make deploy-prod`).
 
 Full guide: [docs/cloudflare-deploy.md](./docs/cloudflare-deploy.md). The app is a standard Next.js app and can run on any Next.js-compatible host; Cloudflare is the documented reference target.
 
