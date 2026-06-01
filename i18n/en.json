@@ -1,0 +1,176 @@
+{
+  "Common": {
+    "appName": "Simi Avatar",
+    "tagline": "Open-source AI avatar generator powered by your own API key.",
+    "supportLine": "No login. No database. No subscriptions. Self-host anywhere.",
+    "launchApp": "Launch App",
+    "viewOnGitHub": "View on GitHub",
+    "loading": "Loading…",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "close": "Close"
+  },
+  "Nav": {
+    "home": "Home",
+    "generate": "Generate",
+    "about": "About",
+    "legal": "Legal"
+  },
+  "Home": {
+    "metaTitle": "Simi Avatar — Open-source AI avatar generator",
+    "metaDescription": "Open-source AI avatar generator powered by your own API key. No login, no database, no subscription. Self-host anywhere.",
+    "heroTitle": "Simi Avatar",
+    "heroSubtitle": "Open-source AI avatar generator powered by your own API key.",
+    "heroSupport": "No login. No database. No subscriptions. Self-host anywhere.",
+    "highlightsTitle": "Why Simi Avatar",
+    "byokTitle": "Bring Your Own API Key",
+    "byokBody": "Plug in your own OpenAI or MiniMax key and generate avatars instantly — no accounts, no middlemen.",
+    "privacyTitle": "Privacy-first",
+    "privacyBody": "Your key and images are used only for a single request and are never stored or logged.",
+    "openSourceTitle": "Open Source",
+    "openSourceBody": "MIT licensed and fully self-hostable. Read the code, fork it, deploy it anywhere.",
+    "extensibleTitle": "Extensible Providers",
+    "extensibleBody": "A clean provider abstraction makes adding new AI image models straightforward."
+  },
+  "Generate": {
+    "title": "Generate your avatar",
+    "subtitle": "Bring your own API key. Nothing is stored.",
+    "inputHeading": "Settings",
+    "previewHeading": "Preview",
+    "generate": "Generate",
+    "generating": "Generating…",
+    "download": "Download",
+    "regenerate": "Regenerate",
+    "estimatedCost": "Estimated cost",
+    "estimatedCostCouple": "Couple mode runs two generations.",
+    "privacyNote": "Your image and API key are only used for this generation request. Simi Avatar does not store your API key or images.",
+    "states": {
+      "idle": "Configure the form and click Generate.",
+      "uploading": "Processing image…",
+      "ready": "Ready to generate.",
+      "generating": "Generating your avatar…",
+      "success": "Done! Download your avatar below.",
+      "error": "Something went wrong."
+    }
+  },
+  "Mode": {
+    "label": "Mode",
+    "single": "Single",
+    "couple": "Couple",
+    "themed": "Themed",
+    "singleDescription": "Restyle your own photo into an avatar.",
+    "coupleDescription": "Generate a style-consistent pair for two people.",
+    "themedDescription": "Generate from a theme and prompt — no photo needed."
+  },
+  "Provider": {
+    "label": "Provider",
+    "openai": "OpenAI",
+    "minimax": "MiniMax",
+    "region": "Region",
+    "regionGlobal": "Global",
+    "regionChina": "China",
+    "regionHint": "MiniMax Global and China use separate keys and endpoints."
+  },
+  "ApiKey": {
+    "label": "API Key",
+    "placeholder": "Enter your provider API key",
+    "show": "Show",
+    "hide": "Hide",
+    "save": "Save for this session",
+    "clear": "Clear Key",
+    "saved": "Key saved for this session.",
+    "cleared": "Key cleared."
+  },
+  "Upload": {
+    "label": "Upload image",
+    "labelA": "Person A",
+    "labelB": "Person B",
+    "hint": "JPG, PNG or WEBP. Up to 10MB, at least 256×256.",
+    "choose": "Choose file",
+    "replace": "Replace",
+    "remove": "Remove",
+    "processing": "Processing…"
+  },
+  "Style": {
+    "label": "Style",
+    "anime": "Anime",
+    "pixar-3d": "Pixar 3D",
+    "cyberpunk": "Cyberpunk",
+    "professional-headshot": "Professional Headshot",
+    "linkedin": "LinkedIn",
+    "fantasy-hero": "Fantasy Hero",
+    "comic-book": "Comic Book",
+    "watercolor": "Watercolor",
+    "retro-game": "Retro Game",
+    "sci-fi": "Sci-Fi"
+  },
+  "Theme": {
+    "label": "Theme",
+    "variantLabel": "Variant",
+    "dogs": "Dogs",
+    "shiba-inu": "Shiba Inu",
+    "corgi": "Corgi",
+    "golden-retriever": "Golden Retriever",
+    "husky": "Husky",
+    "poodle": "Poodle",
+    "border-collie": "Border Collie",
+    "dalmatian": "Dalmatian",
+    "pug": "Pug"
+  },
+  "Form": {
+    "promptLabel": "Optional prompt",
+    "promptPlaceholder": "e.g. blue background, soft lighting, friendly smile",
+    "sizeLabel": "Size",
+    "pairedConsistency": "Paired consistency",
+    "pairedConsistencyHint": "Share palette, background, lighting and composition across both avatars."
+  },
+  "Preset": {
+    "copyLink": "Copy team preset link",
+    "copied": "Link copied!",
+    "loaded": "Team preset loaded."
+  },
+  "Result": {
+    "altSingle": "Generated avatar",
+    "altLabeled": "Generated avatar {label}",
+    "empty": "Your generated avatar will appear here."
+  },
+  "Errors": {
+    "INVALID_API_KEY": "The API key is invalid or was rejected by the provider.",
+    "INSUFFICIENT_CREDITS": "Your provider account is out of credits or quota.",
+    "INVALID_IMAGE": "The uploaded image could not be read.",
+    "IMAGE_TOO_LARGE": "The image is too large. Please use a smaller file.",
+    "UNSUPPORTED_FILE_TYPE": "Unsupported file type. Use JPG, PNG or WEBP.",
+    "INVALID_MODE_INPUT": "The inputs do not match the selected mode.",
+    "INVALID_REGION": "The key does not match the selected MiniMax region.",
+    "PROVIDER_TIMEOUT": "The provider took too long to respond. Please try again.",
+    "CONTENT_REJECTED": "The request was blocked by the provider's content policy.",
+    "RATE_LIMITED": "Too many requests. Please wait a moment and try again.",
+    "UNKNOWN_ERROR": "An unexpected error occurred. Please try again.",
+    "MISSING_API_KEY": "Please enter your API key first."
+  },
+  "Language": {
+    "label": "Language",
+    "en": "English",
+    "zh-CN": "简体中文"
+  },
+  "About": {
+    "title": "About Simi Avatar",
+    "intro": "Simi Avatar is an open-source, no-signup, BYOK AI avatar generator. You bring your own provider API key and generate avatars in three modes.",
+    "modelsTitle": "Supported models",
+    "modelsBody": "OpenAI gpt-image-1 and MiniMax image-01 (Global and China regions).",
+    "securityTitle": "Security",
+    "securityBody": "Your API key and images pass through the server only in memory for a single request, and are never stored or logged.",
+    "deployTitle": "Deployment",
+    "deployBody": "Self-host anywhere that runs Next.js. The reference deployment target is Cloudflare Workers.",
+    "license": "License: MIT"
+  },
+  "Legal": {
+    "title": "Legal",
+    "disclaimerTitle": "Disclaimer",
+    "disclaimerBody": "Simi Avatar is provided as-is, without warranty. You are responsible for your own API key usage and any content you generate.",
+    "termsTitle": "Terms of Use",
+    "termsBody": "Do not use Simi Avatar to generate illegal, sexual, hateful content, or to deceptively impersonate real people.",
+    "privacyTitle": "Privacy Notice",
+    "privacyBody": "Simi Avatar stores no data. Your API key lives only in your browser session; images and keys are used only for a single generation request and are never persisted or logged."
+  }
+}

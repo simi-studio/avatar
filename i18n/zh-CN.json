@@ -1,0 +1,176 @@
+{
+  "Common": {
+    "appName": "Simi Avatar",
+    "tagline": "由你自己的 API Key 驱动的开源 AI 头像生成器。",
+    "supportLine": "无需登录，无数据库，无订阅，可随处自托管。",
+    "launchApp": "进入应用",
+    "viewOnGitHub": "在 GitHub 查看",
+    "loading": "加载中…",
+    "retry": "重试",
+    "cancel": "取消",
+    "close": "关闭"
+  },
+  "Nav": {
+    "home": "首页",
+    "generate": "生成",
+    "about": "关于",
+    "legal": "法律"
+  },
+  "Home": {
+    "metaTitle": "Simi Avatar — 开源 AI 头像生成器",
+    "metaDescription": "由你自己的 API Key 驱动的开源 AI 头像生成器。无需登录、无数据库、无订阅，可随处自托管。",
+    "heroTitle": "Simi Avatar",
+    "heroSubtitle": "由你自己的 API Key 驱动的开源 AI 头像生成器。",
+    "heroSupport": "无需登录，无数据库，无订阅，可随处自托管。",
+    "highlightsTitle": "为什么选择 Simi Avatar",
+    "byokTitle": "使用你自己的 API Key",
+    "byokBody": "填入你自己的 OpenAI 或 MiniMax Key，立即生成头像——无需账号，无中间环节。",
+    "privacyTitle": "隐私优先",
+    "privacyBody": "你的 Key 和图片仅用于单次请求，绝不存储或记录日志。",
+    "openSourceTitle": "开源",
+    "openSourceBody": "采用 MIT 许可证，完全可自托管。阅读代码、自由 fork、随处部署。",
+    "extensibleTitle": "可扩展的提供方",
+    "extensibleBody": "清晰的提供方抽象让接入新的 AI 图像模型变得简单。"
+  },
+  "Generate": {
+    "title": "生成你的头像",
+    "subtitle": "使用你自己的 API Key，不存储任何内容。",
+    "inputHeading": "设置",
+    "previewHeading": "预览",
+    "generate": "生成",
+    "generating": "生成中…",
+    "download": "下载",
+    "regenerate": "重新生成",
+    "estimatedCost": "预计费用",
+    "estimatedCostCouple": "情侣模式会进行两次生成。",
+    "privacyNote": "你的图片和 API Key 仅用于本次生成请求。Simi Avatar 不会存储你的 API Key 或图片。",
+    "states": {
+      "idle": "完成表单后点击生成。",
+      "uploading": "正在处理图片…",
+      "ready": "准备就绪，可以生成。",
+      "generating": "正在生成你的头像…",
+      "success": "完成！在下方下载你的头像。",
+      "error": "出现了一些问题。"
+    }
+  },
+  "Mode": {
+    "label": "模式",
+    "single": "单人",
+    "couple": "情侣",
+    "themed": "主题",
+    "singleDescription": "将你自己的照片重绘为头像。",
+    "coupleDescription": "为两个人生成风格一致的成对头像。",
+    "themedDescription": "根据主题和提示词生成——无需照片。"
+  },
+  "Provider": {
+    "label": "提供方",
+    "openai": "OpenAI",
+    "minimax": "MiniMax",
+    "region": "区域",
+    "regionGlobal": "全球",
+    "regionChina": "中国",
+    "regionHint": "MiniMax 全球版与中国版使用不同的 Key 和接口。"
+  },
+  "ApiKey": {
+    "label": "API Key",
+    "placeholder": "输入你的提供方 API Key",
+    "show": "显示",
+    "hide": "隐藏",
+    "save": "在本次会话中保存",
+    "clear": "清除 Key",
+    "saved": "Key 已在本次会话中保存。",
+    "cleared": "Key 已清除。"
+  },
+  "Upload": {
+    "label": "上传图片",
+    "labelA": "人物 A",
+    "labelB": "人物 B",
+    "hint": "支持 JPG、PNG 或 WEBP。最大 10MB，至少 256×256。",
+    "choose": "选择文件",
+    "replace": "替换",
+    "remove": "移除",
+    "processing": "处理中…"
+  },
+  "Style": {
+    "label": "风格",
+    "anime": "动漫",
+    "pixar-3d": "皮克斯 3D",
+    "cyberpunk": "赛博朋克",
+    "professional-headshot": "专业头像",
+    "linkedin": "领英风",
+    "fantasy-hero": "奇幻英雄",
+    "comic-book": "美式漫画",
+    "watercolor": "水彩",
+    "retro-game": "复古游戏",
+    "sci-fi": "科幻"
+  },
+  "Theme": {
+    "label": "主题",
+    "variantLabel": "变体",
+    "dogs": "狗狗",
+    "shiba-inu": "柴犬",
+    "corgi": "柯基",
+    "golden-retriever": "金毛寻回犬",
+    "husky": "哈士奇",
+    "poodle": "贵宾犬",
+    "border-collie": "边境牧羊犬",
+    "dalmatian": "斑点狗",
+    "pug": "巴哥犬"
+  },
+  "Form": {
+    "promptLabel": "可选提示词",
+    "promptPlaceholder": "例如：蓝色背景，柔和光线，友善微笑",
+    "sizeLabel": "尺寸",
+    "pairedConsistency": "成对一致性",
+    "pairedConsistencyHint": "在两个头像间共享配色、背景、光线和构图。"
+  },
+  "Preset": {
+    "copyLink": "复制团队预设链接",
+    "copied": "链接已复制！",
+    "loaded": "团队预设已载入。"
+  },
+  "Result": {
+    "altSingle": "生成的头像",
+    "altLabeled": "生成的头像 {label}",
+    "empty": "生成的头像将显示在这里。"
+  },
+  "Errors": {
+    "INVALID_API_KEY": "API Key 无效或被提供方拒绝。",
+    "INSUFFICIENT_CREDITS": "你的提供方账户额度或配额已用尽。",
+    "INVALID_IMAGE": "无法读取上传的图片。",
+    "IMAGE_TOO_LARGE": "图片太大，请使用更小的文件。",
+    "UNSUPPORTED_FILE_TYPE": "不支持的文件类型，请使用 JPG、PNG 或 WEBP。",
+    "INVALID_MODE_INPUT": "输入与所选模式不匹配。",
+    "INVALID_REGION": "Key 与所选的 MiniMax 区域不匹配。",
+    "PROVIDER_TIMEOUT": "提供方响应超时，请重试。",
+    "CONTENT_REJECTED": "请求被提供方的内容政策拦截。",
+    "RATE_LIMITED": "请求过于频繁，请稍候再试。",
+    "UNKNOWN_ERROR": "发生了意外错误，请重试。",
+    "MISSING_API_KEY": "请先输入你的 API Key。"
+  },
+  "Language": {
+    "label": "语言",
+    "en": "English",
+    "zh-CN": "简体中文"
+  },
+  "About": {
+    "title": "关于 Simi Avatar",
+    "intro": "Simi Avatar 是一个开源、无需注册、自带 Key（BYOK）的 AI 头像生成器。你使用自己的提供方 API Key，在三种模式下生成头像。",
+    "modelsTitle": "支持的模型",
+    "modelsBody": "OpenAI gpt-image-1 和 MiniMax image-01（全球版与中国版）。",
+    "securityTitle": "安全",
+    "securityBody": "你的 API Key 和图片仅在单次请求中于内存里短暂经过服务器，绝不存储或记录日志。",
+    "deployTitle": "部署",
+    "deployBody": "可在任何运行 Next.js 的环境自托管。参考部署目标为 Cloudflare Workers。",
+    "license": "许可证：MIT"
+  },
+  "Legal": {
+    "title": "法律声明",
+    "disclaimerTitle": "免责声明",
+    "disclaimerBody": "Simi Avatar 按“原样”提供，不附带任何担保。你需对自己的 API Key 使用及生成的内容负责。",
+    "termsTitle": "使用条款",
+    "termsBody": "请勿使用 Simi Avatar 生成违法、色情、仇恨内容，或欺骗性地冒充真人。",
+    "privacyTitle": "隐私声明",
+    "privacyBody": "Simi Avatar 不存储任何数据。你的 API Key 仅存在于浏览器会话中；图片和 Key 仅用于单次生成请求，绝不持久化或记录日志。"
+  }
+}
