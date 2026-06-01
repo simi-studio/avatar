@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Next.js / build output
+.next/
+out/
+dist/
+.open-next/
+.vercel/
+
+# Cloudflare / Wrangler
+.wrangler/
+.dev.vars
+
+# Coverage and test output
+coverage/
+playwright-report/
+test-results/
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Local agent files
+CLAUDE.local.md
+.claude/settings.local.json
+.codex-log/
+
+# OS/editor noise
+.DS_Store
+*.swp
