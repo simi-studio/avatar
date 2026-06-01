@@ -5,7 +5,7 @@
 | Field | Value |
 | ----- | ----- |
 | Milestone | M5 |
-| Status | Not started |
+| Status | Done |
 | Depends on | Epic 4.1 |
 
 ## Goal
@@ -15,23 +15,23 @@ Finish open-source governance, finalize English docs, and ship the Cloudflare pr
 ## Checklist
 
 ### Docs (English)
-- [ ] README finalized (screenshots, demo link, features, local run, deploy, providers, security, License, Contributing)
-- [ ] docs/security.md / providers.md / cloudflare-deploy.md / architecture.md finalized
-- [ ] Legal pages `/legal`: Disclaimer / Terms / Privacy
+- [x] README finalized (screenshots, demo link, features, local run, deploy, providers, security, License, Contributing)
+- [x] docs/security.md / providers.md / cloudflare-deploy.md / architecture.md finalized
+- [x] Legal pages `/legal`: Disclaimer / Terms / Privacy
 - [ ] Screenshots in `public/screenshots/`
 
 ### Open-source governance
-- [ ] LICENSE (MIT) ✅
-- [ ] CONTRIBUTING.md ✅
+- [x] LICENSE (MIT) ✅
+- [x] CONTRIBUTING.md ✅
 - [ ] GitHub repo Description + Topics
-- [ ] `.env.example` (template only, no real keys)
+- [x] `.env.example` (template only, no real keys)
 
 ### CI/CD
-- [ ] GitHub Actions: lint → typecheck → test → build
+- [x] GitHub Actions: lint → typecheck → test → build
 - [ ] (Optional) auto-deploy on merge to default branch (Wrangler secrets)
 
 ### Deploy
-- [ ] `wrangler.jsonc` complete
+- [x] `wrangler.jsonc` complete
 - [ ] Deploy Cloudflare Workers
 - [ ] Bind custom domain (e.g. `avatar.simi.studio`)
 - [ ] Post-deploy checklist passes ([cloudflare-deploy.md](../../cloudflare-deploy.md))

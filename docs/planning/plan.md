@@ -4,7 +4,7 @@
 
 | Field | Value |
 | ----- | ----- |
-| Status | Active |
+| Status | MVP code complete (M1–M5 implemented; Cloudflare deploy pending) |
 | Scope | MVP (M1–M5) |
 | Providers (MVP) | OpenAI + MiniMax |
 | Languages (MVP) | English (default) + Simplified Chinese |
