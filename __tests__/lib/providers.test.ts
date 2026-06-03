@@ -47,6 +47,13 @@ describe("openai adapter", () => {
     expect(mapOpenAIError(504, {})).toBe("PROVIDER_TIMEOUT");
   });
 
+  it("handles non-object OpenAI error bodies defensively", () => {
+    expect(mapOpenAIError(429, null)).toBe("RATE_LIMITED");
+    expect(mapOpenAIError(400, { error: { type: 123 } })).toBe(
+      "INVALID_IMAGE",
+    );
+  });
+
   it("calls the edits endpoint for single mode", async () => {
     const fetchMock = vi
       .fn()
@@ -109,6 +116,25 @@ describe("openai adapter", () => {
     expect(images).toEqual([
       { base64: "PAIR", mimeType: "image/png", label: "A" },
       { base64: "PAIR", mimeType: "image/png", label: "B" },
+    ]);
+  });
+
+  it("returns successful couple-text images when one OpenAI call fails", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse({ data: [{ b64_json: "PAIR-A" }] }))
+      .mockResolvedValueOnce(jsonResponse({ error: { code: "bad" } }, 500));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const images = await openaiProvider.generateAvatar({
+      apiKey: "sk-test",
+      mode: "couple-text",
+      prompt: "a matching couple avatar set",
+      size: "1024x1024",
+    });
+
+    expect(images).toEqual([
+      { base64: "PAIR-A", mimeType: "image/png", label: "A" },
     ]);
   });
 
@@ -180,6 +206,30 @@ describe("minimax adapter", () => {
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
       "https://api.minimax.io/v1/image_generation",
     );
+  });
+
+  it("falls back to default dimensions if called with an invalid size", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse({
+        data: { image_base64: ["BBBB"] },
+        base_resp: { status_code: 0 },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await minimaxProvider.generateAvatar({
+      apiKey: "mm-test",
+      region: "global",
+      mode: "themed",
+      prompt: "a dog avatar",
+      size: "bad-size" as never,
+    });
+
+    const request = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    expect(JSON.parse(String(request.body))).toMatchObject({
+      width: 1024,
+      height: 1024,
+    });
   });
 
   it("uses the China base URL when region is china", async () => {

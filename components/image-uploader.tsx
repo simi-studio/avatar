@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { ImagePlus, X } from "lucide-react";
 
@@ -34,6 +34,7 @@ export function ImageUploader({
   const t = useTranslations("Upload");
   const tErr = useTranslations("Errors");
   const inputRef = useRef<HTMLInputElement>(null);
+  const inputId = useId();
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<ErrorCode | null>(null);
 
@@ -70,8 +71,9 @@ export function ImageUploader({
 
   return (
     <div className="flex flex-col gap-2">
-      <Label>{label}</Label>
+      <Label htmlFor={inputId}>{label}</Label>
       <input
+        id={inputId}
         ref={inputRef}
         type="file"
         accept={ACCEPTED_IMAGE_TYPES.join(",")}
@@ -102,6 +104,7 @@ export function ImageUploader({
       ) : (
         <button
           type="button"
+          aria-label={label}
           onClick={() => inputRef.current?.click()}
           className="flex h-48 w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed text-sm text-muted-foreground hover:border-primary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >

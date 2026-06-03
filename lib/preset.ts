@@ -7,6 +7,9 @@ import {
   type ProviderId,
 } from "@/lib/constants";
 import { isSupportedLocale } from "@/i18n/routing";
+import { redactText } from "@/lib/redaction";
+import { getStyleById } from "@/styles/avatar-styles";
+import { AVATAR_THEMES, getThemeById } from "@/styles/avatar-themes";
 
 /**
  * A team preset is a stateless, shareable base setup. It intentionally carries
@@ -41,10 +44,21 @@ const PRESET_ALLOWLIST = [
 
 /** Substrings that mark a field as credential-like and force-drop it. */
 const KEY_LIKE = ["key", "token", "secret", "password", "auth", "credential"];
+const MAX_PRESET_CODE_LENGTH = 4096;
 
 function isKeyLike(field: string): boolean {
   const lower = field.toLowerCase();
   return KEY_LIKE.some((needle) => lower.includes(needle));
+}
+
+function isSafePresetValue(value: string): boolean {
+  return redactText(value) === value;
+}
+
+function isKnownVariantId(value: string): boolean {
+  return AVATAR_THEMES.some((theme) =>
+    theme.variants.some((variant) => variant.id === value),
+  );
 }
 
 function base64UrlEncode(input: string): string {
@@ -105,10 +119,36 @@ function sanitize(raw: Record<string, unknown>): TeamPreset {
         }
         break;
       case "styleId":
-      case "themeId":
-      case "variantId":
-        if (typeof value === "string" && value.length > 0 && value.length <= 64) {
+        if (
+          typeof value === "string" &&
+          value.length > 0 &&
+          value.length <= 64 &&
+          isSafePresetValue(value) &&
+          getStyleById(value)
+        ) {
           preset[field] = value;
+        }
+        break;
+      case "themeId":
+        if (
+          typeof value === "string" &&
+          value.length > 0 &&
+          value.length <= 64 &&
+          isSafePresetValue(value) &&
+          getThemeById(value)
+        ) {
+          preset.themeId = value;
+        }
+        break;
+      case "variantId":
+        if (
+          typeof value === "string" &&
+          value.length > 0 &&
+          value.length <= 64 &&
+          isSafePresetValue(value) &&
+          isKnownVariantId(value)
+        ) {
+          preset.variantId = value;
         }
         break;
       case "pairedConsistency":
@@ -137,6 +177,7 @@ export function encodePreset(preset: TeamPreset): string {
  */
 export function decodePreset(code: string | null | undefined): TeamPreset {
   if (!code) return {};
+  if (code.length > MAX_PRESET_CODE_LENGTH) return {};
   try {
     const json = JSON.parse(base64UrlDecode(code)) as unknown;
     if (typeof json !== "object" || json === null) return {};

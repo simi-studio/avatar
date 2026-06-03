@@ -26,10 +26,10 @@ export function SourceSelector({
   const t = useTranslations("Source");
 
   return (
-    <div className="flex flex-col gap-2">
-      <span className="text-sm font-medium">{t("label")}</span>
+    <fieldset className="flex flex-col gap-2">
+      <legend className="text-sm font-medium">{t("label")}</legend>
       <div
-        role="tablist"
+        role="group"
         aria-label={t("label")}
         className="grid grid-cols-2 gap-2"
       >
@@ -40,8 +40,7 @@ export function SourceSelector({
             <button
               key={source}
               type="button"
-              role="tab"
-              aria-selected={selected}
+              aria-pressed={selected}
               onClick={() => onChange(source)}
               className={cn(
                 "flex flex-col items-start gap-1 rounded-lg border p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -61,6 +60,6 @@ export function SourceSelector({
           );
         })}
       </div>
-    </div>
+    </fieldset>
   );
 }

@@ -21,10 +21,10 @@ export function ModeSelector({
   const t = useTranslations("Mode");
 
   return (
-    <div className="flex flex-col gap-2">
-      <span className="text-sm font-medium">{t("label")}</span>
+    <fieldset className="flex flex-col gap-2">
+      <legend className="text-sm font-medium">{t("label")}</legend>
       <div
-        role="tablist"
+        role="group"
         aria-label={t("label")}
         className="inline-flex rounded-lg border bg-muted p-1"
       >
@@ -34,8 +34,7 @@ export function ModeSelector({
             <button
               key={mode}
               type="button"
-              role="tab"
-              aria-selected={selected}
+              aria-pressed={selected}
               onClick={() => onChange(mode)}
               className={cn(
                 "rounded-md px-4 py-1.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -52,6 +51,6 @@ export function ModeSelector({
       <p className="text-sm text-muted-foreground">
         {t(`${value}Description`)}
       </p>
-    </div>
+    </fieldset>
   );
 }

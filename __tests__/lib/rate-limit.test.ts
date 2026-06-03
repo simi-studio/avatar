@@ -41,15 +41,20 @@ describe("checkRateLimit", () => {
 });
 
 describe("clientIdentifier", () => {
-  it("uses the first x-forwarded-for entry", () => {
-    const headers = new Headers({ "x-forwarded-for": "1.2.3.4, 5.6.7.8" });
-    expect(clientIdentifier(headers)).toBe("1.2.3.4");
+  it("prefers Cloudflare's connecting IP over spoofable forwarded headers", () => {
+    const headers = new Headers({
+      "cf-connecting-ip": "9.9.9.9",
+      "x-forwarded-for": "1.2.3.4, 5.6.7.8",
+    });
+    expect(clientIdentifier(headers)).toBe("9.9.9.9");
   });
 
-  it("falls back to cf-connecting-ip then anonymous", () => {
+  it("falls back to the first x-forwarded-for entry then anonymous", () => {
     expect(
-      clientIdentifier(new Headers({ "cf-connecting-ip": "9.9.9.9" })),
-    ).toBe("9.9.9.9");
+      clientIdentifier(
+        new Headers({ "x-forwarded-for": "1.2.3.4, 5.6.7.8" }),
+      ),
+    ).toBe("1.2.3.4");
     expect(clientIdentifier(new Headers())).toBe("anonymous");
   });
 });

@@ -69,6 +69,7 @@ export type AcceptedImageType = (typeof ACCEPTED_IMAGE_TYPES)[number];
 
 /** Upload limits (see prd.md §6.2). */
 export const MAX_IMAGE_BYTES = 10 * 1024 * 1024; // 10MB
+export const MAX_GENERATE_REQUEST_BYTES = 25 * 1024 * 1024; // 25MB
 export const MIN_IMAGE_DIMENSION = 256;
 export const RECOMMENDED_IMAGE_DIMENSION = 1024;
 
@@ -96,6 +97,7 @@ export const ERROR_CODES = [
   "PROVIDER_TIMEOUT",
   "CONTENT_REJECTED",
   "RATE_LIMITED",
+  "UNSUPPORTED_MEDIA_TYPE",
   "UNKNOWN_ERROR",
   "MISSING_API_KEY",
 ] as const;

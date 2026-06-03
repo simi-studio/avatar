@@ -40,8 +40,6 @@
     "generate": "生成",
     "generating": "生成中…",
     "download": "下载",
-    "regenerate": "重新生成",
-    "estimatedCost": "预计费用",
     "estimatedCostCouple": "情侣模式会进行两次生成。",
     "privacyNote": "你的图片和 API Key 仅用于本次生成请求。Simi Avatar 不会存储你的 API Key 或图片。",
     "states": {
@@ -88,9 +86,7 @@
     "show": "显示",
     "hide": "隐藏",
     "save": "在本次会话中保存",
-    "clear": "清除 Key",
-    "saved": "Key 已在本次会话中保存。",
-    "cleared": "Key 已清除。"
+    "clear": "清除 Key"
   },
   "Upload": {
     "label": "上传图片",
@@ -214,7 +210,8 @@
   "Result": {
     "altSingle": "生成的头像",
     "altLabeled": "生成的头像 {label}",
-    "empty": "生成的头像将显示在这里。"
+    "empty": "生成的头像将显示在这里。",
+    "emptySuccess": "提供方没有返回图片，请重试。"
   },
   "Errors": {
     "INVALID_API_KEY": "API Key 无效或被提供方拒绝。",
@@ -227,6 +224,7 @@
     "PROVIDER_TIMEOUT": "提供方响应超时，请重试。",
     "CONTENT_REJECTED": "请求被提供方的内容政策拦截。",
     "RATE_LIMITED": "请求过于频繁，请稍候再试。",
+    "UNSUPPORTED_MEDIA_TYPE": "不支持的请求类型，请重新提交表单。",
     "UNKNOWN_ERROR": "发生了意外错误，请重试。",
     "MISSING_API_KEY": "请先输入你的 API Key。"
   },

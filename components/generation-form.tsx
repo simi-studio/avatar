@@ -317,7 +317,16 @@ export function GenerationForm() {
         <CardHeader>
           <CardTitle>{t("inputHeading")}</CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col gap-6">
+        <CardContent>
+          <form
+            className="flex flex-col gap-6"
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (canGenerate && status !== "generating") {
+                void onGenerate();
+              }
+            }}
+          >
           <SourceSelector value={source} onChange={onSourceChange} />
           <ModeSelector
             modes={MODES_BY_SOURCE[source]}
@@ -470,14 +479,14 @@ export function GenerationForm() {
 
           <div className="flex flex-wrap items-center gap-3">
             <Button
-              type="button"
-              onClick={() => void onGenerate()}
+              type="submit"
               disabled={!canGenerate || status === "generating"}
             >
               {status === "generating" ? t("generating") : t("generate")}
             </Button>
             <TeamPresetShare preset={currentPreset} />
           </div>
+          </form>
         </CardContent>
       </Card>
 

@@ -8,7 +8,7 @@ import type {
   ProviderId,
 } from "@/lib/types";
 import { ProviderError } from "@/lib/types";
-import { DEFAULT_IMAGE_SIZE } from "@/lib/constants";
+import { DEFAULT_IMAGE_SIZE, MAX_GENERATE_REQUEST_BYTES } from "@/lib/constants";
 import { getProvider } from "@/lib/providers";
 import {
   createAvatarIntent,
@@ -28,9 +28,11 @@ import {
   isValidSize,
   isValidMode,
   validateImageFile,
+  validateImageFileContent,
   validateModeInput,
   validateProviderRegion,
 } from "@/lib/validation";
+import { stripImageMetadata } from "@/lib/server-image-safety";
 
 const STATUS_BY_CODE: Partial<Record<ErrorCode, number>> = {
   MISSING_API_KEY: 400,
@@ -40,17 +42,37 @@ const STATUS_BY_CODE: Partial<Record<ErrorCode, number>> = {
   INVALID_IMAGE: 400,
   INVALID_API_KEY: 401,
   INVALID_REGION: 401,
-  INSUFFICIENT_CREDITS: 402,
+  INSUFFICIENT_CREDITS: 400,
   CONTENT_REJECTED: 422,
   RATE_LIMITED: 429,
+  UNSUPPORTED_MEDIA_TYPE: 415,
   PROVIDER_TIMEOUT: 504,
   UNKNOWN_ERROR: 502,
 };
 
-function errorResponse(code: ErrorCode): NextResponse<GenerateResponse> {
-  const status = STATUS_BY_CODE[code] ?? 500;
+const MESSAGE_BY_CODE: Record<ErrorCode, string> = {
+  MISSING_API_KEY: "API key is required.",
+  INVALID_MODE_INPUT: "The inputs do not match the selected mode.",
+  UNSUPPORTED_FILE_TYPE: "Unsupported file type.",
+  IMAGE_TOO_LARGE: "The image or request body is too large.",
+  INVALID_IMAGE: "The uploaded image could not be read.",
+  INVALID_API_KEY: "The provider rejected the API key.",
+  INVALID_REGION: "The MiniMax key does not match the selected region.",
+  INSUFFICIENT_CREDITS: "The provider account is out of credits or quota.",
+  CONTENT_REJECTED: "The provider rejected the content.",
+  RATE_LIMITED: "Too many requests.",
+  UNSUPPORTED_MEDIA_TYPE: "Unsupported request media type.",
+  PROVIDER_TIMEOUT: "The provider timed out.",
+  UNKNOWN_ERROR: "Unexpected generation error.",
+};
+
+function errorResponse(
+  code: ErrorCode,
+  statusOverride?: number,
+): NextResponse<GenerateResponse> {
+  const status = statusOverride ?? STATUS_BY_CODE[code] ?? 500;
   return NextResponse.json(
-    { success: false, error: { code, message: code } },
+    { success: false, error: { code, message: MESSAGE_BY_CODE[code] } },
     { status },
   );
 }
@@ -74,7 +96,9 @@ type ParsedRequest = {
   intentJson?: string;
 };
 
-async function parseRequest(req: Request): Promise<ParsedRequest | null> {
+async function parseRequest(
+  req: Request,
+): Promise<ParsedRequest | "unsupported-media-type"> {
   const contentType = req.headers.get("content-type") ?? "";
 
   if (contentType.includes("application/json")) {
@@ -120,12 +144,55 @@ async function parseRequest(req: Request): Promise<ParsedRequest | null> {
     };
   }
 
-  return null;
+  return "unsupported-media-type";
+}
+
+function exceedsRequestSizeLimit(headers: Headers): boolean {
+  const raw = headers.get("content-length");
+  if (!raw) return false;
+  const contentLength = Number.parseInt(raw, 10);
+  return (
+    Number.isFinite(contentLength) &&
+    contentLength > MAX_GENERATE_REQUEST_BYTES
+  );
+}
+
+function configuredAllowedOrigins(): Set<string> {
+  return new Set(
+    (process.env.ALLOWED_ORIGINS ?? "")
+      .split(",")
+      .map((origin) => origin.trim())
+      .filter(Boolean),
+  );
+}
+
+function isAllowedOrigin(req: Request): boolean {
+  const origin = req.headers.get("origin");
+  if (!origin) return true;
+
+  if (configuredAllowedOrigins().has(origin)) return true;
+
+  const host = req.headers.get("host");
+  if (!host) return false;
+
+  try {
+    return new URL(origin).host === host;
+  } catch {
+    return false;
+  }
 }
 
 export async function POST(
   req: Request,
 ): Promise<NextResponse<GenerateResponse>> {
+  if (!isAllowedOrigin(req)) {
+    return errorResponse("INVALID_MODE_INPUT", 403);
+  }
+
+  if (exceedsRequestSizeLimit(req.headers)) {
+    return errorResponse("IMAGE_TOO_LARGE");
+  }
+
   const limit = configuredLimit();
   if (limit > 0) {
     const { allowed, retryAfterSeconds } = checkRateLimit(
@@ -140,14 +207,14 @@ export async function POST(
     }
   }
 
-  let parsed: ParsedRequest | null;
+  let parsed: ParsedRequest | "unsupported-media-type";
   try {
     parsed = await parseRequest(req);
   } catch {
     return errorResponse("UNKNOWN_ERROR");
   }
-  if (!parsed) {
-    return errorResponse("INVALID_MODE_INPUT");
+  if (parsed === "unsupported-media-type") {
+    return errorResponse("UNSUPPORTED_MEDIA_TYPE");
   }
 
   if (!isValidMode(parsed.mode)) return errorResponse("INVALID_MODE_INPUT");
@@ -159,9 +226,13 @@ export async function POST(
 
   if (!isValidSize(parsed.size)) return errorResponse("INVALID_MODE_INPUT");
 
+  const safeImages: File[] = [];
   for (const image of parsed.images) {
     const imageError = validateImageFile(image);
     if (imageError) return errorResponse(imageError);
+    const contentError = await validateImageFileContent(image);
+    if (contentError) return errorResponse(contentError);
+    safeImages.push(await stripImageMetadata(image));
   }
 
   const fallbackIntent = createAvatarIntent({
@@ -179,7 +250,7 @@ export async function POST(
 
   const modeError = validateModeInput({
     mode: intent.mode,
-    imageCount: parsed.images.length,
+    imageCount: safeImages.length,
     styleId: intent.styleId,
     themeId: intent.themeId,
     variantId: intent.variantId,
@@ -190,6 +261,11 @@ export async function POST(
   const style = getStyleById(intent.styleId);
   const theme = getThemeById(intent.themeId);
   const variant = getVariant(intent.themeId, intent.variantId);
+  if (intent.mode === "themed") {
+    if (!theme || !variant) return errorResponse("INVALID_MODE_INPUT");
+  } else if (!style) {
+    return errorResponse("INVALID_MODE_INPUT");
+  }
   const compiled = compileAvatarPrompt({
     provider: parsed.provider as ProviderId,
     intent,
@@ -203,7 +279,7 @@ export async function POST(
       apiKey: parsed.apiKey,
       region: parsed.region as MiniMaxRegion | undefined,
       mode: intent.mode,
-      images: parsed.images,
+      images: safeImages,
       prompt: compiled.prompt,
       negativePrompt: compiled.negativePrompt,
       referenceStrength: compiled.referenceStrength,

@@ -61,10 +61,13 @@ export function configuredLimit(): number {
 
 /** Best-effort client identifier from forwarding headers. */
 export function clientIdentifier(headers: Headers): string {
+  const cfConnectingIp = headers.get("cf-connecting-ip");
+  if (cfConnectingIp) return cfConnectingIp;
+
   const forwarded = headers.get("x-forwarded-for");
   if (forwarded) {
     const first = forwarded.split(",")[0]?.trim();
     if (first) return first;
   }
-  return headers.get("cf-connecting-ip") ?? "anonymous";
+  return "anonymous";
 }

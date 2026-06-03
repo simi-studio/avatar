@@ -54,6 +54,59 @@ export function validateImageFile(file: {
   return null;
 }
 
+function startsWith(bytes: Uint8Array, signature: readonly number[]): boolean {
+  return signature.every((byte, index) => bytes[index] === byte);
+}
+
+async function readBlobBytes(blob: Blob): Promise<ArrayBuffer> {
+  if (typeof blob.arrayBuffer === "function") {
+    return blob.arrayBuffer();
+  }
+  if (typeof FileReader === "function") {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(reader.error ?? new Error("read failed"));
+      reader.onload = () => {
+        if (reader.result instanceof ArrayBuffer) {
+          resolve(reader.result);
+          return;
+        }
+        reject(new Error("unexpected file reader result"));
+      };
+      reader.readAsArrayBuffer(blob);
+    });
+  }
+  return new Response(blob).arrayBuffer();
+}
+
+/** Validate upload bytes on the server; MIME headers are client-controlled. */
+export async function validateImageFileContent(file: {
+  type: string;
+  slice: (start?: number, end?: number) => Blob;
+}): Promise<ErrorCode | null> {
+  const bytes = new Uint8Array(await readBlobBytes(file.slice(0, 16)));
+
+  if (file.type === "image/png") {
+    return startsWith(bytes, [0x89, 0x50, 0x4e, 0x47]) ? null : "INVALID_IMAGE";
+  }
+
+  if (file.type === "image/jpeg") {
+    return startsWith(bytes, [0xff, 0xd8, 0xff]) ? null : "INVALID_IMAGE";
+  }
+
+  if (file.type === "image/webp") {
+    const hasRiff = startsWith(bytes, [0x52, 0x49, 0x46, 0x46]);
+    const hasWebp =
+      bytes[8] === 0x57 &&
+      bytes[9] === 0x45 &&
+      bytes[10] === 0x42 &&
+      bytes[11] === 0x50;
+    return hasRiff && hasWebp ? null : "INVALID_IMAGE";
+  }
+
+  return "UNSUPPORTED_FILE_TYPE";
+}
+
 export type ModeInput = {
   mode: GenerationMode;
   imageCount: number;

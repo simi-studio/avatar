@@ -4,7 +4,6 @@ import { useTranslations } from "next-intl";
 
 import { AVATAR_THEMES, getThemeById } from "@/styles/avatar-themes";
 import { cn } from "@/lib/utils";
-import { Label } from "@/components/ui/label";
 
 export function ThemePicker({
   themeId,
@@ -22,9 +21,9 @@ export function ThemePicker({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col gap-2">
-        <Label>{t("label")}</Label>
-        <div className="flex flex-wrap gap-2">
+      <fieldset className="flex flex-col gap-2">
+        <legend className="text-sm font-medium">{t("label")}</legend>
+        <div role="group" aria-label={t("label")} className="flex flex-wrap gap-2">
           {AVATAR_THEMES.map((option) => {
             const selected = option.id === theme?.id;
             return (
@@ -45,11 +44,15 @@ export function ThemePicker({
             );
           })}
         </div>
-      </div>
+      </fieldset>
 
-      <div className="flex flex-col gap-2">
-        <Label>{t("variantLabel")}</Label>
-        <div className="flex flex-wrap gap-2">
+      <fieldset className="flex flex-col gap-2">
+        <legend className="text-sm font-medium">{t("variantLabel")}</legend>
+        <div
+          role="group"
+          aria-label={t("variantLabel")}
+          className="flex flex-wrap gap-2"
+        >
           {theme?.variants.map((variant) => {
             const selected = variant.id === variantId;
             return (
@@ -70,7 +73,7 @@ export function ThemePicker({
             );
           })}
         </div>
-      </div>
+      </fieldset>
     </div>
   );
 }

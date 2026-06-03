@@ -40,8 +40,6 @@
     "generate": "Generate",
     "generating": "Generating…",
     "download": "Download",
-    "regenerate": "Regenerate",
-    "estimatedCost": "Estimated cost",
     "estimatedCostCouple": "Couple mode runs two generations.",
     "privacyNote": "Your image and API key are only used for this generation request. Simi Avatar does not store your API key or images.",
     "states": {
@@ -88,9 +86,7 @@
     "show": "Show",
     "hide": "Hide",
     "save": "Save for this session",
-    "clear": "Clear Key",
-    "saved": "Key saved for this session.",
-    "cleared": "Key cleared."
+    "clear": "Clear Key"
   },
   "Upload": {
     "label": "Upload image",
@@ -214,7 +210,8 @@
   "Result": {
     "altSingle": "Generated avatar",
     "altLabeled": "Generated avatar {label}",
-    "empty": "Your generated avatar will appear here."
+    "empty": "Your generated avatar will appear here.",
+    "emptySuccess": "The provider returned no images. Please try again."
   },
   "Errors": {
     "INVALID_API_KEY": "The API key is invalid or was rejected by the provider.",
@@ -227,6 +224,7 @@
     "PROVIDER_TIMEOUT": "The provider took too long to respond. Please try again.",
     "CONTENT_REJECTED": "The request was blocked by the provider's content policy.",
     "RATE_LIMITED": "Too many requests. Please wait a moment and try again.",
+    "UNSUPPORTED_MEDIA_TYPE": "Unsupported request type. Please submit the form again.",
     "UNKNOWN_ERROR": "An unexpected error occurred. Please try again.",
     "MISSING_API_KEY": "Please enter your API key first."
   },

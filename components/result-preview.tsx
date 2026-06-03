@@ -140,6 +140,17 @@ export function ResultPreview({
     );
   }
 
+  if (status === "success") {
+    return (
+      <div
+        role="status"
+        className="flex min-h-[280px] items-center justify-center rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground"
+      >
+        {tr("emptySuccess")}
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-[280px] items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
       {tr("empty")}

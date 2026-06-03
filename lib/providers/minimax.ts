@@ -26,7 +26,10 @@ export function resolveMiniMaxBaseUrl(region?: MiniMaxRegion): string {
 
 function sizeToDimensions(size: ImageSize): { width: number; height: number } {
   const [w, h] = size.split("x").map((n) => Number.parseInt(n, 10));
-  return { width: w ?? 1024, height: h ?? 1024 };
+  return {
+    width: typeof w === "number" && Number.isFinite(w) && w > 0 ? w : 1024,
+    height: typeof h === "number" && Number.isFinite(h) && h > 0 ? h : 1024,
+  };
 }
 
 /**
@@ -55,6 +58,38 @@ type MiniMaxResponse = {
   data?: { image_base64?: string[]; image_urls?: string[] };
   base_resp?: { status_code?: number; status_msg?: string };
 };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function parseMiniMaxResponse(value: unknown): MiniMaxResponse {
+  if (!isRecord(value)) return {};
+  const baseResp = isRecord(value.base_resp) ? value.base_resp : {};
+  const data = isRecord(value.data) ? value.data : {};
+  return {
+    base_resp: {
+      status_code:
+        typeof baseResp.status_code === "number"
+          ? baseResp.status_code
+          : undefined,
+      status_msg:
+        typeof baseResp.status_msg === "string"
+          ? baseResp.status_msg
+          : undefined,
+    },
+    data: {
+      image_base64: Array.isArray(data.image_base64)
+        ? data.image_base64.filter(
+            (item): item is string => typeof item === "string",
+          )
+        : undefined,
+      image_urls: Array.isArray(data.image_urls)
+        ? data.image_urls.filter((item): item is string => typeof item === "string")
+        : undefined,
+    },
+  };
+}
 
 async function callMiniMax(
   input: ProviderGenerateInput,
@@ -100,7 +135,7 @@ async function callMiniMax(
     throw new ProviderError("UNKNOWN_ERROR");
   }
 
-  const json = (await res.json()) as MiniMaxResponse;
+  const json = parseMiniMaxResponse(await res.json());
   const statusCode = json.base_resp?.status_code ?? 0;
   if (statusCode !== 0) {
     throw new ProviderError(mapMiniMaxStatus(statusCode));
@@ -113,6 +148,22 @@ async function callMiniMax(
   return [toGeneratedImage(base64, "image/png", label)];
 }
 
+async function collectSuccessful(
+  calls: Array<Promise<GeneratedImage[]>>,
+): Promise<GeneratedImage[]> {
+  const results = await Promise.allSettled(calls);
+  const images = results.flatMap((result) =>
+    result.status === "fulfilled" ? result.value : [],
+  );
+  if (images.length > 0) return images;
+
+  const firstFailure = results.find((result) => result.status === "rejected");
+  if (firstFailure?.status === "rejected" && firstFailure.reason instanceof ProviderError) {
+    throw firstFailure.reason;
+  }
+  throw new ProviderError("UNKNOWN_ERROR");
+}
+
 export const minimaxProvider: ImageProvider = {
   id: "minimax",
   name: "MiniMax",
@@ -123,11 +174,10 @@ export const minimaxProvider: ImageProvider = {
     if (!isPhotoMode(input.mode)) {
       // couple-text: two text-to-image avatars sharing the prompt, labeled A / B.
       if (input.mode === "couple-text") {
-        const [resA, resB] = await Promise.all([
+        return collectSuccessful([
           callMiniMax(input, undefined, "A"),
           callMiniMax(input, undefined, "B"),
         ]);
-        return [...resA, ...resB];
       }
       // text / themed: pure text-to-image, no upload.
       return callMiniMax(input, undefined);
@@ -143,10 +193,9 @@ export const minimaxProvider: ImageProvider = {
     // couple: two calls sharing the same prompt and style, labeled A / B.
     const [a, b] = images;
     if (!a || !b) throw new ProviderError("INVALID_MODE_INPUT");
-    const [resA, resB] = await Promise.all([
+    return collectSuccessful([
       callMiniMax(input, a, "A"),
       callMiniMax(input, b, "B"),
     ]);
-    return [...resA, ...resB];
   },
 };

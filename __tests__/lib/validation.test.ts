@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  validateImageFileContent,
   isAcceptedImageType,
   isValidProvider,
   isValidRegion,
@@ -50,6 +51,28 @@ describe("validateImageFile", () => {
 
   it("accepts valid files", () => {
     expect(validateImageFile({ type: "image/png", size: 1024 })).toBeNull();
+  });
+});
+
+describe("validateImageFileContent", () => {
+  it("accepts files whose bytes match their MIME type", async () => {
+    const file = new File(
+      [new Uint8Array([0x89, 0x50, 0x4e, 0x47, 1, 2, 3, 4])],
+      "avatar.png",
+      { type: "image/png" },
+    );
+
+    await expect(validateImageFileContent(file)).resolves.toBeNull();
+  });
+
+  it("rejects files whose bytes do not match their declared MIME type", async () => {
+    const file = new File(
+      [new TextEncoder().encode("<html><script>alert(1)</script></html>")],
+      "avatar.png",
+      { type: "image/png" },
+    );
+
+    await expect(validateImageFileContent(file)).resolves.toBe("INVALID_IMAGE");
   });
 });
 

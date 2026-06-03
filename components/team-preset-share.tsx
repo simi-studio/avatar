@@ -20,7 +20,6 @@ export function TeamPresetShare({ preset }: { preset: TeamPreset }) {
     const code = encodePreset(preset);
     const url = new URL(window.location.href);
     url.searchParams.set("preset", code);
-    if (preset.mode) url.searchParams.set("mode", preset.mode);
     try {
       await navigator.clipboard.writeText(url.toString());
       setCopied(true);

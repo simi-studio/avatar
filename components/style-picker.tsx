@@ -4,7 +4,6 @@ import { useTranslations } from "next-intl";
 
 import { AVATAR_STYLES } from "@/styles/avatar-styles";
 import { cn } from "@/lib/utils";
-import { Label } from "@/components/ui/label";
 
 export function StylePicker({
   value,
@@ -16,9 +15,9 @@ export function StylePicker({
   const t = useTranslations("Style");
 
   return (
-    <div className="flex flex-col gap-2">
-      <Label>{t("label")}</Label>
-      <div className="flex flex-wrap gap-2">
+    <fieldset className="flex flex-col gap-2">
+      <legend className="text-sm font-medium">{t("label")}</legend>
+      <div role="group" aria-label={t("label")} className="flex flex-wrap gap-2">
         {AVATAR_STYLES.map((style) => {
           const selected = style.id === value;
           return (
@@ -39,6 +38,6 @@ export function StylePicker({
           );
         })}
       </div>
-    </div>
+    </fieldset>
   );
 }

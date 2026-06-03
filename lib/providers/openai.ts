@@ -22,16 +22,34 @@ export function mapOpenAISize(size: ImageSize): "1024x1024" {
 }
 
 type OpenAIErrorBody = {
-  error?: { code?: string | null; type?: string | null; message?: string };
+  error?: { code?: unknown; type?: unknown; message?: unknown };
 };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function coerceString(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  return "";
+}
+
+function readOpenAIErrorBody(body: unknown): OpenAIErrorBody {
+  if (!isRecord(body) || !isRecord(body.error)) return {};
+  return { error: body.error };
+}
 
 /** Map an OpenAI HTTP status + error body to a normalized error code. */
 export function mapOpenAIError(
   status: number,
-  body: OpenAIErrorBody,
+  body: unknown,
 ): ErrorCode {
-  const code = body.error?.code ?? "";
-  const type = body.error?.type ?? "";
+  const normalized = readOpenAIErrorBody(body);
+  const code = coerceString(normalized.error?.code);
+  const type = coerceString(normalized.error?.type);
 
   if (status === 401) return "INVALID_API_KEY";
   if (code === "insufficient_quota" || code === "billing_hard_limit_reached") {
@@ -50,10 +68,6 @@ export function mapOpenAIError(
   return "UNKNOWN_ERROR";
 }
 
-type OpenAIImageResponse = {
-  data?: Array<{ b64_json?: string; url?: string }>;
-};
-
 async function parseOpenAIResponse(
   res: Response,
   label?: string,
@@ -61,19 +75,23 @@ async function parseOpenAIResponse(
   if (!res.ok) {
     let body: OpenAIErrorBody = {};
     try {
-      body = (await res.json()) as OpenAIErrorBody;
+      body = readOpenAIErrorBody(await res.json());
     } catch {
       // Ignore unparsable error bodies; status drives the mapping.
     }
     throw new ProviderError(mapOpenAIError(res.status, body));
   }
 
-  const json = (await res.json()) as OpenAIImageResponse;
-  const first = json.data?.[0];
+  const json = (await res.json()) as unknown;
+  const data = isRecord(json) && Array.isArray(json.data) ? json.data : [];
+  const first = data[0];
+  if (!isRecord(first)) {
+    throw new ProviderError("UNKNOWN_ERROR");
+  }
   if (!first?.b64_json) {
     throw new ProviderError("UNKNOWN_ERROR");
   }
-  return [toGeneratedImage(first.b64_json, "image/png", label)];
+  return [toGeneratedImage(String(first.b64_json), "image/png", label)];
 }
 
 async function generateThemed(
@@ -110,7 +128,7 @@ async function editImage(
   form.append("prompt", input.prompt);
   form.append("size", mapOpenAISize(input.size));
   form.append("n", "1");
-  form.append("image", image, image.name || "image.png");
+  form.append("image", image, sanitizeFilename(image.name || "image.png"));
 
   const res = await fetchWithTimeout(
     `${OPENAI_BASE_URL}/v1/images/edits`,
@@ -124,6 +142,26 @@ async function editImage(
   return parseOpenAIResponse(res, label);
 }
 
+function sanitizeFilename(filename: string): string {
+  return filename.replace(/[^\w.-]/g, "_") || "image.png";
+}
+
+async function collectSuccessful(
+  calls: Array<Promise<GeneratedImage[]>>,
+): Promise<GeneratedImage[]> {
+  const results = await Promise.allSettled(calls);
+  const images = results.flatMap((result) =>
+    result.status === "fulfilled" ? result.value : [],
+  );
+  if (images.length > 0) return images;
+
+  const firstFailure = results.find((result) => result.status === "rejected");
+  if (firstFailure?.status === "rejected" && firstFailure.reason instanceof ProviderError) {
+    throw firstFailure.reason;
+  }
+  throw new ProviderError("UNKNOWN_ERROR");
+}
+
 export const openaiProvider: ImageProvider = {
   id: "openai",
   name: "OpenAI",
@@ -133,11 +171,10 @@ export const openaiProvider: ImageProvider = {
     if (!isPhotoMode(input.mode)) {
       // couple-text: two text-to-image avatars sharing the prompt, labeled A / B.
       if (input.mode === "couple-text") {
-        const [resA, resB] = await Promise.all([
+        return collectSuccessful([
           generateThemed(input, "A"),
           generateThemed(input, "B"),
         ]);
-        return [...resA, ...resB];
       }
       // text / themed: pure text-to-image, no upload.
       return generateThemed(input);
@@ -153,10 +190,9 @@ export const openaiProvider: ImageProvider = {
     // couple: two edits sharing the same prompt and style, labeled A / B.
     const [a, b] = images;
     if (!a || !b) throw new ProviderError("INVALID_MODE_INPUT");
-    const [resA, resB] = await Promise.all([
+    return collectSuccessful([
       editImage(input, a, "A"),
       editImage(input, b, "B"),
     ]);
-    return [...resA, ...resB];
   },
 };

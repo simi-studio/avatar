@@ -68,7 +68,7 @@ describe("GenerationForm", () => {
 
     // Switching to the photo source reveals the single-mode uploader.
     fireEvent.click(
-      screen.getByRole("tab", { name: new RegExp(en.Source.photo) }),
+      screen.getByRole("button", { name: new RegExp(en.Source.photo) }),
     );
     expect(screen.getByText(en.Upload.label)).toBeInTheDocument();
   });
@@ -123,7 +123,7 @@ describe("GenerationForm", () => {
   it("disables generate until a single-mode setup is complete", () => {
     renderForm();
     fireEvent.click(
-      screen.getByRole("tab", { name: new RegExp(en.Source.photo) }),
+      screen.getByRole("button", { name: new RegExp(en.Source.photo) }),
     );
     const generate = screen.getByRole("button", { name: en.Generate.generate });
     expect(generate).toBeDisabled();
@@ -137,7 +137,7 @@ describe("GenerationForm", () => {
     const { container } = renderForm();
 
     fireEvent.click(
-      screen.getByRole("tab", { name: new RegExp(en.Source.photo) }),
+      screen.getByRole("button", { name: new RegExp(en.Source.photo) }),
     );
 
     fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
@@ -176,7 +176,7 @@ describe("GenerationForm", () => {
     const { container } = renderForm();
 
     fireEvent.click(
-      screen.getByRole("tab", { name: new RegExp(en.Source.photo) }),
+      screen.getByRole("button", { name: new RegExp(en.Source.photo) }),
     );
 
     fireEvent.change(screen.getByLabelText(en.ApiKey.label), {

@@ -70,6 +70,30 @@ describe("team preset codec", () => {
     expect(preset).not.toHaveProperty("password");
   });
 
+  it("drops key-like values from allowlisted id fields", () => {
+    const malicious = {
+      mode: "single",
+      styleId: "sk-proj-abcdefghijklmnopqrstuvwxyz1234567890",
+      themeId:
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.payload.signature",
+      variantId: "corgi",
+    };
+    const code = Buffer.from(JSON.stringify(malicious), "utf-8")
+      .toString("base64")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+
+    expect(decodePreset(code)).toEqual({
+      mode: "single",
+      variantId: "corgi",
+    });
+  });
+
+  it("returns an empty preset for oversized codes before decoding", () => {
+    expect(decodePreset("a".repeat(4097))).toEqual({});
+  });
+
   it("returns an empty preset for malformed input", () => {
     expect(decodePreset(null)).toEqual({});
     expect(decodePreset("")).toEqual({});
@@ -87,5 +111,23 @@ describe("team preset codec", () => {
       .replace(/\//g, "_")
       .replace(/=+$/, "");
     expect(decodePreset(code)).toEqual({});
+  });
+
+  it("drops unknown style, theme, and variant ids", () => {
+    const code = Buffer.from(
+      JSON.stringify({
+        mode: "themed",
+        styleId: "not-a-style",
+        themeId: "not-a-theme",
+        variantId: "not-a-variant",
+      }),
+      "utf-8",
+    )
+      .toString("base64")
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/, "");
+
+    expect(decodePreset(code)).toEqual({ mode: "themed" });
   });
 });
