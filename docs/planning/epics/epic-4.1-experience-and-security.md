@@ -31,7 +31,7 @@ Harden error handling, interaction, security guards, and the test baseline to re
 - [x] Log redaction: errors never contain the full key
 - [x] CI static guard blocks `console.log(apiKey)`-style patterns
 - [x] File size/type/MIME validation
-- [x] (Public demo) per-IP rate limiting; optional Turnstile
+- [x] (Public demo) Cloudflare WAF / Rate Limiting; optional Turnstile; app-level `RATE_LIMIT_PER_MINUTE` fallback for self-host/local deployments
 
 ### Tests
 - [x] Unit: prompt-builder / validation / image-utils / preset (≥ 80%)

@@ -395,7 +395,7 @@ V1.1: Fal.ai, Replicate, Stability AI.
 ### 8.4 Provider abstraction
 
 ```ts
-type GenerationMode = "text" | "single" | "couple" | "themed";
+type GenerationMode = "text" | "couple-text" | "single" | "couple" | "themed";
 
 interface ImageProvider {
   id: string; // "openai" | "minimax"
@@ -475,10 +475,10 @@ type GeneratedImage = {
 
 > Image generation often takes 10–30s and base64 inflates the body (a 10MB image → ~13MB). Platform limits must be handled explicitly.
 
-- **Body size**: compress/downscale on the client before upload; the server validates the cap and returns `IMAGE_TOO_LARGE`.
+- **Body size**: compress/downscale on the client before upload; the server pre-rejects oversized `Content-Length` and stream-counts requests without `Content-Length` before parsing, returning `IMAGE_TOO_LARGE`.
 - **Duration / CPU**: confirm typical provider response time fits within the host's limits. MVP uses a synchronous "request → wait → single response" model with a sensible client timeout (~60s) and a `PROVIDER_TIMEOUT` error.
 - **Plan differences**: document CPU-time and subrequest differences (e.g. Cloudflare Free vs Paid) and give self-host guidance.
-- **Concurrency**: no server-side queue in MVP; the public demo throttles via rate limiting (§12.4).
+- **Concurrency**: no server-side queue in MVP; the public demo throttles at the edge via Cloudflare WAF / Rate Limiting and optional Turnstile, with the app's instance-local rate limiter as fallback (§12.4).
 
 ---
 
@@ -561,7 +561,7 @@ Follow provider content policies; the UI states that illegal, sexual, hateful co
 
 ### 12.4 Interface protection
 
-The public demo enables: Turnstile (optional), per-IP rate limiting, file-size limits, request timeout, MIME validation. Self-hosters using their own key bear abuse cost, but basic protections stay on by default.
+The public demo enables: Cloudflare WAF / Rate Limiting, optional Turnstile, file-size limits, request timeout, MIME validation. The in-app `RATE_LIMIT_PER_MINUTE` limiter is instance-local fallback protection for self-host and local deployments, not the primary multi-instance public-demo control. Self-hosters using their own key bear abuse cost, but basic protections stay on by default.
 
 ---
 
@@ -727,7 +727,7 @@ README / deploy / providers / security docs complete and in English; MIT License
 | M1 (Foundation)            | Init Next.js / TS / Tailwind / Shadcn; i18n scaffold (EN+zh-CN); home; generate-page layout; mode-switch skeleton                          | Home + generate page reachable, base UI done                     |
 | M2 (Single loop)           | Key input + sessionStorage; upload + EXIF strip; styles; mode-aware prompt builder; OpenAI + MiniMax adapters; `/api/generate`             | Generate a single avatar with your own OpenAI **or** MiniMax key |
 | M3 (Playful modes)         | `couple` paired generation; `themed` text-to-image; Dogs theme + breeds; team preset link                                                  | All three modes work; dog-themed team set reuses a preset        |
-| M4 (Experience & security) | Error handling; download/regenerate; Clear Key; mode×input validation; timeout & rate limit; log redaction; mobile + a11y; core unit tests | Feature loop + test baseline done                                |
+| M4 (Experience & security) | Error handling; download/regenerate; Clear Key; mode×input validation; timeout & edge rate-limit guidance/fallback; log redaction; mobile + a11y; core unit tests | Feature loop + test baseline done                                |
 | M5 (Open source & deploy)  | README / deploy / providers / security docs; legal pages; Wrangler config; CI; deploy Workers + bind domain                                | Open-sourced on GitHub, demo reachable, docs guide self-host     |
 
 ---
@@ -748,7 +748,7 @@ README / deploy / providers / security docs complete and in English; MIT License
 | ---------------------------------------------------------- | ------------------- | -------------------------------------------------------------------------------- |
 | `gpt-image-1` / `image-01` face fidelity below expectation | Core experience     | State "stylized, not photographic" in docs; offer styles and prompt tuning       |
 | Generation time approaches host execution limits           | Timeouts            | Client compression, sensible timeout, plan-difference note (§10.3)               |
-| Public demo abuse                                          | Cost / availability | Turnstile + per-IP rate limiting (§12.4)                                         |
+| Public demo abuse                                          | Cost / availability | Cloudflare WAF / Rate Limiting + optional Turnstile (§12.4)                      |
 | Key passing through Worker raises trust concerns           | Adoption            | Explicit commitment boundary (§9); browser-direct mode in V1.1                   |
 | Confusing MiniMax M3 (text) with image models              | Wrong integration   | Docs pin image models `image-01`/`image-01-live` and region base URLs (§8.1–8.2) |
 | Provider API / size changes                                | Broken flow         | Provider abstraction; pin/validate model & size enums                            |
@@ -756,7 +756,7 @@ README / deploy / providers / security docs complete and in English; MIT License
 ### 22.2 Open questions
 
 1. Ship browser-direct (zero-trust) mode at launch, or in V1.1?
-2. Public-demo rate-limit thresholds (per-IP/min, concurrency cap)?
+2. Public-demo Cloudflare edge rate-limit thresholds and app fallback thresholds (per-IP/min, concurrency cap)?
 3. Inline each provider's official pricing link for cost transparency?
 4. Beyond EN + zh-CN, which language is next?
 

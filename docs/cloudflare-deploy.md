@@ -59,10 +59,10 @@ npx wrangler secret put TURNSTILE_SECRET_KEY
 
 | Concern          | Note                                                                                                                            |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Request body     | Compress/downscale images client-side; server caps and returns `IMAGE_TOO_LARGE`. base64 inflates ~33%.                         |
+| Request body     | Compress/downscale images client-side; the route pre-rejects oversized `Content-Length` and stream-counts requests without `Content-Length` before parsing, returning `IMAGE_TOO_LARGE`. base64 inflates ~33%. |
 | CPU / duration   | Image generation takes 10–30s. Use the synchronous request→wait→response model with a ~60s client timeout (`PROVIDER_TIMEOUT`). |
 | Plan differences | Cloudflare **Free** has tighter CPU-time and subrequest limits than **Paid**; heavy/public demos should use a Paid plan.        |
-| Concurrency      | No server queue in MVP; throttle the public demo via per-IP rate limiting.                                                      |
+| Concurrency      | No server queue in MVP; throttle the public demo with Cloudflare WAF / Rate Limiting and optional Turnstile. The app's `RATE_LIMIT_PER_MINUTE` guard is instance-local fallback protection, not the primary multi-instance public-demo control. |
 | Outbound         | Only the fixed provider hosts are called (OpenAI, MiniMax global/china).                                                        |
 
 ## Custom domain (optional)
@@ -103,7 +103,8 @@ npm run deploy:prod        # or: make deploy-prod
 - [ ] MiniMax works for the selected region (Global/China) with `image-01`.
 - [ ] Couple and themed modes work; team preset link loads on another browser.
 - [ ] No key/image appears in `wrangler tail` logs.
-- [ ] Rate limiting / timeout active (if public).
+- [ ] Cloudflare WAF / Rate Limiting and timeout active (if public).
+- [ ] Optional Turnstile enabled for public demos that need stronger abuse resistance.
 
 ## Rollback
 

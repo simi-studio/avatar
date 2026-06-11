@@ -47,8 +47,9 @@ Simi Avatar uses **Scheme B (Worker/Route Handler proxy)**: requests pass throug
 
 ## Interface protection (public demo)
 
+- Cloudflare WAF / Rate Limiting for public-demo per-IP throttling.
 - Optional Cloudflare Turnstile.
-- Per-IP rate limiting.
+- App-level `RATE_LIMIT_PER_MINUTE` fallback for self-host and local deployments; it is instance-local and not a replacement for edge throttling on a multi-instance public demo.
 - File size limit + MIME validation.
 - Request timeout (`PROVIDER_TIMEOUT`).
 

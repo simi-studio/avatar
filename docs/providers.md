@@ -5,13 +5,13 @@
 ## Interface
 
 ```ts
-type GenerationMode = "text" | "single" | "couple" | "themed";
+type GenerationMode = "text" | "couple-text" | "single" | "couple" | "themed";
 
 type GeneratedImage = {
   url?: string;
   base64?: string;
   mimeType: "image/png" | "image/jpeg" | "image/webp";
-  label?: string; // "A" / "B" in couple mode
+  label?: string; // "A" / "B" in couple and couple-text modes
 };
 
 interface ImageProvider {
@@ -24,7 +24,7 @@ interface ImageProvider {
     apiKey: string;
     region?: string; // "global" | "china" (MiniMax)
     mode: GenerationMode;
-    images?: File[]; // text:0 single:1 couple:2 themed:0
+    images?: File[]; // text/couple-text/themed:0 single:1 couple:2
     prompt: string;
     negativePrompt?: string;
     referenceStrength?: number;
@@ -42,8 +42,8 @@ interface ImageProvider {
 
 | Mode            | Endpoint                                      | Model         |
 | --------------- | --------------------------------------------- | ------------- |
-| text / themed   | `POST /v1/images/generations` (text-to-image) | `gpt-image-1` |
-| single / couple | `POST /v1/images/edits` (image-to-image)      | `gpt-image-1` |
+| text / couple-text / themed | `POST /v1/images/generations` (text-to-image) | `gpt-image-1` |
+| single / couple             | `POST /v1/images/edits` (image-to-image)      | `gpt-image-1` |
 
 - Base URL: `https://api.openai.com`
 - Auth: `Authorization: Bearer <apiKey>`
@@ -63,8 +63,8 @@ MiniMax runs two independent platforms. **Keys are not interchangeable across re
 
 | Mode            | Endpoint                                                   | Notes                                                 |
 | --------------- | ---------------------------------------------------------- | ----------------------------------------------------- |
-| text / themed   | `POST {baseUrl}/v1/image_generation` (prompt only)         | No reference image                                    |
-| single / couple | `POST {baseUrl}/v1/image_generation` + `subject_reference` | Pass the source face/subject as a character reference |
+| text / couple-text / themed | `POST {baseUrl}/v1/image_generation` (prompt only)         | No reference image                                    |
+| single / couple             | `POST {baseUrl}/v1/image_generation` + `subject_reference` | Pass the source face/subject as a character reference |
 
 - Auth: `Authorization: Bearer <apiKey>`
 - Model: `image-01` (default) or `image-01-live`
@@ -85,14 +85,16 @@ function resolveBaseUrl(region: string = "global") {
   );
 }
 
+type ProviderGenerateInput = Parameters<ImageProvider["generateAvatar"]>[0];
+
 async function minimaxGenerate(
-  input: /* ... */ any,
+  input: ProviderGenerateInput,
 ): Promise<GeneratedImage[]> {
   const baseUrl = resolveBaseUrl(input.region);
   const body: Record<string, unknown> = {
     model: "image-01",
     prompt: input.prompt,
-    n: input.mode === "couple" ? 1 : 1, // couple = two separate calls
+    n: 1, // couple and couple-text use two separate calls
     response_format: "base64",
   };
   if (input.mode !== "themed" && input.images?.length) {
@@ -112,7 +114,7 @@ async function minimaxGenerate(
 }
 ```
 
-> For `couple`, call the endpoint twice with the same prompt/style — once per person — and label the results `A` / `B`.
+> For `couple`, call the endpoint twice with the same prompt/style — once per person — and label the results `A` / `B`. For `couple-text`, call the text-to-image endpoint twice with the same style/paired-consistency prompt and the same labels.
 
 ## Prompt compilation and calibration
 

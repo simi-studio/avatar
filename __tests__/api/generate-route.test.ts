@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { POST } from "@/app/api/generate/route";
+import { MAX_GENERATE_REQUEST_BYTES } from "@/lib/constants";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -32,6 +33,20 @@ describe("/api/generate", () => {
 
     expect(res.status).toBe(413);
     expect(body.getReader).not.toHaveBeenCalled();
+  });
+
+  it("rejects oversized requests when content-length is unavailable", async () => {
+    const res = await POST(
+      request("x".repeat(MAX_GENERATE_REQUEST_BYTES + 1), {
+        "content-type": "application/json",
+      }),
+    );
+
+    expect(res.status).toBe(413);
+    await expect(res.json()).resolves.toMatchObject({
+      success: false,
+      error: { code: "IMAGE_TOO_LARGE" },
+    });
   });
 
   it("returns 415 for unsupported media types", async () => {

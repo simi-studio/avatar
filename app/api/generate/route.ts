@@ -147,7 +147,7 @@ async function parseRequest(
   return "unsupported-media-type";
 }
 
-function exceedsRequestSizeLimit(headers: Headers): boolean {
+function headerExceedsRequestSizeLimit(headers: Headers): boolean {
   const raw = headers.get("content-length");
   if (!raw) return false;
   const contentLength = Number.parseInt(raw, 10);
@@ -155,6 +155,42 @@ function exceedsRequestSizeLimit(headers: Headers): boolean {
     Number.isFinite(contentLength) &&
     contentLength > MAX_GENERATE_REQUEST_BYTES
   );
+}
+
+async function enforceRequestSizeLimit(
+  req: Request,
+): Promise<Request | "image-too-large"> {
+  if (headerExceedsRequestSizeLimit(req.headers)) {
+    return "image-too-large";
+  }
+
+  if (req.headers.get("content-length")) return req;
+
+  if (!req.body) return req;
+
+  const reader = req.body.getReader();
+  const chunks: ArrayBuffer[] = [];
+  let total = 0;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    total += value.byteLength;
+    if (total > MAX_GENERATE_REQUEST_BYTES) {
+      await reader.cancel();
+      return "image-too-large";
+    }
+    const chunk = new Uint8Array(value.byteLength);
+    chunk.set(value);
+    chunks.push(chunk.buffer);
+  }
+
+  return new Request(req.url, {
+    method: req.method,
+    headers: req.headers,
+    body: new Blob(chunks),
+    signal: req.signal,
+  });
 }
 
 function configuredAllowedOrigins(): Set<string> {
@@ -189,7 +225,13 @@ export async function POST(
     return errorResponse("INVALID_MODE_INPUT", 403);
   }
 
-  if (exceedsRequestSizeLimit(req.headers)) {
+  let sizedReq: Request | "image-too-large";
+  try {
+    sizedReq = await enforceRequestSizeLimit(req);
+  } catch {
+    return errorResponse("UNKNOWN_ERROR");
+  }
+  if (sizedReq === "image-too-large") {
     return errorResponse("IMAGE_TOO_LARGE");
   }
 
@@ -209,7 +251,7 @@ export async function POST(
 
   let parsed: ParsedRequest | "unsupported-media-type";
   try {
-    parsed = await parseRequest(req);
+    parsed = await parseRequest(sizedReq);
   } catch {
     return errorResponse("UNKNOWN_ERROR");
   }
