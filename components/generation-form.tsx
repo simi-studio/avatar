@@ -61,6 +61,7 @@ import { ImageUploader, type UploadedImage } from "@/components/image-uploader";
 import {
   ResultPreview,
   type GenerationStatus,
+  type SourcePreviewImage,
 } from "@/components/result-preview";
 
 const DEFAULT_GOAL: AvatarGoal = "professional-profile";
@@ -117,6 +118,7 @@ export function GenerationForm() {
   const [images, setImages] = useState<GeneratedImage[]>([]);
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [lastIntent, setLastIntent] = useState<AvatarIntent | null>(null);
 
   const source: InputSource = sourceForMode(mode);
   const availableSizes = sizesForProvider(provider);
@@ -236,6 +238,7 @@ export function GenerationForm() {
       setStatus("error");
       return;
     }
+    setLastIntent(requestIntent);
     setStatus("generating");
     setErrorCode(null);
     setImages([]);
@@ -311,6 +314,16 @@ export function GenerationForm() {
   }
 
   const promptIsPrimary = mode === "text" || mode === "couple-text";
+  const previewStatus: GenerationStatus =
+    status === "idle" && canGenerate ? "ready" : status;
+  const sourceImages: SourcePreviewImage[] = [];
+  if (mode === "single" && imageA) {
+    sourceImages.push({ previewUrl: imageA.previewUrl });
+  }
+  if (mode === "couple") {
+    if (imageA) sourceImages.push({ label: "A", previewUrl: imageA.previewUrl });
+    if (imageB) sourceImages.push({ label: "B", previewUrl: imageB.previewUrl });
+  }
   const intentControlValue: IntentControlValue = {
     goal,
     likeness,
@@ -530,9 +543,11 @@ export function GenerationForm() {
         </CardHeader>
         <CardContent>
           <ResultPreview
-            status={status}
+            status={previewStatus}
             images={images}
             errorCode={errorCode}
+            sourceImages={sourceImages}
+            onRetry={() => void onGenerate(lastIntent ?? buildIntent())}
             onRefine={onRefine}
             refinementDisabled={!canGenerate || status === "generating"}
           />

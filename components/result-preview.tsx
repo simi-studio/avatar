@@ -21,6 +21,11 @@ export function imageSrc(image: GeneratedImage): string {
   return image.url ?? "";
 }
 
+export type SourcePreviewImage = {
+  label?: string;
+  previewUrl: string;
+};
+
 function extensionFor(mimeType: string): string {
   if (mimeType === "image/jpeg") return "jpg";
   if (mimeType === "image/webp") return "webp";
@@ -31,15 +36,20 @@ export function ResultPreview({
   status,
   images,
   errorCode,
+  sourceImages = [],
+  onRetry,
   onRefine,
   refinementDisabled = false,
 }: {
   status: GenerationStatus;
   images: GeneratedImage[];
   errorCode: ErrorCode | null;
+  sourceImages?: SourcePreviewImage[];
+  onRetry?: () => void;
   onRefine?: (action: RefinementAction) => void;
   refinementDisabled?: boolean;
 }) {
+  const tc = useTranslations("Common");
   const t = useTranslations("Generate");
   const tr = useTranslations("Result");
   const tErr = useTranslations("Errors");
@@ -76,6 +86,11 @@ export function ResultPreview({
       >
         <AlertCircle className="h-6 w-6" aria-hidden />
         {errorCode ? tErr(errorCode) : t("states.error")}
+        {onRetry && (
+          <Button type="button" variant="outline" size="sm" onClick={onRetry}>
+            {tc("retry")}
+          </Button>
+        )}
       </div>
     );
   }
@@ -147,6 +162,37 @@ export function ResultPreview({
         className="flex min-h-[280px] items-center justify-center rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground"
       >
         {tr("emptySuccess")}
+      </div>
+    );
+  }
+
+  if (sourceImages.length > 0) {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          {sourceImages.map((image, index) => (
+            <figure key={`${image.label ?? index}`} className="flex flex-col gap-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={image.previewUrl}
+                alt={
+                  sourceImages.length === 1
+                    ? tr("sourceAltSingle")
+                    : tr("sourceAltLabeled", { label: image.label ?? index + 1 })
+                }
+                className="h-56 w-full rounded-lg border object-cover"
+              />
+              {image.label && (
+                <figcaption className="text-xs text-muted-foreground">
+                  {tr("sourceLabel", { label: image.label })}
+                </figcaption>
+              )}
+            </figure>
+          ))}
+        </div>
+        <p className="text-sm text-muted-foreground">
+          {status === "ready" ? t("states.ready") : t("states.idle")}
+        </p>
       </div>
     );
   }

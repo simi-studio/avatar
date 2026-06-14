@@ -250,6 +250,29 @@ describe("GenerationForm", () => {
     expect(fetchMock).toHaveBeenCalledWith("/api/generate", expect.anything());
   });
 
+  it("shows uploaded source images in the preview panel before generation", async () => {
+    const { container } = renderForm();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: new RegExp(en.Source.photo) }),
+    );
+
+    const fileInput = container.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
+    fireEvent.change(fileInput, {
+      target: {
+        files: [
+          new File([new Uint8Array([1])], "me.png", { type: "image/png" }),
+        ],
+      },
+    });
+
+    await waitFor(() =>
+      expect(screen.getByAltText("Source image")).toBeInTheDocument(),
+    );
+  });
+
   it("surfaces a normalized error code on failure", async () => {
     setFetch({
       success: false,
@@ -283,5 +306,25 @@ describe("GenerationForm", () => {
     await waitFor(() =>
       expect(screen.getByText(en.Errors.INVALID_API_KEY)).toBeInTheDocument(),
     );
+  });
+
+  it("retries the last failed generation request", async () => {
+    const fetchMock = setFetch({
+      success: false,
+      error: { code: "INVALID_API_KEY", message: "x" },
+    });
+    renderForm();
+
+    fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
+      target: { value: "bad-key" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: en.Generate.generate }));
+
+    await waitFor(() =>
+      expect(screen.getByText(en.Errors.INVALID_API_KEY)).toBeInTheDocument(),
+    );
+    fireEvent.click(screen.getByRole("button", { name: en.Common.retry }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
   });
 });

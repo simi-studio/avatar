@@ -212,6 +212,9 @@
   "Result": {
     "altSingle": "Generated avatar",
     "altLabeled": "Generated avatar {label}",
+    "sourceAltSingle": "Source image",
+    "sourceAltLabeled": "Source image {label}",
+    "sourceLabel": "Source {label}",
     "empty": "Your generated avatar will appear here.",
     "emptySuccess": "The provider returned no images. Please try again."
   },
