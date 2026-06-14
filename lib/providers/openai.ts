@@ -12,12 +12,11 @@ const OPENAI_BASE_URL = "https://api.openai.com";
 const MODEL = "gpt-image-1";
 const PROVIDER_TIMEOUT_MS = 55_000;
 
-/**
- * gpt-image-1 supports 1024x1024 (and non-square variants) but not 512x512, so
- * both MVP sizes map to the smallest supported square.
- */
+/** gpt-image-1 supports 1024x1024 for this app's square avatar flow. */
 export function mapOpenAISize(size: ImageSize): "1024x1024" {
-  void size;
+  if (size !== "1024x1024") {
+    throw new ProviderError("INVALID_MODE_INPUT");
+  }
   return "1024x1024";
 }
 

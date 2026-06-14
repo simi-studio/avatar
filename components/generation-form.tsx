@@ -8,7 +8,6 @@ import {
   CLIENT_TIMEOUT_MS,
   DEFAULT_IMAGE_SIZE,
   DEFAULT_MODE_BY_SOURCE,
-  IMAGE_SIZES,
   MODES_BY_SOURCE,
   isCoupleMode,
   sourceForMode,
@@ -22,6 +21,10 @@ import {
 import type { GeneratedImage, GenerateResponse } from "@/lib/types";
 import { useSessionApiKey } from "@/lib/use-session-key";
 import { decodePreset, type TeamPreset } from "@/lib/preset";
+import {
+  defaultSizeForProvider,
+  sizesForProvider,
+} from "@/lib/provider-capabilities";
 import {
   GOAL_PRESETS,
   applyGoalPreset,
@@ -114,6 +117,13 @@ export function GenerationForm() {
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
 
   const source: InputSource = sourceForMode(mode);
+  const availableSizes = sizesForProvider(provider);
+
+  useEffect(() => {
+    if (!availableSizes.includes(size)) {
+      setSize(defaultSizeForProvider(provider));
+    }
+  }, [availableSizes, provider, size]);
 
   function buildIntent(overrides: Partial<AvatarIntent> = {}): AvatarIntent {
     return createAvatarIntent({
@@ -467,7 +477,7 @@ export function GenerationForm() {
               value={size}
               onChange={(event) => setSize(event.target.value as ImageSize)}
             >
-              {IMAGE_SIZES.map((option) => (
+              {availableSizes.map((option) => (
                 <option key={option} value={option}>
                   {option}
                 </option>

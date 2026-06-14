@@ -30,9 +30,9 @@ afterEach(() => {
 });
 
 describe("openai adapter", () => {
-  it("maps both MVP sizes to a supported size", () => {
-    expect(mapOpenAISize("512x512")).toBe("1024x1024");
+  it("accepts only OpenAI-supported app sizes", () => {
     expect(mapOpenAISize("1024x1024")).toBe("1024x1024");
+    expect(() => mapOpenAISize("512x512")).toThrow(ProviderError);
   });
 
   it("maps errors to normalized codes", () => {

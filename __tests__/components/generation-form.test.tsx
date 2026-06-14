@@ -107,6 +107,37 @@ describe("GenerationForm", () => {
     expect(intent.styleId).toBe("anime");
   });
 
+  it("shows only provider-supported size options", async () => {
+    renderForm();
+
+    const size = screen.getByLabelText(
+      en.Form.sizeLabel,
+    ) as HTMLSelectElement;
+    expect(
+      Array.from(size.options).map((option) => option.value),
+    ).toEqual(["1024x1024"]);
+
+    fireEvent.change(screen.getByLabelText(en.Provider.label), {
+      target: { value: "minimax" },
+    });
+    await waitFor(() =>
+      expect(
+        Array.from(size.options).map((option) => option.value),
+      ).toEqual(["512x512", "1024x1024"]),
+    );
+
+    fireEvent.change(size, { target: { value: "512x512" } });
+    expect(size.value).toBe("512x512");
+
+    fireEvent.change(screen.getByLabelText(en.Provider.label), {
+      target: { value: "openai" },
+    });
+    await waitFor(() => expect(size.value).toBe("1024x1024"));
+    expect(
+      Array.from(size.options).map((option) => option.value),
+    ).toEqual(["1024x1024"]);
+  });
+
   it("inserts a provider suggestion into the description field", () => {
     renderForm();
     fireEvent.click(
