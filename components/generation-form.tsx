@@ -316,6 +316,9 @@ export function GenerationForm() {
   const promptIsPrimary = mode === "text" || mode === "couple-text";
   const previewStatus: GenerationStatus =
     status === "idle" && canGenerate ? "ready" : status;
+  const showTeamPresetShare =
+    mode === "themed" || isCoupleMode(mode) || goal === "team-character";
+  const generationCount = isCoupleMode(mode) ? 2 : 1;
   const sourceImages: SourcePreviewImage[] = [];
   if (mode === "single" && imageA) {
     sourceImages.push({ previewUrl: imageA.previewUrl });
@@ -392,9 +395,6 @@ export function GenerationForm() {
                 />
                 {tf("pairedConsistency")}
               </label>
-              <p className="text-xs text-muted-foreground">
-                {t("estimatedCostCouple")}
-              </p>
             </>
           )}
 
@@ -435,9 +435,6 @@ export function GenerationForm() {
                 />
                 {tf("pairedConsistency")}
               </label>
-              <p className="text-xs text-muted-foreground">
-                {t("estimatedCostCouple")}
-              </p>
             </>
           )}
 
@@ -523,6 +520,11 @@ export function GenerationForm() {
           </div>
 
           <p className="text-xs text-muted-foreground">{t("privacyNote")}</p>
+          <p className="text-xs text-muted-foreground">
+            {generationCount === 1
+              ? t("estimatedCostSingle")
+              : t("estimatedCostPair")}
+          </p>
 
           <div className="flex flex-wrap items-center gap-3">
             <Button
@@ -531,7 +533,7 @@ export function GenerationForm() {
             >
               {status === "generating" ? t("generating") : t("generate")}
             </Button>
-            <TeamPresetShare preset={currentPreset} />
+            {showTeamPresetShare && <TeamPresetShare preset={currentPreset} />}
           </div>
           </form>
         </CardContent>

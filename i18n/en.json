@@ -40,7 +40,8 @@
     "generate": "Generate",
     "generating": "Generating…",
     "download": "Download",
-    "estimatedCostCouple": "Couple mode runs two generations.",
+    "estimatedCostSingle": "Runs 1 generation.",
+    "estimatedCostPair": "Runs 2 generations.",
     "privacyNote": "Your image and API key are only used for this generation request. Simi Avatar does not store your API key or images.",
     "states": {
       "idle": "Configure the form and click Generate.",

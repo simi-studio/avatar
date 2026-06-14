@@ -346,4 +346,37 @@ describe("GenerationForm", () => {
     );
     expect(screen.getByText("Avatar B was not returned.")).toBeInTheDocument();
   });
+
+  it("shows team preset sharing only in team-oriented contexts", () => {
+    renderForm();
+
+    expect(
+      screen.queryByRole("button", { name: en.Preset.copyLink }),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: en.Mode["couple-text"] }));
+    expect(
+      screen.getByRole("button", { name: en.Preset.copyLink }),
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: en.Mode.text }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /advanced settings/i }),
+    );
+    fireEvent.change(screen.getByLabelText(en.Intent.goalLabel), {
+      target: { value: "team-character" },
+    });
+    expect(
+      screen.getByRole("button", { name: en.Preset.copyLink }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows generation count copy for single and pair modes", () => {
+    renderForm();
+
+    expect(screen.getByText("Runs 1 generation.")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: en.Mode["couple-text"] }));
+    expect(screen.getByText("Runs 2 generations.")).toBeInTheDocument();
+  });
 });

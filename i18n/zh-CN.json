@@ -40,7 +40,8 @@
     "generate": "生成",
     "generating": "生成中…",
     "download": "下载",
-    "estimatedCostCouple": "情侣模式会进行两次生成。",
+    "estimatedCostSingle": "运行 1 次生成。",
+    "estimatedCostPair": "运行 2 次生成。",
     "privacyNote": "你的图片和 API Key 仅用于本次生成请求。Simi Avatar 不会存储你的 API Key 或图片。",
     "states": {
       "idle": "完成表单后点击生成。",
