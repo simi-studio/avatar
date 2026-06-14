@@ -215,6 +215,8 @@
     "sourceAltSingle": "Source image",
     "sourceAltLabeled": "Source image {label}",
     "sourceLabel": "Source {label}",
+    "partialPair": "Partial pair generated",
+    "missingAvatar": "Avatar {label} was not returned.",
     "empty": "Your generated avatar will appear here.",
     "emptySuccess": "The provider returned no images. Please try again."
   },

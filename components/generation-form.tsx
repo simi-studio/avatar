@@ -547,6 +547,7 @@ export function GenerationForm() {
             images={images}
             errorCode={errorCode}
             sourceImages={sourceImages}
+            expectedImageLabels={isCoupleMode(mode) ? ["A", "B"] : []}
             onRetry={() => void onGenerate(lastIntent ?? buildIntent())}
             onRefine={onRefine}
             refinementDisabled={!canGenerate || status === "generating"}

@@ -37,6 +37,7 @@ export function ResultPreview({
   images,
   errorCode,
   sourceImages = [],
+  expectedImageLabels = [],
   onRetry,
   onRefine,
   refinementDisabled = false,
@@ -45,6 +46,7 @@ export function ResultPreview({
   images: GeneratedImage[];
   errorCode: ErrorCode | null;
   sourceImages?: SourcePreviewImage[];
+  expectedImageLabels?: string[];
   onRetry?: () => void;
   onRefine?: (action: RefinementAction) => void;
   refinementDisabled?: boolean;
@@ -96,10 +98,26 @@ export function ResultPreview({
   }
 
   if (status === "success" && images.length > 0) {
+    const expectedImages =
+      expectedImageLabels.length > 0
+        ? expectedImageLabels.map((label) => ({
+            label,
+            image: images.find((item) => item.label === label),
+          }))
+        : images.map((image, index) => ({ label: image.label, image, index }));
+    const partialPair =
+      expectedImageLabels.length > 0 && images.length < expectedImageLabels.length;
+
     return (
       <div className="flex flex-col gap-4">
+        {partialPair && (
+          <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
+            {tr("partialPair")}
+          </div>
+        )}
         <div className="grid gap-4 sm:grid-cols-2">
-          {images.map((image, index) => (
+          {expectedImages.map(({ image, label }, index) =>
+            image ? (
             <figure
               key={`${image.label ?? index}`}
               className="flex flex-col gap-2"
@@ -125,7 +143,15 @@ export function ResultPreview({
                 {image.label ? ` ${image.label}` : ""}
               </Button>
             </figure>
-          ))}
+            ) : (
+              <div
+                key={`missing-${label ?? index}`}
+                className="flex min-h-[220px] items-center justify-center rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground"
+              >
+                {tr("missingAvatar", { label: label ?? index + 1 })}
+              </div>
+            ),
+          )}
         </div>
         {onRefine && (
           <div className="flex flex-col gap-2 border-t pt-4">

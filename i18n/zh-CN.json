@@ -215,6 +215,8 @@
     "sourceAltSingle": "源图片",
     "sourceAltLabeled": "源图片 {label}",
     "sourceLabel": "源图片 {label}",
+    "partialPair": "已生成部分成对头像",
+    "missingAvatar": "头像 {label} 未返回。",
     "empty": "生成的头像将显示在这里。",
     "emptySuccess": "提供方没有返回图片，请重试。"
   },

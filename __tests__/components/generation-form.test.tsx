@@ -327,4 +327,23 @@ describe("GenerationForm", () => {
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
   });
+
+  it("explains partial couple results when one paired avatar is missing", async () => {
+    setFetch({
+      success: true,
+      images: [{ base64: "AAAA", mimeType: "image/png", label: "A" }],
+    });
+    renderForm();
+
+    fireEvent.click(screen.getByRole("button", { name: en.Mode["couple-text"] }));
+    fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
+      target: { value: "sk-test-key" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: en.Generate.generate }));
+
+    await waitFor(() =>
+      expect(screen.getByText("Partial pair generated")).toBeInTheDocument(),
+    );
+    expect(screen.getByText("Avatar B was not returned.")).toBeInTheDocument();
+  });
 });
