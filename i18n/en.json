@@ -129,6 +129,8 @@
     "promptPlaceholder": "e.g. blue background, soft lighting, friendly smile",
     "descriptionLabel": "Describe your avatar",
     "descriptionPlaceholder": "e.g. a friendly portrait with a warm smile, soft studio lighting",
+    "advancedSettings": "Advanced settings",
+    "hideAdvancedSettings": "Hide advanced settings",
     "sizeLabel": "Size",
     "pairedConsistency": "Paired consistency",
     "pairedConsistencyHint": "Share palette, background, lighting and composition across both avatars."

@@ -110,6 +110,10 @@ describe("GenerationForm", () => {
   it("shows only provider-supported size options", async () => {
     renderForm();
 
+    fireEvent.click(
+      screen.getByRole("button", { name: /advanced settings/i }),
+    );
+
     const size = screen.getByLabelText(
       en.Form.sizeLabel,
     ) as HTMLSelectElement;
@@ -136,6 +140,53 @@ describe("GenerationForm", () => {
     expect(
       Array.from(size.options).map((option) => option.value),
     ).toEqual(["1024x1024"]);
+  });
+
+  it("hides advanced controls until the user expands them", () => {
+    renderForm();
+
+    expect(
+      screen.queryByLabelText(en.Intent.creativityLabel),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(en.Form.sizeLabel)).not.toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: /advanced settings/i }),
+    );
+
+    expect(screen.getByLabelText(en.Intent.creativityLabel)).toBeInTheDocument();
+    expect(screen.getByLabelText(en.Form.sizeLabel)).toBeInTheDocument();
+  });
+
+  it("submits advanced control changes when expanded", async () => {
+    const fetchMock = setFetch({
+      success: true,
+      images: [{ base64: "AAAA", mimeType: "image/png" }],
+    });
+    renderForm();
+
+    fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
+      target: { value: "sk-test-key" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: /advanced settings/i }),
+    );
+    fireEvent.change(screen.getByLabelText(en.Intent.creativityLabel), {
+      target: { value: "high" },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: en.Generate.generate }));
+
+    await waitFor(() =>
+      expect(screen.getByAltText(en.Result.altSingle)).toBeInTheDocument(),
+    );
+    const requestInit = fetchMock.mock.calls[0]?.[1] as RequestInit | undefined;
+    const form = requestInit?.body as FormData;
+    const intent = JSON.parse(String(form.get("intent"))) as Record<
+      string,
+      unknown
+    >;
+    expect(intent.creativity).toBe("high");
   });
 
   it("inserts a provider suggestion into the description field", () => {

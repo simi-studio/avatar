@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { Settings2 } from "lucide-react";
 
 import {
   CLIENT_TIMEOUT_MS,
@@ -115,6 +116,7 @@ export function GenerationForm() {
   const [status, setStatus] = useState<GenerationStatus>("idle");
   const [images, setImages] = useState<GeneratedImage[]>([]);
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   const source: InputSource = sourceForMode(mode);
   const availableSizes = sizesForProvider(provider);
@@ -359,13 +361,6 @@ export function GenerationForm() {
             onToggleShow={() => setShowKey((v) => !v)}
           />
 
-          <IntentControls
-            mode={mode}
-            value={intentControlValue}
-            onGoalChange={onGoalChange}
-            onChange={onIntentControlChange}
-          />
-
           {mode === "text" && (
             <StylePicker value={styleId} onChange={setStyleId} />
           )}
@@ -470,19 +465,48 @@ export function GenerationForm() {
             )}
           </div>
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="size">{tf("sizeLabel")}</Label>
-            <Select
-              id="size"
-              value={size}
-              onChange={(event) => setSize(event.target.value as ImageSize)}
+          <div className="flex flex-col gap-4 rounded-lg border p-4">
+            <button
+              type="button"
+              className="flex items-center justify-between gap-3 text-left text-sm font-medium"
+              aria-expanded={advancedOpen}
+              onClick={() => setAdvancedOpen((value) => !value)}
             >
-              {availableSizes.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </Select>
+              <span className="flex items-center gap-2">
+                <Settings2 className="h-4 w-4" aria-hidden />
+                {advancedOpen
+                  ? tf("hideAdvancedSettings")
+                  : tf("advancedSettings")}
+              </span>
+            </button>
+
+            {advancedOpen && (
+              <div className="flex flex-col gap-4">
+                <IntentControls
+                  mode={mode}
+                  value={intentControlValue}
+                  onGoalChange={onGoalChange}
+                  onChange={onIntentControlChange}
+                />
+
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="size">{tf("sizeLabel")}</Label>
+                  <Select
+                    id="size"
+                    value={size}
+                    onChange={(event) =>
+                      setSize(event.target.value as ImageSize)
+                    }
+                  >
+                    {availableSizes.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+              </div>
+            )}
           </div>
 
           <p className="text-xs text-muted-foreground">{t("privacyNote")}</p>
