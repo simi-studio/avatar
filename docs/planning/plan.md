@@ -84,3 +84,14 @@ Shipped from the Recommended Next 10 queue, preserving BYOK/no-login/no-database
 - [x] **One-click refinement**: closer likeness, more realistic, cuter, cleaner background, and try variation from the result view.
 - [x] **Calibration matrix**: provider/style prompt fragments, known bias, recovery hints, and tests for every built-in style/provider pair.
 - [x] **Compact chip pickers**: built-in styles and theme variants render as text chips (no preview thumbnails), keeping the generate form short and the Generate button reachable without excessive scrolling.
+
+## Generate UX rationalization (M8)
+
+Shipped after M7 to make the completed feature set easier to use and more truthful about provider behavior:
+
+- [x] **Provider-aware size capabilities**: OpenAI exposes only the app-supported `1024x1024` square size; MiniMax exposes `512x512` and `1024x1024`.
+- [x] **Quick / advanced form split**: first-run generation keeps required controls visible while AvatarIntent details and size live under Advanced settings.
+- [x] **Preview workspace states**: uploaded source images appear in the preview panel before generation, ready/error states are distinct, and failed requests can be retried.
+- [x] **Partial couple result handling**: pair modes show an explicit partial-success notice and missing A/B placeholders when only one avatar returns.
+- [x] **Contextual team preset sharing**: preset links appear only for themed, couple, or team-character contexts.
+- [x] **Generation count cues**: the form shows whether the current mode runs one generation or two.
