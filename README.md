@@ -4,6 +4,8 @@
 
 Simi Avatar is an open-source, **BYOK (Bring Your Own API Key)** AI avatar generator. No signup, no database, no subscription — plug in your own provider key and generate personalized avatars in the browser. Self-host anywhere with one command.
 
+Live demo: [avatar.simi.studio](https://avatar.simi.studio)
+
 ## Features
 
 | Source                         | Mode         | Upload   | What it does                                                    |

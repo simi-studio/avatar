@@ -4,7 +4,7 @@
 
 | Field           | Value                                                            |
 | --------------- | ---------------------------------------------------------------- |
-| Status          | MVP code complete (M1–M5 implemented; Cloudflare deploy pending) |
+| Status          | MVP complete; public demo deployed |
 | Scope           | MVP (M1–M5)                                                      |
 | Providers (MVP) | OpenAI + MiniMax                                                 |
 | Languages (MVP) | English (default) + Simplified Chinese                           |
@@ -27,6 +27,15 @@
 - **M4 — Experience & security**: error handling + codes; download/regenerate/Clear Key; mode×input validation; timeout + edge rate limiting guidance with app-level fallback; log redaction + CI guard; mobile + a11y; core unit tests ≥ 80%.
 - **M5 — Open source & deploy**: finalize English docs + legal pages; Wrangler config; GitHub Actions CI; deploy Cloudflare Workers + bind domain.
 
+## Current progress snapshot (2026-06-11)
+
+- **M1–M5 are complete**: foundation, i18n, five generation modes, provider adapters, intent-first prompt compilation, security guards, open-source docs, CI, and Cloudflare deployment are implemented.
+- **Public demo is live**: `https://avatar.simi.studio/zh-CN` returns `HTTP/2 200` on Cloudflare/OpenNext with the custom domain bound.
+- **GitHub repository metadata is set**: `simi-studio/avatar` is public, has a concise description, homepage URL, and topics configured.
+- **Local verification passed on 2026-06-11**: `npm run guard:secrets`, `npm run lint`, `npm run typecheck`, `npm run test` (104 tests), and `npm run build`.
+- A local gitignored `wrangler.prod.jsonc` exists for `avatar.simi.studio`; the open-source deliverable remains `wrangler.prod.jsonc.example`.
+- **Screenshots are intentionally deferred** while the product is changing quickly; keeping screenshots current would create avoidable maintenance churn.
+
 ## Dependencies
 
 ```mermaid
@@ -39,11 +48,18 @@ flowchart LR
 
 ## Definition of done (MVP)
 
-- Three modes work end-to-end with OpenAI **and** MiniMax (region-aware).
+- Five modes work end-to-end with OpenAI **and** MiniMax (region-aware).
 - EN/zh-CN i18n with English default and locale auto-detection.
 - Security acceptance checklist passes ([security.md](../security.md)).
 - Core lib unit coverage ≥ 80%; CI green.
 - All docs in English; Cloudflare deploy succeeds.
+
+## Recommended next implementation queue
+
+- [ ] **Add a lightweight release checklist**: document the repeatable flow for local gate, deploy, smoke check, and rollback before tagging releases.
+- [ ] **Migrate lint script before Next.js 16**: replace deprecated `next lint` with the ESLint CLI flow.
+- [ ] **Add optional E2E browser smoke tests**: cover home → generate, locale switch, source/mode changes, team preset hydration, and invalid-key error display with mocked generation.
+- [ ] **Consider production observability notes**: document how maintainers check Cloudflare logs without exposing keys, prompts, or uploaded images.
 
 ## Post-MVP enhancements (M6)
 
