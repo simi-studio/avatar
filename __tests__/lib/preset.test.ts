@@ -31,7 +31,6 @@ describe("team preset codec", () => {
     const code = encodePreset({
       mode: "single",
       styleId: "anime",
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       apiKey: "sk-super-secret",
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
