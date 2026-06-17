@@ -66,6 +66,19 @@ const DEFAULT_AVOID = [
   "warped face",
 ];
 
+const MINIMAX_AVATAR_CONSTRAINTS = [
+  "single subject",
+  "centered face",
+  "clear facial identity",
+  "avatar-safe crop",
+  "no text",
+  "no logo",
+  "no watermark",
+];
+
+const MINIMAX_PAIR_CONSTRAINTS =
+  "consistent pair, same framing, same light, same background family, shared palette";
+
 function referenceStrength(level: IntentLevel): number {
   if (level === "high") return 0.85;
   if (level === "medium") return 0.65;
@@ -155,9 +168,10 @@ function miniMaxPrompt(input: CompileAvatarPromptInput): string {
       : undefined,
     CREATIVITY_TEXT[intent.creativity],
     isCoupleMode(intent.mode) && intent.pairedConsistency
-      ? "consistent pair, shared lighting, shared background, shared palette"
+      ? MINIMAX_PAIR_CONSTRAINTS
       : undefined,
     intent.variation ? "fresh variation, same intent" : undefined,
+    ...MINIMAX_AVATAR_CONSTRAINTS,
     profile.qualityFragment,
     `avoid ${avoid}`,
   ]).join(", ");

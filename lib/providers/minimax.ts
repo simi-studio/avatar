@@ -4,7 +4,7 @@ import type {
   ProviderGenerateInput,
 } from "@/lib/types";
 import { ProviderError } from "@/lib/types";
-import type { ErrorCode, ImageSize, MiniMaxRegion } from "@/lib/constants";
+import type { ErrorCode, MiniMaxRegion } from "@/lib/constants";
 import { isPhotoMode } from "@/lib/constants";
 import { fetchWithTimeout, fileToDataUrl, toGeneratedImage } from "./shared";
 
@@ -13,8 +13,17 @@ const MINIMAX_BASE_URL: Record<MiniMaxRegion, string> = {
   china: "https://api.minimaxi.com",
 };
 
-const MODEL = "image-01";
+const DEFAULT_MODEL = "image-01";
+const LIVE_MODEL = "image-01-live";
 const PROVIDER_TIMEOUT_MS = 55_000;
+const MINIMAX_ASPECT_RATIO = "1:1";
+const LIVE_STYLE_IDS = new Set([
+  "anime",
+  "comic-book",
+  "watercolor",
+  "retro-game",
+  "pixar-3d",
+]);
 
 /** Resolve the region-specific base URL; defaults to Global. */
 export function resolveMiniMaxBaseUrl(region?: MiniMaxRegion): string {
@@ -24,12 +33,15 @@ export function resolveMiniMaxBaseUrl(region?: MiniMaxRegion): string {
   return MINIMAX_BASE_URL.global;
 }
 
-function sizeToDimensions(size: ImageSize): { width: number; height: number } {
-  const [w, h] = size.split("x").map((n) => Number.parseInt(n, 10));
-  return {
-    width: typeof w === "number" && Number.isFinite(w) && w > 0 ? w : 1024,
-    height: typeof h === "number" && Number.isFinite(h) && h > 0 ? h : 1024,
-  };
+function selectMiniMaxModel(input: ProviderGenerateInput): string {
+  if (
+    isPhotoMode(input.mode) &&
+    input.styleId &&
+    LIVE_STYLE_IDS.has(input.styleId)
+  ) {
+    return LIVE_MODEL;
+  }
+  return DEFAULT_MODEL;
 }
 
 /**
@@ -97,20 +109,19 @@ async function callMiniMax(
   label?: string,
 ): Promise<GeneratedImage[]> {
   const baseUrl = resolveMiniMaxBaseUrl(input.region);
-  const { width, height } = sizeToDimensions(input.size);
 
   const body: Record<string, unknown> = {
-    model: MODEL,
+    model: selectMiniMaxModel(input),
     prompt: input.prompt,
-    width,
-    height,
+    aspect_ratio: MINIMAX_ASPECT_RATIO,
     n: 1,
     response_format: "base64",
+    prompt_optimizer: true,
   };
 
   if (isPhotoMode(input.mode) && image) {
     body.subject_reference = [
-      { type: "character", image_file: [await fileToDataUrl(image)] },
+      { type: "character", image_file: await fileToDataUrl(image) },
     ];
   }
 

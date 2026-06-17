@@ -63,6 +63,36 @@ describe("compileAvatarPrompt", () => {
     expect(compiled.prompt).toContain("welsh corgi");
   });
 
+  it("adds MiniMax avatar constraint checklist wording", () => {
+    const intent = createAvatarIntent({
+      mode: "single",
+      styleId: "professional-headshot",
+      likeness: "high",
+    });
+    const compiled = compileAvatarPrompt({ provider: "minimax", intent });
+
+    expect(compiled.prompt).toContain("single subject");
+    expect(compiled.prompt).toContain("centered face");
+    expect(compiled.prompt).toContain("clear facial identity");
+    expect(compiled.prompt).toContain("avatar-safe crop");
+    expect(compiled.prompt).toContain("no text");
+    expect(compiled.prompt).toContain("no logo");
+    expect(compiled.prompt).toContain("no watermark");
+  });
+
+  it("adds stronger MiniMax paired consistency constraints", () => {
+    const intent = createAvatarIntent({
+      mode: "couple-text",
+      styleId: "anime",
+      pairedConsistency: true,
+    });
+    const compiled = compileAvatarPrompt({ provider: "minimax", intent });
+
+    expect(compiled.prompt).toContain("same framing");
+    expect(compiled.prompt).toContain("same light");
+    expect(compiled.prompt).toContain("same background family");
+  });
+
   it("includes variation wording without changing request count", () => {
     const intent = createAvatarIntent({
       mode: "text",

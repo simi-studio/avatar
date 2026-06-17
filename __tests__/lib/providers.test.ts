@@ -21,7 +21,15 @@ function jsonResponse(body: unknown, status = 200): Response {
 }
 
 function pngFile(name = "a.png"): File {
-  return new File([new Uint8Array([1, 2, 3, 4])], name, { type: "image/png" });
+  const file = new File([new Uint8Array([1, 2, 3, 4])], name, {
+    type: "image/png",
+  });
+  if (typeof file.arrayBuffer !== "function") {
+    Object.defineProperty(file, "arrayBuffer", {
+      value: async () => new Uint8Array([1, 2, 3, 4]).buffer,
+    });
+  }
+  return file;
 }
 
 afterEach(() => {
@@ -208,7 +216,7 @@ describe("minimax adapter", () => {
     );
   });
 
-  it("falls back to default dimensions if called with an invalid size", async () => {
+  it("uses square aspect ratio even if called with an invalid size", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       jsonResponse({
         data: { image_base64: ["BBBB"] },
@@ -227,9 +235,63 @@ describe("minimax adapter", () => {
 
     const request = fetchMock.mock.calls[0]?.[1] as RequestInit;
     expect(JSON.parse(String(request.body))).toMatchObject({
-      width: 1024,
-      height: 1024,
+      aspect_ratio: "1:1",
     });
+  });
+
+  it("uses square aspect ratio and MiniMax prompt optimization for avatars", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse({
+        data: { image_base64: ["BBBB"] },
+        base_resp: { status_code: 0 },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await minimaxProvider.generateAvatar({
+      apiKey: "mm-test",
+      region: "global",
+      mode: "themed",
+      prompt: "a dog avatar",
+      size: "512x512",
+    });
+
+    const request = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    expect(JSON.parse(String(request.body))).toMatchObject({
+      aspect_ratio: "1:1",
+      prompt_optimizer: true,
+      response_format: "base64",
+    });
+    expect(JSON.parse(String(request.body))).not.toHaveProperty("width");
+    expect(JSON.parse(String(request.body))).not.toHaveProperty("height");
+  });
+
+  it("uses image-01-live for illustrated MiniMax photo avatar styles", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse({
+        data: { image_base64: ["LIVE"] },
+        base_resp: { status_code: 0 },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await minimaxProvider.generateAvatar({
+      apiKey: "mm-test",
+      region: "global",
+      mode: "single",
+      images: [pngFile()],
+      prompt: "anime avatar",
+      styleId: "anime",
+      size: "1024x1024",
+    });
+
+    const request = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    expect(JSON.parse(String(request.body))).toMatchObject({
+      model: "image-01-live",
+    });
+    expect(
+      JSON.parse(String(request.body)).subject_reference[0].image_file,
+    ).toMatch(/^data:image\/png;base64,/);
   });
 
   it("uses the China base URL when region is china", async () => {
