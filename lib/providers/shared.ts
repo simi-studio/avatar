@@ -1,4 +1,4 @@
-import type { ErrorCode, GeneratedImage } from "@/lib/types";
+import type { ErrorCode, GeneratedImage, ProviderGenerateInput } from "@/lib/types";
 import { ProviderError } from "@/lib/types";
 
 /** Convert a File to a base64 string (no data-URL prefix). Server-side safe. */
@@ -49,6 +49,20 @@ export function toGeneratedImage(
   label?: string,
 ): GeneratedImage {
   return { base64, mimeType, label };
+}
+
+export function withCoupleTextPartnerPrompt(
+  input: ProviderGenerateInput,
+  label: "A" | "B",
+): ProviderGenerateInput {
+  const partnerGuidance =
+    label === "A"
+      ? "Partner A: male-presenting partner by default unless the user explicitly describes a different couple, visually distinct from Partner B."
+      : "Partner B: female-presenting partner by default unless the user explicitly describes a different couple, visually distinct from Partner A.";
+  return {
+    ...input,
+    prompt: `${input.prompt}. ${partnerGuidance}`,
+  };
 }
 
 export { ProviderError };

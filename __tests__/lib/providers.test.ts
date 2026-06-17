@@ -127,6 +127,35 @@ describe("openai adapter", () => {
     ]);
   });
 
+  it("adds distinct partner guidance to OpenAI couple-text prompts", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(jsonResponse({ data: [{ b64_json: "PAIR" }] }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await openaiProvider.generateAvatar({
+      apiKey: "sk-test",
+      mode: "couple-text",
+      prompt: "matching retro couple avatars",
+      size: "1024x1024",
+    });
+
+    const firstRequest = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    const secondRequest = fetchMock.mock.calls[1]?.[1] as RequestInit;
+    expect(JSON.parse(String(firstRequest.body)).prompt).toContain(
+      "Partner A",
+    );
+    expect(JSON.parse(String(firstRequest.body)).prompt).toContain(
+      "male-presenting",
+    );
+    expect(JSON.parse(String(secondRequest.body)).prompt).toContain(
+      "Partner B",
+    );
+    expect(JSON.parse(String(secondRequest.body)).prompt).toContain(
+      "female-presenting",
+    );
+  });
+
   it("returns successful couple-text images when one OpenAI call fails", async () => {
     const fetchMock = vi
       .fn()
@@ -213,6 +242,39 @@ describe("minimax adapter", () => {
 
     expect(fetchMock.mock.calls[0]?.[0]).toBe(
       "https://api.minimax.io/v1/image_generation",
+    );
+  });
+
+  it("adds distinct partner guidance to MiniMax couple-text prompts", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse({
+        data: { image_base64: ["PAIR"] },
+        base_resp: { status_code: 0 },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await minimaxProvider.generateAvatar({
+      apiKey: "mm-test",
+      region: "global",
+      mode: "couple-text",
+      prompt: "matching retro couple avatars",
+      size: "1024x1024",
+    });
+
+    const firstRequest = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    const secondRequest = fetchMock.mock.calls[1]?.[1] as RequestInit;
+    expect(JSON.parse(String(firstRequest.body)).prompt).toContain(
+      "Partner A",
+    );
+    expect(JSON.parse(String(firstRequest.body)).prompt).toContain(
+      "male-presenting",
+    );
+    expect(JSON.parse(String(secondRequest.body)).prompt).toContain(
+      "Partner B",
+    );
+    expect(JSON.parse(String(secondRequest.body)).prompt).toContain(
+      "female-presenting",
     );
   });
 

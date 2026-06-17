@@ -6,7 +6,12 @@ import type {
 import { ProviderError } from "@/lib/types";
 import type { ErrorCode, MiniMaxRegion } from "@/lib/constants";
 import { isPhotoMode } from "@/lib/constants";
-import { fetchWithTimeout, fileToDataUrl, toGeneratedImage } from "./shared";
+import {
+  fetchWithTimeout,
+  fileToDataUrl,
+  toGeneratedImage,
+  withCoupleTextPartnerPrompt,
+} from "./shared";
 
 const MINIMAX_BASE_URL: Record<MiniMaxRegion, string> = {
   global: "https://api.minimax.io",
@@ -183,11 +188,11 @@ export const minimaxProvider: ImageProvider = {
 
   async generateAvatar(input) {
     if (!isPhotoMode(input.mode)) {
-      // couple-text: two text-to-image avatars sharing the prompt, labeled A / B.
+      // couple-text: two text-to-image avatars sharing style with distinct partner guidance.
       if (input.mode === "couple-text") {
         return collectSuccessful([
-          callMiniMax(input, undefined, "A"),
-          callMiniMax(input, undefined, "B"),
+          callMiniMax(withCoupleTextPartnerPrompt(input, "A"), undefined, "A"),
+          callMiniMax(withCoupleTextPartnerPrompt(input, "B"), undefined, "B"),
         ]);
       }
       // text / themed: pure text-to-image, no upload.
