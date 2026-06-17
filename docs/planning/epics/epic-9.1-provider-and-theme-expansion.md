@@ -32,10 +32,12 @@ intent-first prompt compiler:
 - [ ] i18n: provider label + any region switch copy in `i18n/en.json` and `i18n/zh-CN.json`
 
 ### New themes
-- [ ] `styles/avatar-themes.ts`: Cats / Robots / Pixel Heroes themes + variants
-- [ ] Calibration fragments + known-bias/recovery hints for each new theme×provider pair
-- [ ] `theme-picker` renders new themes as compact text chips (no preview thumbnails — keep form short)
-- [ ] Unit tests assert every theme/variant compiles for both OpenAI and MiniMax (and any new provider)
+- [x] `styles/avatar-themes.ts`: Cats / Robots / Pixel Heroes themes + variants
+- [x] Each theme carries its own base prompt + per-variant fragments (the calibration
+      matrix stays **style-only**; themed prompts compile from the theme data directly)
+- [x] `theme-picker` renders new themes as compact text chips (no preview thumbnails — keep form short)
+- [x] EN/zh-CN labels for every new theme/variant id, with a data-integrity test asserting
+      label parity, id uniqueness, and lookups
 
 ## Acceptance
 

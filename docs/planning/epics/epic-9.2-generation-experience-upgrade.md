@@ -27,9 +27,10 @@ respect the no-database / no-history-server red lines. Each item is independentl
 - [ ] Make the multi-provider cost/time implication explicit in the UI
 
 ### Copyable compiled prompt (developer education, zero backend)
-- [ ] Expose the compiled per-provider prompt as read-only copyable text in Advanced settings
-- [ ] **Security**: redact nothing user-entered, but never surface the API key in the panel
-- [ ] i18n copy for the panel in `en.json` / `zh-CN.json`
+- [x] Expose the compiled per-provider prompt as read-only copyable text in Advanced settings
+- [x] **Security**: the compiled request is a pure function of intent + style/theme and never
+      receives the API key; a safety test asserts no key/token/secret field can appear
+- [x] i18n copy for the panel in `en.json` / `zh-CN.json`
 
 ### Local-only history (client persistence, no DB)
 - [ ] Store recent intents (not images, or thumbnails only) in `localStorage`/IndexedDB

@@ -23,16 +23,16 @@ test gap that single-page complexity has opened.
 - [ ] Ensure mocks assert no API key is ever sent to a real upstream
 
 ### Lint migration (before Next.js 16)
-- [ ] Replace deprecated `next lint` with the ESLint CLI flow
-- [ ] Keep `npm run lint` contract stable so Makefile/CI are unaffected
+- [x] Replace deprecated `next lint` with the ESLint CLI flow (flat `eslint.config.mjs` + FlatCompat)
+- [x] Keep `npm run lint` contract stable so Makefile/CI are unaffected
 
 ### Release checklist + rollback
-- [ ] Document the repeatable flow: local gate → deploy → smoke check → rollback
-- [ ] Note how to verify the live demo (`avatar.simi.studio`) returns 200 post-deploy
+- [x] Document the repeatable flow: local gate → deploy → smoke check → rollback ([release.md](../../release.md))
+- [x] Note how to verify the live demo returns 200 post-deploy
 
 ### Production observability notes
-- [ ] Document how maintainers read Cloudflare logs **without** exposing keys, prompts, or images
-- [ ] Cross-check against `lib/redaction.ts` and the CI secret guard
+- [x] Document how maintainers read Cloudflare logs **without** exposing keys, prompts, or images
+- [x] Cross-check against `lib/redaction.ts` and the CI secret guard
 
 ## Acceptance
 

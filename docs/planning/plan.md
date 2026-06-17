@@ -117,12 +117,12 @@ the BYOK / no-login / no-database red lines:
 
 ### M9 progress
 
-- [ ] 9.1 — New themes (Cats / Robots / Pixel Heroes)
+- [x] 9.1 — New themes (Cats / Robots / Pixel Heroes)
 - [ ] 9.1 — New provider behind `ImageProvider`
-- [ ] 9.2 — Copyable compiled prompt
+- [x] 9.2 — Copyable compiled prompt
 - [ ] 9.2 — Couple same-frame composite
 - [ ] 9.2 — Provider side-by-side comparison
 - [ ] 9.2 — Client-only local history
-- [ ] 9.3 — Lint migration to ESLint CLI
+- [x] 9.3 — Lint migration to ESLint CLI
 - [ ] 9.3 — E2E browser smoke tests
-- [ ] 9.3 — Release checklist + observability notes
+- [x] 9.3 — Release checklist + observability notes
