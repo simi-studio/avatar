@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Settings2 } from "lucide-react";
+import { KeyRound, Settings2, Sparkles } from "lucide-react";
 
 import {
   CLIENT_TIMEOUT_MS,
@@ -378,12 +378,22 @@ export function GenerationForm() {
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("inputHeading")}</CardTitle>
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,1.02fr)_minmax(420px,0.98fr)]">
+      <Card className="overflow-hidden border-border/70 shadow-sm">
+        <CardHeader className="border-b bg-muted/30">
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-1">
+              <CardTitle>{t("inputHeading")}</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {tf("creativeSetupHint")}
+              </p>
+            </div>
+            <span className="rounded-full bg-primary/10 p-2 text-primary">
+              <Sparkles className="h-4 w-4" aria-hidden />
+            </span>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6">
           <form
             className="flex flex-col gap-6"
             onSubmit={(event) => {
@@ -393,127 +403,118 @@ export function GenerationForm() {
               }
             }}
           >
-          <SourceSelector value={source} onChange={onSourceChange} />
-          <ModeSelector
-            modes={MODES_BY_SOURCE[source]}
-            value={mode}
-            onChange={setMode}
-          />
-          <ProviderSelector
-            provider={provider}
-            onProviderChange={setProvider}
-            region={region}
-            onRegionChange={setRegion}
-          />
-          <ApiKeyInput
-            value={apiKey}
-            onChange={setApiKey}
-            onClear={clear}
-            saveForSession={saveForSession}
-            onToggleSave={toggleSave}
-            show={showKey}
-            onToggleShow={() => setShowKey((v) => !v)}
-          />
+          <section
+            className="flex flex-col gap-5"
+            aria-label={tf("creativeSetup")}
+          >
+            <SourceSelector value={source} onChange={onSourceChange} />
+            <ModeSelector
+              modes={MODES_BY_SOURCE[source]}
+              value={mode}
+              onChange={setMode}
+            />
 
-          {mode === "text" && (
-            <StylePicker value={styleId} onChange={setStyleId} />
-          )}
-
-          {mode === "couple-text" && (
-            <>
+            {mode === "text" && (
               <StylePicker value={styleId} onChange={setStyleId} />
-              <label className="flex items-center gap-2 text-sm text-muted-foreground">
-                <input
-                  type="checkbox"
-                  checked={pairedConsistency}
-                  onChange={(event) =>
-                    setPairedConsistency(event.target.checked)
-                  }
-                  className="h-4 w-4 rounded border-input"
-                />
-                {tf("pairedConsistency")}
-              </label>
-            </>
-          )}
+            )}
 
-          {mode === "single" && (
-            <>
-              <ImageUploader
-                label={tUpload("label")}
-                value={imageA}
-                onChange={setImageA}
-              />
-              <StylePicker value={styleId} onChange={setStyleId} />
-            </>
-          )}
+            {mode === "couple-text" && (
+              <>
+                <StylePicker value={styleId} onChange={setStyleId} />
+                <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={pairedConsistency}
+                    onChange={(event) =>
+                      setPairedConsistency(event.target.checked)
+                    }
+                    className="h-4 w-4 rounded border-input"
+                  />
+                  {tf("pairedConsistency")}
+                </label>
+              </>
+            )}
 
-          {mode === "couple" && (
-            <>
-              <div className="grid gap-4 sm:grid-cols-2">
+            {mode === "single" && (
+              <>
                 <ImageUploader
-                  label={tUpload("labelA")}
+                  label={tUpload("label")}
                   value={imageA}
                   onChange={setImageA}
                 />
-                <ImageUploader
-                  label={tUpload("labelB")}
-                  value={imageB}
-                  onChange={setImageB}
-                />
-              </div>
-              <StylePicker value={styleId} onChange={setStyleId} />
-              <label className="flex items-center gap-2 text-sm text-muted-foreground">
-                <input
-                  type="checkbox"
-                  checked={pairedConsistency}
-                  onChange={(event) =>
-                    setPairedConsistency(event.target.checked)
-                  }
-                  className="h-4 w-4 rounded border-input"
-                />
-                {tf("pairedConsistency")}
-              </label>
-            </>
-          )}
+                <StylePicker value={styleId} onChange={setStyleId} />
+              </>
+            )}
 
-          {mode === "themed" && (
-            <ThemePicker
-              themeId={themeId}
-              variantId={variantId}
-              onThemeChange={(value) => {
-                setThemeId(value);
-                setVariantId(undefined);
-              }}
-              onVariantChange={setVariantId}
-            />
-          )}
+            {mode === "couple" && (
+              <>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <ImageUploader
+                    label={tUpload("labelA")}
+                    value={imageA}
+                    onChange={setImageA}
+                  />
+                  <ImageUploader
+                    label={tUpload("labelB")}
+                    value={imageB}
+                    onChange={setImageB}
+                  />
+                </div>
+                <StylePicker value={styleId} onChange={setStyleId} />
+                <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={pairedConsistency}
+                    onChange={(event) =>
+                      setPairedConsistency(event.target.checked)
+                    }
+                    className="h-4 w-4 rounded border-input"
+                  />
+                  {tf("pairedConsistency")}
+                </label>
+              </>
+            )}
 
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="prompt">
-              {promptIsPrimary ? tf("descriptionLabel") : tf("promptLabel")}
-            </Label>
-            <Textarea
-              id="prompt"
-              value={userPrompt}
-              placeholder={
-                promptIsPrimary
-                  ? tf("descriptionPlaceholder")
-                  : tf("promptPlaceholder")
-              }
-              onChange={(event) => setUserPrompt(event.target.value)}
-            />
-            {promptIsPrimary && (
-              <PromptSuggestions
-                provider={provider}
-                mode={mode}
-                styleId={styleId}
-                goal={goal}
-                onSelect={setUserPrompt}
+            {mode === "themed" && (
+              <ThemePicker
+                themeId={themeId}
+                variantId={variantId}
+                onThemeChange={(value) => {
+                  setThemeId(value);
+                  setVariantId(undefined);
+                }}
+                onVariantChange={setVariantId}
               />
             )}
-          </div>
 
-          <div className="flex flex-col gap-4 rounded-lg border p-4">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="prompt">
+                {promptIsPrimary ? tf("descriptionLabel") : tf("promptLabel")}
+              </Label>
+              <Textarea
+                id="prompt"
+                value={userPrompt}
+                placeholder={
+                  promptIsPrimary
+                    ? tf("descriptionPlaceholder")
+                    : tf("promptPlaceholder")
+                }
+                onChange={(event) => setUserPrompt(event.target.value)}
+                className="min-h-28 resize-y"
+              />
+              {promptIsPrimary && (
+                <PromptSuggestions
+                  provider={provider}
+                  mode={mode}
+                  styleId={styleId}
+                  goal={goal}
+                  onSelect={setUserPrompt}
+                />
+              )}
+            </div>
+          </section>
+
+          <div className="flex flex-col gap-4 rounded-lg border bg-muted/20 p-4">
             <button
               type="button"
               className="flex items-center justify-between gap-3 text-left text-sm font-medium"
@@ -557,31 +558,79 @@ export function GenerationForm() {
             )}
           </div>
 
-          <p className="text-xs text-muted-foreground">{t("privacyNote")}</p>
-          <p className="text-xs text-muted-foreground">
-            {generationCount === 1
-              ? t("estimatedCostSingle")
-              : t("estimatedCostPair")}
-          </p>
+          <section
+            className="flex flex-col gap-4 rounded-lg border bg-background p-4 shadow-sm"
+            aria-label={tf("providerSetup")}
+          >
+            <div className="flex items-start gap-3">
+              <span className="mt-0.5 rounded-full bg-primary/10 p-2 text-primary">
+                <KeyRound className="h-4 w-4" aria-hidden />
+              </span>
+              <div className="space-y-1">
+                <h2 className="text-sm font-semibold">
+                  {tf("providerSetup")}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {tf("providerSetupHint")}
+                </p>
+              </div>
+            </div>
+            <ProviderSelector
+              provider={provider}
+              onProviderChange={setProvider}
+              region={region}
+              onRegionChange={setRegion}
+            />
+            <ApiKeyInput
+              value={apiKey}
+              onChange={setApiKey}
+              onClear={clear}
+              saveForSession={saveForSession}
+              onToggleSave={toggleSave}
+              show={showKey}
+              onToggleShow={() => setShowKey((v) => !v)}
+            />
+          </section>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <Button
-              type="submit"
-              disabled={!canGenerate || status === "generating"}
-            >
-              {status === "generating" ? t("generating") : t("generate")}
-            </Button>
-            {showTeamPresetShare && <TeamPresetShare preset={currentPreset} />}
+          <div className="rounded-lg border bg-muted/30 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">
+                  {canGenerate ? tf("readyToGenerate") : tf("finishRequired")}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {generationCount === 1
+                    ? t("estimatedCostSingle")
+                    : t("estimatedCostPair")}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {t("privacyNote")}
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  type="submit"
+                  disabled={!canGenerate || status === "generating"}
+                  size="lg"
+                  className="w-full sm:w-auto"
+                >
+                  {status === "generating" ? t("generating") : t("generate")}
+                </Button>
+                {showTeamPresetShare && (
+                  <TeamPresetShare preset={currentPreset} />
+                )}
+              </div>
+            </div>
           </div>
           </form>
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
+      <Card className="overflow-hidden border-border/70 shadow-sm xl:sticky xl:top-20 xl:self-start">
+        <CardHeader className="border-b bg-muted/30">
           <CardTitle>{t("previewHeading")}</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6">
           <ResultPreview
             status={previewStatus}
             images={images}

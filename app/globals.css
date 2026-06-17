@@ -4,44 +4,44 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 4%;
+    --background: 42 33% 97%;
+    --foreground: 220 28% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 4%;
-    --primary: 256 72% 56%;
+    --card-foreground: 220 28% 10%;
+    --primary: 187 84% 31%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 240 6% 10%;
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 46%;
-    --accent: 256 72% 96%;
-    --accent-foreground: 256 72% 30%;
+    --secondary: 36 26% 91%;
+    --secondary-foreground: 220 28% 12%;
+    --muted: 38 25% 92%;
+    --muted-foreground: 220 10% 40%;
+    --accent: 187 55% 92%;
+    --accent-foreground: 188 85% 20%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 240 6% 90%;
-    --input: 240 6% 90%;
-    --ring: 256 72% 56%;
-    --radius: 0.75rem;
+    --border: 35 18% 82%;
+    --input: 35 18% 82%;
+    --ring: 187 84% 31%;
+    --radius: 0.5rem;
   }
 
   .dark {
-    --background: 240 10% 4%;
-    --foreground: 0 0% 98%;
-    --card: 240 10% 6%;
-    --card-foreground: 0 0% 98%;
-    --primary: 256 72% 64%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 240 4% 16%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 4% 16%;
-    --muted-foreground: 240 5% 65%;
-    --accent: 256 40% 20%;
-    --accent-foreground: 0 0% 98%;
+    --background: 218 29% 7%;
+    --foreground: 36 24% 94%;
+    --card: 220 24% 9%;
+    --card-foreground: 36 24% 94%;
+    --primary: 183 78% 43%;
+    --primary-foreground: 218 29% 7%;
+    --secondary: 218 18% 16%;
+    --secondary-foreground: 36 24% 94%;
+    --muted: 218 18% 16%;
+    --muted-foreground: 36 12% 67%;
+    --accent: 183 42% 18%;
+    --accent-foreground: 36 24% 94%;
     --destructive: 0 62% 50%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 4% 20%;
-    --input: 240 4% 20%;
-    --ring: 256 72% 64%;
+    --border: 218 16% 23%;
+    --input: 218 16% 23%;
+    --ring: 183 78% 43%;
   }
 
   * {
@@ -50,6 +50,9 @@
 
   body {
     @apply bg-background text-foreground;
+    background-image:
+      radial-gradient(circle at top left, hsl(var(--primary) / 0.10), transparent 28rem),
+      linear-gradient(180deg, hsl(var(--background)), hsl(var(--background)));
     font-feature-settings:
       "rlig" 1,
       "calt" 1;
