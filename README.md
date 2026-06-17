@@ -79,6 +79,7 @@ Your image and API key are used **only** for the current generation request. Sim
 | [docs/provider-calibration.md](./docs/provider-calibration.md) | Provider/style prompt calibration matrix                                |
 | [docs/security.md](./docs/security.md)                         | Security & privacy model                                                |
 | [docs/cloudflare-deploy.md](./docs/cloudflare-deploy.md)       | Deployment guide                                                        |
+| [docs/release.md](./docs/release.md)                           | Release runbook: gate, deploy, smoke, rollback, observability           |
 | [docs/agent-workflow.md](./docs/agent-workflow.md)             | Shared AI-agent workflow for Codex CLI, Claude Code, and GitHub Copilot |
 | [docs/planning/plan.md](./docs/planning/plan.md)               | Roadmap & milestones                                                    |
 | [docs/README.md](./docs/README.md)                             | Doc map                                                                 |

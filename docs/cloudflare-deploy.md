@@ -113,6 +113,10 @@ npx wrangler deployments list
 npx wrangler rollback [--message "reason"]
 ```
 
+For the end-to-end release flow (local gate → deploy → smoke → rollback) and
+production log observability without leaking secrets, see the
+[release runbook](./release.md).
+
 ## Other hosts
 
 Because it is a standard Next.js app, Simi Avatar can also run on Node servers or other edge platforms that support Next.js. Cloudflare is documented here as the recommended zero-infra target.

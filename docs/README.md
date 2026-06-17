@@ -21,6 +21,7 @@
 | [provider-calibration.md](./provider-calibration.md) | Provider/style prompt calibration and QA rules                          |
 | [security.md](./security.md)                         | Security & privacy model, hard constraints, checklist                   |
 | [cloudflare-deploy.md](./cloudflare-deploy.md)       | Cloudflare Workers deployment guide                                     |
+| [release.md](./release.md)                           | Release runbook: gate, deploy, smoke, rollback, observability           |
 | [agent-workflow.md](./agent-workflow.md)             | Shared AI-agent workflow for Codex CLI, Claude Code, and GitHub Copilot |
 
 ## Repository root
@@ -43,3 +44,6 @@
 | [epic-3.1](./planning/epics/epic-3.1-couple-and-themed.md)       | M3        | Couple + themed + team preset  |
 | [epic-4.1](./planning/epics/epic-4.1-experience-and-security.md) | M4        | Experience, security & quality |
 | [epic-5.1](./planning/epics/epic-5.1-open-source-and-deploy.md)  | M5        | Open source, docs & deploy     |
+| [epic-9.1](./planning/epics/epic-9.1-provider-and-theme-expansion.md) | M9 | Provider & theme expansion     |
+| [epic-9.2](./planning/epics/epic-9.2-generation-experience-upgrade.md) | M9 | Generation experience upgrade |
+| [epic-9.3](./planning/epics/epic-9.3-engineering-health-and-confidence.md) | M9 | Engineering health & confidence |
