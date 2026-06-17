@@ -142,6 +142,32 @@ describe("GenerationForm", () => {
     ).toEqual(["1024x1024"]);
   });
 
+  it("restores provider and MiniMax region with a saved session API key", async () => {
+    const { unmount } = renderForm();
+
+    fireEvent.change(screen.getByLabelText(en.Provider.label), {
+      target: { value: "minimax" },
+    });
+    fireEvent.change(screen.getByLabelText(en.Provider.region), {
+      target: { value: "china" },
+    });
+    fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
+      target: { value: "mm-session-key" },
+    });
+    fireEvent.click(screen.getByLabelText(en.ApiKey.save));
+
+    unmount();
+    renderForm();
+
+    await waitFor(() =>
+      expect(screen.getByLabelText(en.Provider.label)).toHaveValue("minimax"),
+    );
+    expect(screen.getByLabelText(en.Provider.region)).toHaveValue("china");
+    expect(screen.getByLabelText(en.ApiKey.label)).toHaveValue(
+      "mm-session-key",
+    );
+  });
+
   it("hides advanced controls until the user expands them", () => {
     renderForm();
 

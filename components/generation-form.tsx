@@ -9,7 +9,9 @@ import {
   CLIENT_TIMEOUT_MS,
   DEFAULT_IMAGE_SIZE,
   DEFAULT_MODE_BY_SOURCE,
+  MINIMAX_REGIONS,
   MODES_BY_SOURCE,
+  PROVIDERS,
   isCoupleMode,
   sourceForMode,
   type ErrorCode,
@@ -66,6 +68,8 @@ import {
 
 const DEFAULT_GOAL: AvatarGoal = "professional-profile";
 const DEFAULT_GOAL_PRESET = GOAL_PRESETS[DEFAULT_GOAL];
+const SESSION_PROVIDER_KEY = "simi-avatar-provider";
+const SESSION_REGION_KEY = "simi-avatar-minimax-region";
 
 export function GenerationForm() {
   const t = useTranslations("Generate");
@@ -79,7 +83,7 @@ export function GenerationForm() {
   const [provider, setProvider] = useState<ProviderId>("openai");
   const [region, setRegion] = useState<MiniMaxRegion>("global");
   const [showKey, setShowKey] = useState(false);
-  const { apiKey, setApiKey, saveForSession, toggleSave, clear } =
+  const { apiKey, setApiKey, saveForSession, toggleSave, clear, hydrated } =
     useSessionApiKey();
 
   const [imageA, setImageA] = useState<UploadedImage | null>(null);
@@ -128,6 +132,40 @@ export function GenerationForm() {
       setSize(defaultSizeForProvider(provider));
     }
   }, [availableSizes, provider, size]);
+
+  useEffect(() => {
+    try {
+      const storedProvider = window.sessionStorage.getItem(SESSION_PROVIDER_KEY);
+      const storedRegion = window.sessionStorage.getItem(SESSION_REGION_KEY);
+      if (PROVIDERS.includes(storedProvider as ProviderId)) {
+        setProvider(storedProvider as ProviderId);
+      }
+      if (MINIMAX_REGIONS.includes(storedRegion as MiniMaxRegion)) {
+        setRegion(storedRegion as MiniMaxRegion);
+      }
+    } catch {
+      // Ignore storage access errors.
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    try {
+      if (saveForSession && apiKey) {
+        window.sessionStorage.setItem(SESSION_PROVIDER_KEY, provider);
+        if (provider === "minimax") {
+          window.sessionStorage.setItem(SESSION_REGION_KEY, region);
+        } else {
+          window.sessionStorage.removeItem(SESSION_REGION_KEY);
+        }
+      } else {
+        window.sessionStorage.removeItem(SESSION_PROVIDER_KEY);
+        window.sessionStorage.removeItem(SESSION_REGION_KEY);
+      }
+    } catch {
+      // Ignore storage access errors.
+    }
+  }, [apiKey, hydrated, provider, region, saveForSession]);
 
   function buildIntent(overrides: Partial<AvatarIntent> = {}): AvatarIntent {
     return createAvatarIntent({

@@ -11,6 +11,7 @@ const SESSION_KEY = "simi-avatar-api-key";
 export function useSessionApiKey() {
   const [apiKey, setApiKeyState] = useState("");
   const [saveForSession, setSaveForSession] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     try {
@@ -21,6 +22,8 @@ export function useSessionApiKey() {
       }
     } catch {
       // Ignore storage access errors (e.g. privacy mode).
+    } finally {
+      setHydrated(true);
     }
   }, []);
 
@@ -58,5 +61,5 @@ export function useSessionApiKey() {
     persist("", false);
   }, [persist]);
 
-  return { apiKey, setApiKey, saveForSession, toggleSave, clear };
+  return { apiKey, setApiKey, saveForSession, toggleSave, clear, hydrated };
 }
