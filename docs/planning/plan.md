@@ -4,7 +4,7 @@
 
 | Field           | Value                                                            |
 | --------------- | ---------------------------------------------------------------- |
-| Status          | MVP complete; public demo deployed |
+| Status          | MVP complete; public demo deployed; M9 expansion in progress |
 | Scope           | MVP (M1–M5)                                                      |
 | Providers (MVP) | OpenAI + MiniMax                                                 |
 | Languages (MVP) | English (default) + Simplified Chinese                           |
@@ -56,10 +56,15 @@ flowchart LR
 
 ## Recommended next implementation queue
 
-- [ ] **Add a lightweight release checklist**: document the repeatable flow for local gate, deploy, smoke check, and rollback before tagging releases.
-- [ ] **Migrate lint script before Next.js 16**: replace deprecated `next lint` with the ESLint CLI flow.
-- [ ] **Add optional E2E browser smoke tests**: cover home → generate, locale switch, source/mode changes, team preset hydration, and invalid-key error display with mocked generation.
-- [ ] **Consider production observability notes**: document how maintainers check Cloudflare logs without exposing keys, prompts, or uploaded images.
+> These items are now tracked under **M9** and split across the M9 epics below
+> ([9.1](./epics/epic-9.1-provider-and-theme-expansion.md) /
+> [9.2](./epics/epic-9.2-generation-experience-upgrade.md) /
+> [9.3](./epics/epic-9.3-engineering-health-and-confidence.md)).
+
+- [ ] **Add a lightweight release checklist** (Epic 9.3): document the repeatable flow for local gate, deploy, smoke check, and rollback before tagging releases.
+- [ ] **Migrate lint script before Next.js 16** (Epic 9.3): replace deprecated `next lint` with the ESLint CLI flow.
+- [ ] **Add optional E2E browser smoke tests** (Epic 9.3): cover home → generate, locale switch, source/mode changes, team preset hydration, and invalid-key error display with mocked generation.
+- [ ] **Consider production observability notes** (Epic 9.3): document how maintainers check Cloudflare logs without exposing keys, prompts, or uploaded images.
 
 ## Post-MVP enhancements (M6)
 
@@ -95,3 +100,29 @@ Shipped after M7 to make the completed feature set easier to use and more truthf
 - [x] **Partial couple result handling**: pair modes show an explicit partial-success notice and missing A/B placeholders when only one avatar returns.
 - [x] **Contextual team preset sharing**: preset links appear only for themed, couple, or team-character contexts.
 - [x] **Generation count cues**: the form shows whether the current mode runs one generation or two.
+
+## Post-MVP expansion (M9, in progress)
+
+Three parallel epics, all gated by the same lint/typecheck/test/build pipeline and bound by
+the BYOK / no-login / no-database red lines:
+
+- **[Epic 9.1 — Provider & Theme Expansion](./epics/epic-9.1-provider-and-theme-expansion.md)**:
+  add more themes (Cats / Robots / Pixel Heroes) and at least one new provider (Fal.ai / Replicate /
+  Stability) behind the shared `ImageProvider` interface.
+- **[Epic 9.2 — Generation Experience Upgrade](./epics/epic-9.2-generation-experience-upgrade.md)**:
+  couple same-frame composite, provider side-by-side comparison, copyable compiled prompt, and
+  client-only local history.
+- **[Epic 9.3 — Engineering Health & Confidence](./epics/epic-9.3-engineering-health-and-confidence.md)**:
+  E2E smoke tests, lint migration, release/rollback checklist, and production observability notes.
+
+### M9 progress
+
+- [ ] 9.1 — New themes (Cats / Robots / Pixel Heroes)
+- [ ] 9.1 — New provider behind `ImageProvider`
+- [ ] 9.2 — Copyable compiled prompt
+- [ ] 9.2 — Couple same-frame composite
+- [ ] 9.2 — Provider side-by-side comparison
+- [ ] 9.2 — Client-only local history
+- [ ] 9.3 — Lint migration to ESLint CLI
+- [ ] 9.3 — E2E browser smoke tests
+- [ ] 9.3 — Release checklist + observability notes
