@@ -173,7 +173,12 @@
     "hideAdvancedSettings": "Hide advanced settings",
     "sizeLabel": "Size",
     "pairedConsistency": "Paired consistency",
-    "pairedConsistencyHint": "Share palette, background, lighting and composition across both avatars."
+    "pairedConsistencyHint": "Share palette, background, lighting and composition across both avatars.",
+    "compiledPromptLabel": "Compiled prompt",
+    "compiledPromptHint": "The exact prompt sent to {provider} for your current setup. Your API key is never part of it.",
+    "negativePromptLabel": "Negative prompt",
+    "copyPrompt": "Copy prompt",
+    "copied": "Copied"
   },
   "Intent": {
     "label": "Avatar intent",

@@ -40,8 +40,13 @@ import {
   type IntentLevel,
   type RefinementAction,
 } from "@/lib/avatar-intent";
-import { AVATAR_STYLES } from "@/styles/avatar-styles";
-import { AVATAR_THEMES } from "@/styles/avatar-themes";
+import { AVATAR_STYLES, getStyleById } from "@/styles/avatar-styles";
+import {
+  AVATAR_THEMES,
+  getThemeById,
+  getVariant,
+} from "@/styles/avatar-themes";
+import { compileAvatarPrompt } from "@/lib/prompt-compiler";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -60,6 +65,7 @@ import { ThemePicker } from "@/components/theme-picker";
 import { PromptSuggestions } from "@/components/prompt-suggestions";
 import { TeamPresetShare } from "@/components/team-preset-share";
 import { ImageUploader, type UploadedImage } from "@/components/image-uploader";
+import { CompiledPromptPanel } from "@/components/compiled-prompt-panel";
 import {
   ResultPreview,
   type GenerationStatus,
@@ -554,6 +560,16 @@ export function GenerationForm() {
                     ))}
                   </Select>
                 </div>
+
+                <CompiledPromptPanel
+                  request={compileAvatarPrompt({
+                    provider,
+                    intent: buildIntent(),
+                    style: getStyleById(styleId),
+                    theme: getThemeById(themeId),
+                    variant: getVariant(themeId, variantId),
+                  })}
+                />
               </div>
             )}
           </div>

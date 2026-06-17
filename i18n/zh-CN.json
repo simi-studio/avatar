@@ -173,7 +173,12 @@
     "hideAdvancedSettings": "收起高级设置",
     "sizeLabel": "尺寸",
     "pairedConsistency": "成对一致性",
-    "pairedConsistencyHint": "在两个头像间共享配色、背景、光线和构图。"
+    "pairedConsistencyHint": "在两个头像间共享配色、背景、光线和构图。",
+    "compiledPromptLabel": "编译后的提示词",
+    "compiledPromptHint": "当前设置下发送给 {provider} 的实际提示词，其中绝不包含你的 API 密钥。",
+    "negativePromptLabel": "负向提示词",
+    "copyPrompt": "复制提示词",
+    "copied": "已复制"
   },
   "Intent": {
     "label": "头像意图",
