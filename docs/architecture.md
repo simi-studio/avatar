@@ -18,7 +18,7 @@ flowchart TD
   U -->|API key in sessionStorage| FE[Next.js UI]
   FE -->|"POST /api/generate (key + image + params)"| API[Route Handler]
   API -->|in-memory only| PROV{Provider}
-  PROV -->|OpenAI| OAI[gpt-image-1]
+  PROV -->|OpenAI| OAI[gpt-image-2]
   PROV -->|MiniMax Global| MMG[api.minimax.io image-01]
   PROV -->|MiniMax China| MMC[api.minimaxi.com image-01]
   OAI --> API
@@ -124,7 +124,7 @@ sequenceDiagram
 
 ## Runtime constraints
 
-- Synchronous request → wait → single response; client timeout ~60s (`PROVIDER_TIMEOUT`).
+- Synchronous request → wait → single response; provider timeout ~120s (`PROVIDER_TIMEOUT`).
 - Client compresses/downscales images before upload; the route pre-rejects oversized `Content-Length` and stream-counts requests without `Content-Length` before JSON/form parsing (`IMAGE_TOO_LARGE`).
 - No server-side queue in MVP; public demo should use Cloudflare WAF/Rate Limiting and optional Turnstile at the edge, with the app's instance-local `RATE_LIMIT_PER_MINUTE` guard as a self-host/default fallback.
 - Document host plan differences (e.g. Cloudflare Free vs Paid CPU/subrequests) in the deploy guide.

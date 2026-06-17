@@ -85,6 +85,10 @@ function referenceStrength(level: IntentLevel): number {
   return 0.35;
 }
 
+function sentence(value: string): string {
+  return value.replace(/[.。]\s*$/u, "");
+}
+
 function compact(values: Array<string | undefined>): string[] {
   return values.filter((value): value is string => Boolean(value));
 }
@@ -122,17 +126,21 @@ function openAIPrompt(input: CompileAvatarPromptInput): string {
   const subject = buildSubject(input);
   const styleFragment = calibration?.promptFragment ?? style?.promptTemplate;
   const avoid = buildAvoidList(intent);
+  const isPhotoInput = intent.mode === "single" || intent.mode === "couple";
 
-  return compact([
+  const lines = compact([
     `Create ${GOAL_TEXT[intent.goal]} based on ${subject}`,
     styleFragment,
-    COMPOSITION_TEXT[intent.composition],
-    BACKGROUND_TEXT[intent.background],
+    `Output: square avatar, ${COMPOSITION_TEXT[intent.composition]}, ${BACKGROUND_TEXT[intent.background]}`,
+    "Keep the subject centered with an avatar-safe crop and clear face visibility",
     intent.palette ? `Use this color palette: ${intent.palette}` : undefined,
     intent.mood ? `The mood should feel ${intent.mood}` : undefined,
     intent.accessories ? `Include ${intent.accessories}` : undefined,
-    intent.mode === "single" || intent.mode === "couple"
-      ? LIKENESS_TEXT[intent.likeness]
+    isPhotoInput
+      ? `Preserve the person's identity: ${LIKENESS_TEXT[intent.likeness]}`
+      : undefined,
+    isPhotoInput
+      ? "Keep face shape, expression, hairstyle, skin tone, and distinctive facial features recognizable unless the user explicitly asks otherwise"
       : undefined,
     CREATIVITY_TEXT[intent.creativity],
     isCoupleMode(intent.mode) && intent.pairedConsistency
@@ -142,8 +150,11 @@ function openAIPrompt(input: CompileAvatarPromptInput): string {
       ? "Generate a fresh variation that keeps the same intent but changes non-essential visual details."
       : undefined,
     profile.qualityFragment,
+    "Do not add text, logos, or watermarks",
     `Avoid: ${avoid}`,
-  ]).join(". ");
+  ]);
+
+  return lines.map(sentence).join(". ");
 }
 
 function miniMaxPrompt(input: CompileAvatarPromptInput): string {

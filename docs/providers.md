@@ -42,13 +42,15 @@ interface ImageProvider {
 
 | Mode            | Endpoint                                      | Model         |
 | --------------- | --------------------------------------------- | ------------- |
-| text / couple-text / themed | `POST /v1/images/generations` (text-to-image) | `gpt-image-1` |
-| single / couple             | `POST /v1/images/edits` (image-to-image)      | `gpt-image-1` |
+| text / couple-text / themed | `POST /v1/images/generations` (text-to-image) | `gpt-image-2` |
+| single / couple             | `POST /v1/images/edits` (image-to-image)      | `gpt-image-2` |
 
 - Base URL: `https://api.openai.com`
 - Auth: `Authorization: Bearer <apiKey>`
-- DALL·E 3 does **not** support image edits — image-to-image must use `gpt-image-1`.
-- Align requested `size` with `gpt-image-1`'s supported sizes.
+- Request defaults: `size: "1024x1024"`, `quality: "medium"`, `background: "opaque"`, `n: 1`.
+- DALL·E 3 does **not** support image edits — image-to-image must use a GPT Image model.
+- Do not send `input_fidelity` for `gpt-image-2`; image inputs are processed at high fidelity by default.
+- Align requested `size` with the app's square avatar flow.
 
 ### MiniMax
 

@@ -363,10 +363,10 @@ const dogsTheme: AvatarTheme = {
 
 MVP ships **two** providers so the abstraction is validated from day one and the maintainer can develop/test against MiniMax:
 
-| Provider    | Single / Couple (image-to-image)                               | Text / Themed (text-to-image)                       | Notes                                                          |
-| ----------- | -------------------------------------------------------------- | --------------------------------------------------- | -------------------------------------------------------------- |
-| **OpenAI**  | `gpt-image-1` via `/v1/images/edits` (DALL·E 3 has no edits)   | `gpt-image-1` via `/v1/images/generations`          | Fix the model to `gpt-image-1`; align with its supported sizes |
-| **MiniMax** | `image-01` via `/v1/image_generation` with `subject_reference` | `image-01` via `/v1/image_generation` (prompt only) | Region-aware base URL; see §8.2                                |
+| Provider    | Single / Couple (image-to-image)                               | Text / Themed (text-to-image)                       | Notes                                                                 |
+| ----------- | -------------------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------- |
+| **OpenAI**  | `gpt-image-2` via `/v1/images/edits` (DALL·E 3 has no edits)   | `gpt-image-2` via `/v1/images/generations`          | Square avatar output; `quality: "medium"`; `background: "opaque"`     |
+| **MiniMax** | `image-01` via `/v1/image_generation` with `subject_reference` | `image-01` via `/v1/image_generation` (prompt only) | Region-aware base URL; see §8.2                                       |
 
 > **Important model clarification**: MiniMax **M3 is a text/coding model**, not an image model. Avatar generation uses MiniMax's **image** models — `image-01` (and `image-01-live` for illustrated/cartoon styles). The maintainer's "test with MiniMax" workflow targets `image-01`.
 >
@@ -746,7 +746,7 @@ README / deploy / providers / security docs complete and in English; MIT License
 
 | Risk                                                       | Impact              | Mitigation                                                                       |
 | ---------------------------------------------------------- | ------------------- | -------------------------------------------------------------------------------- |
-| `gpt-image-1` / `image-01` face fidelity below expectation | Core experience     | State "stylized, not photographic" in docs; offer styles and prompt tuning       |
+| `gpt-image-2` / `image-01` face fidelity below expectation | Core experience     | State "stylized, not photographic" in docs; offer styles and prompt tuning       |
 | Generation time approaches host execution limits           | Timeouts            | Client compression, sensible timeout, plan-difference note (§10.3)               |
 | Public demo abuse                                          | Cost / availability | Cloudflare WAF / Rate Limiting + optional Turnstile (§12.4)                      |
 | Key passing through Worker raises trust concerns           | Adoption            | Explicit commitment boundary (§9); browser-direct mode in V1.1                   |
@@ -771,7 +771,7 @@ README / deploy / providers / security docs complete and in English; MIT License
 | D3  | No database in MVP                                                          | No accounts/history/subscription; BYOK needs no server-side key persistence                           |
 | D4  | Cloudflare Workers as the reference deployment (not core stack)             | Convenient self-host target via OpenNext; the app stays host-agnostic                                 |
 | D5  | MVP supports OpenAI **and** MiniMax                                         | Validate the abstraction from day one; maintainer develops/tests against MiniMax `image-01`           |
-| D6  | OpenAI uses `gpt-image-1` edits for image-to-image                          | Avatars are image-to-image; DALL·E 3 lacks edits (§8.1)                                               |
+| D6  | OpenAI uses `gpt-image-2` for image generation and image-to-image edits      | Current GPT Image model supports both avatar generation paths; DALL·E 3 lacks edits (§8.1)            |
 | D7  | Key via Worker proxy (Scheme B)                                             | Avoid CORS, unify errors/rate limiting; hard "in-memory only, never persisted/logged" constraint (§9) |
 | D8  | Single `GenerationMode` abstraction                                         | single/couple/themed share one provider/prompt/API; only input & assembly differ (§2.3)               |
 | D9  | Themed mode is text-to-image, no upload                                     | No personal photo needed; lowers privacy concern and barrier; uses generations endpoint (§8.1)        |

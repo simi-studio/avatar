@@ -23,7 +23,7 @@ export type PromptSuggestionInput = {
 };
 
 /**
- * Provider-tuned starter prompts. OpenAI gpt-image-1 responds best to rich,
+ * Provider-tuned starter prompts. OpenAI GPT Image responds best to rich,
  * natural-language scene descriptions; MiniMax image-01 favours concise,
  * comma-separated descriptors. These give users a high-quality starting point
  * they can insert and refine instead of facing an empty box.

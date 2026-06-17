@@ -13,10 +13,12 @@ import {
 } from "./shared";
 
 const OPENAI_BASE_URL = "https://api.openai.com";
-const MODEL = "gpt-image-1";
-const PROVIDER_TIMEOUT_MS = 55_000;
+const MODEL = "gpt-image-2";
+const QUALITY = "medium";
+const BACKGROUND = "opaque";
+const PROVIDER_TIMEOUT_MS = 120_000;
 
-/** gpt-image-1 supports 1024x1024 for this app's square avatar flow. */
+/** Keep OpenAI output square for this app's avatar flow. */
 export function mapOpenAISize(size: ImageSize): "1024x1024" {
   if (size !== "1024x1024") {
     throw new ProviderError("INVALID_MODE_INPUT");
@@ -113,6 +115,8 @@ async function generateThemed(
         model: MODEL,
         prompt: input.prompt,
         size: mapOpenAISize(input.size),
+        quality: QUALITY,
+        background: BACKGROUND,
         n: 1,
       }),
     },
@@ -130,6 +134,8 @@ async function editImage(
   form.append("model", MODEL);
   form.append("prompt", input.prompt);
   form.append("size", mapOpenAISize(input.size));
+  form.append("quality", QUALITY);
+  form.append("background", BACKGROUND);
   form.append("n", "1");
   form.append("image", image, sanitizeFilename(image.name || "image.png"));
 

@@ -102,6 +102,52 @@ describe("openai adapter", () => {
     );
   });
 
+  it("uses current GPT Image defaults for OpenAI avatar generations", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(jsonResponse({ data: [{ b64_json: "ZZZZ" }] }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await openaiProvider.generateAvatar({
+      apiKey: "sk-test",
+      mode: "text",
+      prompt: "a polished avatar",
+      size: "1024x1024",
+    });
+
+    const request = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    expect(JSON.parse(String(request.body))).toMatchObject({
+      model: "gpt-image-2",
+      quality: "medium",
+      background: "opaque",
+      size: "1024x1024",
+      n: 1,
+    });
+  });
+
+  it("uses current GPT Image defaults for OpenAI avatar edits", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(jsonResponse({ data: [{ b64_json: "AAAA" }] }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await openaiProvider.generateAvatar({
+      apiKey: "sk-test",
+      mode: "single",
+      images: [pngFile()],
+      prompt: "make an avatar",
+      size: "1024x1024",
+    });
+
+    const request = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    const form = request.body as FormData;
+    expect(form.get("model")).toBe("gpt-image-2");
+    expect(form.get("quality")).toBe("medium");
+    expect(form.get("background")).toBe("opaque");
+    expect(form.get("size")).toBe("1024x1024");
+    expect(form.has("input_fidelity")).toBe(false);
+  });
+
   it("generates a labeled A/B pair for couple-text mode", async () => {
     const fetchMock = vi
       .fn()

@@ -23,7 +23,7 @@ Deliver the single-mode closed loop end-to-end with **both** MVP providers, vali
 
 ### Prompt & providers
 - [x] `prompt-builder`: mode-aware assembly (single branch)
-- [x] `lib/providers/openai.ts`: `gpt-image-1` via `/v1/images/edits`
+- [x] `lib/providers/openai.ts`: `gpt-image-2` via `/v1/images/edits`
 - [x] `lib/providers/minimax.ts`: `image-01` via `/v1/image_generation` + `resolveBaseUrl(region)` (global/china) + `subject_reference`
 - [x] `lib/providers/index.ts` registry + `supportedModes`
 

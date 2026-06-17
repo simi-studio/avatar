@@ -19,10 +19,10 @@ The calibration matrix records how each built-in style should be worded for each
 
 ## Current Calibration Scope
 
-- Providers: OpenAI `gpt-image-1`, MiniMax `image-01`.
+- Providers: OpenAI `gpt-image-2`, MiniMax `image-01`.
 - Styles: all 10 built-in styles have OpenAI and MiniMax fragments.
 - Controls compiled into prompts: goal, style/theme, description, likeness, creativity, composition, background, palette, mood, accessories, avoid-list, paired consistency, variation.
-- Native negative-prompt and reference-strength flags are modeled, but current MVP providers use safe prompt text because unsupported/unstable request params should not be sent speculatively.
+- Native negative-prompt and reference-strength flags are modeled, but current MVP providers use safe prompt text because unsupported/unstable request params should not be sent speculatively. OpenAI uses explicit avatar prompt constraints plus `quality: "medium"` and `background: "opaque"` request options.
 
 ## QA Expectations
 

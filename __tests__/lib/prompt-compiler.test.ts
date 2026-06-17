@@ -103,4 +103,24 @@ describe("compileAvatarPrompt", () => {
     expect(compiled.prompt).toContain("fresh variation");
     expect(compiled.n).toBe(1);
   });
+
+  it("structures OpenAI photo prompts around avatar output and identity preservation", () => {
+    const intent = createAvatarIntent({
+      mode: "single",
+      goal: "professional-profile",
+      styleId: "professional-headshot",
+      likeness: "high",
+      composition: "headshot",
+      background: "studio",
+      avoid: "changing identity",
+    });
+    const compiled = compileAvatarPrompt({ provider: "openai", intent });
+
+    expect(compiled.prompt).toContain("Output: square avatar");
+    expect(compiled.prompt).toContain("Keep the subject centered");
+    expect(compiled.prompt).toContain("Preserve the person's identity");
+    expect(compiled.prompt).toContain("face shape");
+    expect(compiled.prompt).toContain("expression");
+    expect(compiled.prompt).toContain("Do not add text, logos, or watermarks");
+  });
 });
