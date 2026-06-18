@@ -49,7 +49,7 @@ export function isCoupleMode(mode: GenerationMode): boolean {
   return mode === "couple" || mode === "couple-text";
 }
 
-export const PROVIDERS = ["openai", "minimax"] as const;
+export const PROVIDERS = ["openai", "minimax", "fal"] as const;
 export type ProviderId = (typeof PROVIDERS)[number];
 
 export const MINIMAX_REGIONS = ["global", "china"] as const;

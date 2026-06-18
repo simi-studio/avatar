@@ -14,6 +14,11 @@ export const PROVIDER_CAPABILITIES: Record<ProviderId, ProviderCapabilities> = {
     sizes: ["512x512", "1024x1024"],
     defaultSize: "1024x1024",
   },
+  fal: {
+    // FLUX square sizes: `square` (512) and `square_hd` (1024).
+    sizes: ["512x512", "1024x1024"],
+    defaultSize: "1024x1024",
+  },
 };
 
 export function sizesForProvider(provider: ProviderId): readonly ImageSize[] {

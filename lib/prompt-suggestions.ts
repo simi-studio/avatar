@@ -65,6 +65,24 @@ export const PROMPT_SUGGESTIONS: Record<ProviderId, PromptSuggestion[]> = {
       text: "soft pastel portrait, gentle lighting, dreamy bokeh, delicate colors, friendly expression",
     },
   ],
+  fal: [
+    {
+      id: "friendly-professional",
+      text: "A friendly professional headshot of a person with a warm, confident smile, soft studio lighting, clean neutral background, looking directly at the camera",
+    },
+    {
+      id: "creative-portrait",
+      text: "A creative portrait of a young artist with expressive eyes, colorful soft-focus background, gentle rim lighting, shallow depth of field",
+    },
+    {
+      id: "outdoor-natural",
+      text: "A natural outdoor portrait at golden hour, warm sunlight, soft bokeh of green foliage behind, relaxed and approachable expression",
+    },
+    {
+      id: "bold-editorial",
+      text: "A bold editorial fashion portrait with dramatic side lighting, deep shadows, minimal dark background, strong confident gaze",
+    },
+  ],
 };
 
 const GOAL_PROMPT_SUGGESTIONS: Record<
@@ -113,6 +131,28 @@ const GOAL_PROMPT_SUGGESTIONS: Record<
       id: "goal-character",
       labelKey: "goal-character",
       text: "character avatar, cinematic mood, signature accessory, readable silhouette, expressive face, high detail",
+    },
+  },
+  fal: {
+    "professional-profile": {
+      id: "goal-professional-profile",
+      labelKey: "goal-professional-profile",
+      text: "A polished professional profile avatar with a confident warm expression, realistic studio lighting, clean background, trustworthy and approachable",
+    },
+    "social-avatar": {
+      id: "goal-social-avatar",
+      labelKey: "goal-social-avatar",
+      text: "A memorable social avatar with a friendly expression, bright balanced colors, simple background, expressive but natural portrait composition",
+    },
+    "team-character": {
+      id: "goal-team-character",
+      labelKey: "goal-team-character",
+      text: "A cohesive team character avatar with a warm expression, clean shared visual style, simple background, playful but professional energy",
+    },
+    character: {
+      id: "goal-character",
+      labelKey: "goal-character",
+      text: "A distinctive character avatar with cinematic mood, one signature accessory, readable silhouette, expressive face, high-quality portrait detail",
     },
   },
 };

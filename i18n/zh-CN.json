@@ -87,6 +87,7 @@
     "label": "提供方",
     "openai": "OpenAI",
     "minimax": "MiniMax",
+    "fal": "fal.ai",
     "region": "区域",
     "regionGlobal": "全球",
     "regionChina": "中国",

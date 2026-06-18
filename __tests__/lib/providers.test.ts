@@ -11,6 +11,13 @@ import {
   minimaxProvider,
   resolveMiniMaxBaseUrl,
 } from "@/lib/providers/minimax";
+import {
+  falProvider,
+  isAllowedFalImageHost,
+  mapFalError,
+  mapFalSize,
+  mapFalStrength,
+} from "@/lib/providers/fal";
 import type { ProviderGenerateInput } from "@/lib/types";
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -463,5 +470,158 @@ describe("minimax adapter", () => {
         size: "1024x1024",
       }),
     ).rejects.toMatchObject({ code: "INSUFFICIENT_CREDITS" });
+  });
+});
+
+function imageResponse(bytes = [9, 9, 9, 9], contentType = "image/png"): Response {
+  return new Response(new Uint8Array(bytes), {
+    status: 200,
+    headers: { "Content-Type": contentType },
+  });
+}
+
+/** Branch the fetch mock: fal.run POST returns JSON, fal.media GET returns bytes. */
+function falFetchMock(falJson: unknown) {
+  return vi.fn((url: string) =>
+    Promise.resolve(
+      url.startsWith("https://fal.run/")
+        ? jsonResponse(falJson)
+        : imageResponse(),
+    ),
+  );
+}
+
+describe("fal adapter", () => {
+  it("maps app sizes to FLUX image_size enums", () => {
+    expect(mapFalSize("1024x1024")).toBe("square_hd");
+    expect(mapFalSize("512x512")).toBe("square");
+  });
+
+  it("inverts reference strength into FLUX transformation strength", () => {
+    // Higher likeness (0.85) keeps more of the source -> lower transform strength.
+    expect(mapFalStrength(0.85)).toBeLessThan(mapFalStrength(0.35));
+    expect(mapFalStrength(undefined)).toBeGreaterThan(0.4);
+  });
+
+  it("only downloads images from fal-controlled hosts", () => {
+    expect(isAllowedFalImageHost("https://fal.media/files/a.png")).toBe(true);
+    expect(isAllowedFalImageHost("https://v3.fal.media/files/a.png")).toBe(true);
+    expect(isAllowedFalImageHost("http://fal.media/files/a.png")).toBe(false);
+    expect(isAllowedFalImageHost("https://evil.example.com/a.png")).toBe(false);
+  });
+
+  it("maps fal statuses to normalized codes", () => {
+    expect(mapFalError(401, {})).toBe("INVALID_API_KEY");
+    expect(mapFalError(402, {})).toBe("INSUFFICIENT_CREDITS");
+    expect(mapFalError(429, {})).toBe("RATE_LIMITED");
+    expect(mapFalError(422, {})).toBe("INVALID_MODE_INPUT");
+    expect(mapFalError(200, { detail: "NSFW content detected" })).toBe(
+      "CONTENT_REJECTED",
+    );
+  });
+
+  it("calls the text-to-image model and returns a base64 image", async () => {
+    const fetchMock = falFetchMock({
+      images: [
+        { url: "https://fal.media/files/out.png", content_type: "image/png" },
+      ],
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const images = await falProvider.generateAvatar({
+      apiKey: "key-test",
+      mode: "text",
+      prompt: "a friendly avatar",
+      size: "1024x1024",
+    });
+
+    const [textUrl, textInit] = fetchMock.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    expect(textUrl).toBe("https://fal.run/fal-ai/flux/dev");
+    expect((textInit.headers as Record<string, string>).Authorization).toBe(
+      "Key key-test",
+    );
+    expect(JSON.parse(String(textInit.body))).toMatchObject({
+      image_size: "square_hd",
+      num_images: 1,
+    });
+    expect(images).toHaveLength(1);
+    expect(images[0]?.mimeType).toBe("image/png");
+    expect(images[0]?.base64?.length ?? 0).toBeGreaterThan(0);
+  });
+
+  it("calls the image-to-image model for single mode", async () => {
+    const fetchMock = falFetchMock({
+      images: [{ url: "https://fal.media/files/out.png" }],
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await falProvider.generateAvatar({
+      apiKey: "key-test",
+      mode: "single",
+      images: [pngFile()],
+      prompt: "stylize me",
+      referenceStrength: 0.85,
+      size: "1024x1024",
+    });
+
+    const [i2iUrl, i2iInit] = fetchMock.mock.calls[0] as unknown as [
+      string,
+      RequestInit,
+    ];
+    expect(i2iUrl).toBe("https://fal.run/fal-ai/flux/dev/image-to-image");
+    const body = JSON.parse(String(i2iInit.body));
+    expect(body.image_url).toMatch(/^data:image\/png;base64,/);
+    expect(typeof body.strength).toBe("number");
+  });
+
+  it("rejects images returned from non-fal hosts", async () => {
+    const fetchMock = falFetchMock({
+      images: [{ url: "https://evil.example.com/out.png" }],
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      falProvider.generateAvatar({
+        apiKey: "key-test",
+        mode: "text",
+        prompt: "x",
+        size: "1024x1024",
+      }),
+    ).rejects.toMatchObject({ code: "UNKNOWN_ERROR" });
+  });
+
+  it("maps an error status from the fal.run call", async () => {
+    const fetchMock = vi.fn(() =>
+      Promise.resolve(jsonResponse({ detail: "Unauthorized" }, 401)),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      falProvider.generateAvatar({
+        apiKey: "bad-key",
+        mode: "text",
+        prompt: "x",
+        size: "1024x1024",
+      }),
+    ).rejects.toMatchObject({ code: "INVALID_API_KEY" });
+  });
+
+  it("generates a labeled A/B pair for couple-text mode", async () => {
+    const fetchMock = falFetchMock({
+      images: [{ url: "https://fal.media/files/out.png" }],
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const images = await falProvider.generateAvatar({
+      apiKey: "key-test",
+      mode: "couple-text",
+      prompt: "a couple",
+      size: "1024x1024",
+    });
+
+    expect(images.map((image) => image.label).sort()).toEqual(["A", "B"]);
   });
 });

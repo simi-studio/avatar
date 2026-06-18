@@ -44,6 +44,17 @@ export const PROVIDER_PROMPT_PROFILES: Record<
     supportsReferenceStrength: false,
     negativePromptStrategy: "soft-prompt",
   },
+  fal: {
+    provider: "fal",
+    // FLUX responds best to rich natural-language descriptions.
+    promptStyle: "natural-language",
+    preferredLanguage: "en",
+    qualityFragment:
+      "clean centered avatar portrait, crisp details, sharp focus, natural lighting",
+    supportsNativeNegativePrompt: false,
+    supportsReferenceStrength: true,
+    negativePromptStrategy: "soft-prompt",
+  },
 };
 
 export const STYLE_CALIBRATION_MATRIX = {
@@ -214,6 +225,88 @@ export const STYLE_CALIBRATION_MATRIX = {
         "sci-fi avatar, sleek futuristic materials, holographic accents, cool tones, clean portrait framing",
       knownBias: "May obscure the face with helmets or visors.",
       recoveryHint: "Add no helmet, visible face to avoid list when needed.",
+    },
+  },
+  fal: {
+    anime: {
+      provider: "fal",
+      styleId: "anime",
+      promptFragment:
+        "a polished anime avatar illustration with expressive eyes, clean line work, and harmonious colors",
+      knownBias: "FLUX can drift toward semi-realistic anime hybrids.",
+      recoveryHint: "Emphasize flat cel shading and clean line art.",
+    },
+    "pixar-3d": {
+      provider: "fal",
+      styleId: "pixar-3d",
+      promptFragment:
+        "a friendly 3D animated character render with rounded features, soft global illumination, and tactile materials",
+      knownBias: "Can render overly glossy skin.",
+      recoveryHint: "Ask for soft matte skin and natural proportions.",
+    },
+    cyberpunk: {
+      provider: "fal",
+      styleId: "cyberpunk",
+      promptFragment:
+        "a cinematic cyberpunk avatar with neon edge lighting, a readable facial silhouette, and restrained futuristic detail",
+      knownBias: "May overload the scene with neon signage.",
+      recoveryHint: "Request a clean background and a single key light.",
+    },
+    "professional-headshot": {
+      provider: "fal",
+      styleId: "professional-headshot",
+      promptFragment:
+        "a realistic professional headshot with natural skin texture, soft studio light, and a clean business-ready background",
+      knownBias: "Can exaggerate depth-of-field blur.",
+      recoveryHint: "Ask for a sharp face and moderate background blur.",
+    },
+    linkedin: {
+      provider: "fal",
+      styleId: "linkedin",
+      promptFragment:
+        "a polished LinkedIn-style portrait with an approachable expression, soft office depth, and credible professional lighting",
+      knownBias: "May invent branded clothing or logos.",
+      recoveryHint: "Add logos and text to the avoid list.",
+    },
+    "fantasy-hero": {
+      provider: "fal",
+      styleId: "fantasy-hero",
+      promptFragment:
+        "an epic fantasy character avatar with cinematic light, readable costume detail, and heroic portrait-focused framing",
+      knownBias: "Tends to add elaborate background scenery.",
+      recoveryHint: "Keep the framing tight and the background simple.",
+    },
+    "comic-book": {
+      provider: "fal",
+      styleId: "comic-book",
+      promptFragment:
+        "a bold comic-book avatar with clean ink shapes, controlled halftone shading, and strong graphic color blocks",
+      knownBias: "Can add lettering or panel borders.",
+      recoveryHint: "Add text, panels, lettering to the avoid list.",
+    },
+    watercolor: {
+      provider: "fal",
+      styleId: "watercolor",
+      promptFragment:
+        "a delicate watercolor portrait avatar with soft edges, paper texture, and gentle transparent washes",
+      knownBias: "May wash out fine facial detail.",
+      recoveryHint: "Increase likeness and request sharp eyes.",
+    },
+    "retro-game": {
+      provider: "fal",
+      styleId: "retro-game",
+      promptFragment:
+        "a crisp retro pixel-art avatar with readable 16-bit shapes, a limited palette, and a clean square composition",
+      knownBias: "Can blend smooth shading into the pixel grid.",
+      recoveryHint: "Repeat crisp pixel edges and avoid painterly blur.",
+    },
+    "sci-fi": {
+      provider: "fal",
+      styleId: "sci-fi",
+      promptFragment:
+        "a sleek science-fiction avatar with subtle holographic accents, clean futuristic materials, and portrait-first framing",
+      knownBias: "May add helmets that hide the face.",
+      recoveryHint: "Add no helmet, visible face to the avoid list.",
     },
   },
 } satisfies Record<ProviderId, Record<string, StyleCalibration>>;
