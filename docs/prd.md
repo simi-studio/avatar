@@ -782,3 +782,4 @@ README / deploy / providers / security docs complete and in English; MIT License
 | D12 | Docs in English; app i18n EN + zh-CN, default English, locale auto-detected | Open-source audience is global; deployed app adapts to user origin (§13)                              |
 | D13 | Provider-neutral `AvatarIntent` compiles to provider-specific prompts       | Users express intent once; OpenAI and MiniMax receive wording tuned to their behavior (§7)            |
 | D14 | fal.ai added as a third provider (M9), FLUX via the synchronous `fal.run`    | Validates the abstraction beyond two providers; fal results are URLs, downloaded only from fal hosts (SSRF guard) |
+| D15 | Provider side-by-side comparison dropped (won't do)                          | One-time selection is served by switching the provider dropdown; a true compare needs two keys at once, breaking single-key BYOK and adding lasting complexity for niche value (M9) |

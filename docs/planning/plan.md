@@ -4,7 +4,7 @@
 
 | Field           | Value                                                            |
 | --------------- | ---------------------------------------------------------------- |
-| Status          | MVP complete; public demo deployed; M9 expansion shipped (1 item deferred) |
+| Status          | MVP complete; public demo deployed; M9 expansion shipped (1 item dropped) |
 | Scope           | MVP (M1–M5)                                                      |
 | Providers (MVP) | OpenAI + MiniMax                                                 |
 | Languages (MVP) | English (default) + Simplified Chinese                           |
@@ -110,8 +110,8 @@ the BYOK / no-login / no-database red lines:
   add more themes (Cats / Robots / Pixel Heroes) and at least one new provider (Fal.ai / Replicate /
   Stability) behind the shared `ImageProvider` interface.
 - **[Epic 9.2 — Generation Experience Upgrade](./epics/epic-9.2-generation-experience-upgrade.md)**:
-  couple same-frame composite, provider side-by-side comparison, copyable compiled prompt, and
-  client-only local history.
+  couple same-frame composite, copyable compiled prompt, and client-only local history.
+  (Provider side-by-side comparison was evaluated and dropped — see D15.)
 - **[Epic 9.3 — Engineering Health & Confidence](./epics/epic-9.3-engineering-health-and-confidence.md)**:
   E2E smoke tests, lint migration, release/rollback checklist, and production observability notes.
 
@@ -121,7 +121,7 @@ the BYOK / no-login / no-database red lines:
 - [x] 9.1 — New provider behind `ImageProvider` (fal.ai / FLUX)
 - [x] 9.2 — Copyable compiled prompt
 - [x] 9.2 — Couple same-frame composite (couple-text; photo couple is a follow-up)
-- [~] 9.2 — Provider side-by-side comparison (DEFERRED — needs the two-key UX decision)
+- [x] 9.2 — Provider side-by-side comparison — **DROPPED** (won't do; ROI/complexity, see D15)
 - [x] 9.2 — Client-only local history
 - [x] 9.3 — Lint migration to ESLint CLI
 - [x] 9.3 — E2E browser smoke tests
