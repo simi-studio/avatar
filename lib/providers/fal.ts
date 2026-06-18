@@ -215,6 +215,7 @@ export const falProvider: ImageProvider = {
   async generateAvatar(input) {
     if (!isPhotoMode(input.mode)) {
       if (input.mode === "couple-text") {
+        if (input.sameFrame) return generateText(input);
         return collectSuccessful([
           generateText(withCoupleTextPartnerPrompt(input, "A"), "A"),
           generateText(withCoupleTextPartnerPrompt(input, "B"), "B"),

@@ -180,6 +180,24 @@ describe("openai adapter", () => {
     ]);
   });
 
+  it("makes a single unlabeled call for couple-text same-frame", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(jsonResponse({ data: [{ b64_json: "ONE" }] }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const images = await openaiProvider.generateAvatar({
+      apiKey: "sk-test",
+      mode: "couple-text",
+      sameFrame: true,
+      prompt: "both partners in one frame",
+      size: "1024x1024",
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(images).toEqual([{ base64: "ONE", mimeType: "image/png" }]);
+  });
+
   it("adds distinct partner guidance to OpenAI couple-text prompts", async () => {
     const fetchMock = vi
       .fn()
@@ -623,5 +641,28 @@ describe("fal adapter", () => {
     });
 
     expect(images.map((image) => image.label).sort()).toEqual(["A", "B"]);
+  });
+
+  it("returns a single unlabeled image for couple-text same-frame", async () => {
+    const fetchMock = falFetchMock({
+      images: [{ url: "https://fal.media/files/out.png" }],
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const images = await falProvider.generateAvatar({
+      apiKey: "key-test",
+      mode: "couple-text",
+      sameFrame: true,
+      prompt: "a couple in one frame",
+      size: "1024x1024",
+    });
+
+    expect(images).toHaveLength(1);
+    expect(images[0]?.label).toBeUndefined();
+    // One generation call (fal.run) + one image download.
+    const falCalls = fetchMock.mock.calls.filter((call) =>
+      String(call[0]).startsWith("https://fal.run/"),
+    );
+    expect(falCalls).toHaveLength(1);
   });
 });

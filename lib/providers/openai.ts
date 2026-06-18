@@ -178,8 +178,9 @@ export const openaiProvider: ImageProvider = {
 
   async generateAvatar(input) {
     if (!isPhotoMode(input.mode)) {
-      // couple-text: two text-to-image avatars sharing style with distinct partner guidance.
+      // couple-text: one combined frame, or two style-matched avatars with distinct partner guidance.
       if (input.mode === "couple-text") {
+        if (input.sameFrame) return generateThemed(input);
         return collectSuccessful([
           generateThemed(withCoupleTextPartnerPrompt(input, "A"), "A"),
           generateThemed(withCoupleTextPartnerPrompt(input, "B"), "B"),

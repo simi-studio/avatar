@@ -93,6 +93,20 @@ describe("compileAvatarPrompt", () => {
     expect(compiled.prompt).toContain("same background family");
   });
 
+  it("describes one combined frame for couple-text same-frame", () => {
+    const intent = createAvatarIntent({
+      mode: "couple-text",
+      styleId: "anime",
+      sameFrame: true,
+      subjectDescription: "two friends",
+    });
+    const compiled = compileAvatarPrompt({ provider: "openai", intent });
+
+    expect(compiled.prompt).toContain("both partners");
+    expect(compiled.prompt).toContain("one frame");
+    expect(compiled.prompt).toContain("two friends");
+  });
+
   it("includes variation wording without changing request count", () => {
     const intent = createAvatarIntent({
       mode: "text",

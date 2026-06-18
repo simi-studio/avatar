@@ -182,6 +182,7 @@
     "sizeLabel": "尺寸",
     "pairedConsistency": "成对一致性",
     "pairedConsistencyHint": "在两个头像间共享配色、背景、光线和构图。",
+    "sameFrame": "同框（两人合成一张图）",
     "compiledPromptLabel": "编译后的提示词",
     "compiledPromptHint": "当前设置下发送给 {provider} 的实际提示词，其中绝不包含你的 API 密钥。",
     "negativePromptLabel": "负向提示词",

@@ -64,6 +64,8 @@ export type ProviderGenerateInput = {
   prompt: string;
   negativePrompt?: string;
   referenceStrength?: number;
+  /** Couple modes: render both partners in one frame instead of an A/B pair. */
+  sameFrame?: boolean;
   styleId?: string;
   themeId?: string;
   variantId?: string;

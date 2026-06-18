@@ -106,6 +106,13 @@ function buildSubject(input: CompileAvatarPromptInput): string {
     return intent.subjectDescription ?? "a friendly portrait avatar";
   }
   if (intent.mode === "couple-text") {
+    if (intent.sameFrame) {
+      const base =
+        "a single avatar showing both partners of a couple together in one frame, side by side, balanced composition";
+      return intent.subjectDescription
+        ? `${base}, ${intent.subjectDescription}`
+        : base;
+    }
     return intent.subjectDescription
       ? `one avatar of a matching couple avatar set, ${intent.subjectDescription}`
       : "one avatar of a matching couple avatar set";

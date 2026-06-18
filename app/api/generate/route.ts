@@ -325,6 +325,7 @@ export async function POST(
       prompt: compiled.prompt,
       negativePrompt: compiled.negativePrompt,
       referenceStrength: compiled.referenceStrength,
+      sameFrame: intent.sameFrame,
       styleId: intent.styleId,
       themeId: intent.themeId,
       variantId: intent.variantId,

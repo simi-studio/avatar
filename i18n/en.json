@@ -182,6 +182,7 @@
     "sizeLabel": "Size",
     "pairedConsistency": "Paired consistency",
     "pairedConsistencyHint": "Share palette, background, lighting and composition across both avatars.",
+    "sameFrame": "Same frame (both partners in one image)",
     "compiledPromptLabel": "Compiled prompt",
     "compiledPromptHint": "The exact prompt sent to {provider} for your current setup. Your API key is never part of it.",
     "negativePromptLabel": "Negative prompt",

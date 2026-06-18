@@ -57,6 +57,8 @@ export type AvatarIntent = {
   accessories?: string;
   avoid?: string;
   pairedConsistency?: boolean;
+  /** Couple modes: render both partners together in one frame instead of an A/B pair. */
+  sameFrame?: boolean;
   variation?: boolean;
   size: ImageSize;
 };
@@ -211,6 +213,10 @@ export function normalizeAvatarIntent(
       typeof raw.pairedConsistency === "boolean"
         ? raw.pairedConsistency
         : fallback.pairedConsistency,
+    sameFrame:
+      typeof raw.sameFrame === "boolean"
+        ? raw.sameFrame
+        : fallback.sameFrame,
     variation:
       typeof raw.variation === "boolean" ? raw.variation : fallback.variation,
     size: pickEnum(IMAGE_SIZES, raw.size, fallback.size),

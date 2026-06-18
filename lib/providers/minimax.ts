@@ -188,8 +188,9 @@ export const minimaxProvider: ImageProvider = {
 
   async generateAvatar(input) {
     if (!isPhotoMode(input.mode)) {
-      // couple-text: two text-to-image avatars sharing style with distinct partner guidance.
+      // couple-text: one combined frame, or two style-matched avatars with distinct partner guidance.
       if (input.mode === "couple-text") {
+        if (input.sameFrame) return callMiniMax(input, undefined);
         return collectSuccessful([
           callMiniMax(withCoupleTextPartnerPrompt(input, "A"), undefined, "A"),
           callMiniMax(withCoupleTextPartnerPrompt(input, "B"), undefined, "B"),

@@ -110,6 +110,7 @@ export function GenerationForm() {
   );
   const [variantId, setVariantId] = useState<string>();
   const [pairedConsistency, setPairedConsistency] = useState(true);
+  const [sameFrame, setSameFrame] = useState(false);
   const [userPrompt, setUserPrompt] = useState("");
   const [goal, setGoal] = useState<AvatarGoal>(DEFAULT_GOAL);
   const [likeness, setLikeness] = useState<IntentLevel>(
@@ -204,6 +205,7 @@ export function GenerationForm() {
       accessories,
       avoid,
       pairedConsistency,
+      sameFrame,
       size,
       ...overrides,
     });
@@ -222,6 +224,7 @@ export function GenerationForm() {
     setAvoid(intent.avoid ?? "");
     setUserPrompt(intent.subjectDescription ?? "");
     setPairedConsistency(intent.pairedConsistency ?? pairedConsistency);
+    setSameFrame(intent.sameFrame ?? false);
     setSize(intent.size);
     if (intent.styleId) setStyleId(intent.styleId);
     if (intent.themeId) setThemeId(intent.themeId);
@@ -395,7 +398,9 @@ export function GenerationForm() {
     status === "idle" && canGenerate ? "ready" : status;
   const showTeamPresetShare =
     mode === "themed" || isCoupleMode(mode) || goal === "team-character";
-  const generationCount = isCoupleMode(mode) ? 2 : 1;
+  // Couple-text same-frame renders a single combined image instead of an A/B pair.
+  const coupleSameFrame = mode === "couple-text" && sameFrame;
+  const generationCount = isCoupleMode(mode) && !coupleSameFrame ? 2 : 1;
   const sourceImages: SourcePreviewImage[] = [];
   if (mode === "single" && imageA) {
     sourceImages.push({ previewUrl: imageA.previewUrl });
@@ -463,14 +468,25 @@ export function GenerationForm() {
                 <label className="flex items-center gap-2 text-sm text-muted-foreground">
                   <input
                     type="checkbox"
-                    checked={pairedConsistency}
-                    onChange={(event) =>
-                      setPairedConsistency(event.target.checked)
-                    }
+                    checked={sameFrame}
+                    onChange={(event) => setSameFrame(event.target.checked)}
                     className="h-4 w-4 rounded border-input"
                   />
-                  {tf("pairedConsistency")}
+                  {tf("sameFrame")}
                 </label>
+                {!sameFrame && (
+                  <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      checked={pairedConsistency}
+                      onChange={(event) =>
+                        setPairedConsistency(event.target.checked)
+                      }
+                      className="h-4 w-4 rounded border-input"
+                    />
+                    {tf("pairedConsistency")}
+                  </label>
+                )}
               </>
             )}
 
@@ -695,7 +711,9 @@ export function GenerationForm() {
             images={images}
             errorCode={errorCode}
             sourceImages={sourceImages}
-            expectedImageLabels={isCoupleMode(mode) ? ["A", "B"] : []}
+            expectedImageLabels={
+              isCoupleMode(mode) && !coupleSameFrame ? ["A", "B"] : []
+            }
             onRetry={() => void onGenerate(lastIntent ?? buildIntent())}
             onRefine={onRefine}
             refinementDisabled={!canGenerate || status === "generating"}
