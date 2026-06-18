@@ -158,6 +158,13 @@
     "warrior": "战士",
     "ninja": "忍者"
   },
+  "History": {
+    "label": "最近设置",
+    "restore": "恢复此设置",
+    "clear": "清除",
+    "localOnly": "仅保存在当前浏览器中，绝不上传。",
+    "clearOnKeyClear": "同时清除本地生成历史吗？"
+  },
   "Form": {
     "promptLabel": "可选提示词",
     "promptPlaceholder": "例如：蓝色背景，柔和光线，友善微笑",

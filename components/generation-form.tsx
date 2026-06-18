@@ -66,6 +66,13 @@ import { PromptSuggestions } from "@/components/prompt-suggestions";
 import { TeamPresetShare } from "@/components/team-preset-share";
 import { ImageUploader, type UploadedImage } from "@/components/image-uploader";
 import { CompiledPromptPanel } from "@/components/compiled-prompt-panel";
+import { GenerationHistory } from "@/components/generation-history";
+import {
+  addHistoryEntry,
+  clearHistory,
+  readHistory,
+  type HistoryEntry,
+} from "@/lib/local-history";
 import {
   ResultPreview,
   type GenerationStatus,
@@ -81,6 +88,7 @@ export function GenerationForm() {
   const t = useTranslations("Generate");
   const tf = useTranslations("Form");
   const tUpload = useTranslations("Upload");
+  const tHistory = useTranslations("History");
 
   const searchParams = useSearchParams();
 
@@ -129,6 +137,12 @@ export function GenerationForm() {
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [lastIntent, setLastIntent] = useState<AvatarIntent | null>(null);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
+
+  // History is client-only; hydrate it after mount to avoid SSR mismatch.
+  useEffect(() => {
+    setHistory(readHistory());
+  }, []);
 
   const source: InputSource = sourceForMode(mode);
   const availableSizes = sizesForProvider(provider);
@@ -335,6 +349,7 @@ export function GenerationForm() {
       if (data.success && data.images) {
         setImages(data.images);
         setStatus("success");
+        setHistory(addHistoryEntry(requestIntent));
       } else {
         setErrorCode(data.error?.code ?? "UNKNOWN_ERROR");
         setStatus("error");
@@ -355,6 +370,24 @@ export function GenerationForm() {
     const nextIntent = applyRefinementAction(buildIntent(), action);
     syncIntent(nextIntent);
     void onGenerate(nextIntent);
+  }
+
+  function handleClearHistory() {
+    clearHistory();
+    setHistory([]);
+  }
+
+  // Clearing the key also offers to clear local history, since both are
+  // browser-local user data (Epic 9.2).
+  function handleClearKey() {
+    clear();
+    if (
+      history.length > 0 &&
+      typeof window !== "undefined" &&
+      window.confirm(tHistory("clearOnKeyClear"))
+    ) {
+      handleClearHistory();
+    }
   }
 
   const promptIsPrimary = mode === "text" || mode === "couple-text";
@@ -600,7 +633,7 @@ export function GenerationForm() {
             <ApiKeyInput
               value={apiKey}
               onChange={setApiKey}
-              onClear={clear}
+              onClear={handleClearKey}
               saveForSession={saveForSession}
               onToggleSave={toggleSave}
               show={showKey}
@@ -639,6 +672,16 @@ export function GenerationForm() {
             </div>
           </div>
           </form>
+
+          {history.length > 0 && (
+            <div className="mt-6">
+              <GenerationHistory
+                entries={history}
+                onRestore={syncIntent}
+                onClear={handleClearHistory}
+              />
+            </div>
+          )}
         </CardContent>
       </Card>
 

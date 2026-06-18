@@ -158,6 +158,13 @@
     "warrior": "Warrior",
     "ninja": "Ninja"
   },
+  "History": {
+    "label": "Recent setups",
+    "restore": "Restore this setup",
+    "clear": "Clear",
+    "localOnly": "Saved only in this browser — never uploaded.",
+    "clearOnKeyClear": "Also clear your local generation history?"
+  },
   "Form": {
     "promptLabel": "Optional prompt",
     "promptPlaceholder": "e.g. blue background, soft lighting, friendly smile",
