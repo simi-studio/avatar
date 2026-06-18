@@ -23,10 +23,13 @@ respect the no-database / no-history-server red lines. Each item is independentl
 - [ ] **Follow-up**: photo `couple` same-frame (multi-face input) — left as A/B for now since
       multi-image composition is provider-specific and unverifiable without live keys
 
-### Provider side-by-side comparison
-- [ ] Run one intent against OpenAI vs MiniMax (and new providers) in parallel, labeled columns
+### Provider side-by-side comparison — DEFERRED
+> Deferred: comparing OpenAI vs MiniMax vs fal in one run requires **two provider keys at
+> once**, which changes the current single-provider/single-key BYOK model and its security
+> surface. Revisit as its own epic once the two-key UX is decided.
+- [ ] Run one intent against multiple providers in parallel, labeled columns
 - [ ] Reuse partial-success handling from M8 for per-provider failures
-- [ ] Make the multi-provider cost/time implication explicit in the UI
+- [ ] Make the multi-provider cost/time + two-key implications explicit in the UI
 
 ### Copyable compiled prompt (developer education, zero backend)
 - [x] Expose the compiled per-provider prompt as read-only copyable text in Advanced settings

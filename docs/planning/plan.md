@@ -4,7 +4,7 @@
 
 | Field           | Value                                                            |
 | --------------- | ---------------------------------------------------------------- |
-| Status          | MVP complete; public demo deployed; M9 expansion in progress |
+| Status          | MVP complete; public demo deployed; M9 expansion shipped (1 item deferred) |
 | Scope           | MVP (M1–M5)                                                      |
 | Providers (MVP) | OpenAI + MiniMax                                                 |
 | Languages (MVP) | English (default) + Simplified Chinese                           |
@@ -121,7 +121,7 @@ the BYOK / no-login / no-database red lines:
 - [x] 9.1 — New provider behind `ImageProvider` (fal.ai / FLUX)
 - [x] 9.2 — Copyable compiled prompt
 - [x] 9.2 — Couple same-frame composite (couple-text; photo couple is a follow-up)
-- [ ] 9.2 — Provider side-by-side comparison
+- [~] 9.2 — Provider side-by-side comparison (DEFERRED — needs the two-key UX decision)
 - [x] 9.2 — Client-only local history
 - [x] 9.3 — Lint migration to ESLint CLI
 - [x] 9.3 — E2E browser smoke tests
