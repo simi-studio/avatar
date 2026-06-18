@@ -16,10 +16,12 @@ respect the no-database / no-history-server red lines. Each item is independentl
 ## Checklist
 
 ### Couple same-frame composite (V1.1 roadmap item)
-- [ ] Intent flag for "same-frame" vs current A/B paired output
-- [ ] Provider path that composes both subjects into one image (where the model supports it)
-- [ ] `result-preview` handles single composite result; clear fallback to A/B when unsupported
-- [ ] Tests for both output shapes; cost hint reflects generation count
+- [x] Intent flag (`sameFrame`) for one combined frame vs the A/B paired output
+- [x] Provider path: couple-text makes one unlabeled text-to-image call across all three providers
+- [x] Single composite result flows through preview (no A/B labels); generation count drops to one
+- [x] Compiler + provider call-count tests for both output shapes
+- [ ] **Follow-up**: photo `couple` same-frame (multi-face input) — left as A/B for now since
+      multi-image composition is provider-specific and unverifiable without live keys
 
 ### Provider side-by-side comparison
 - [ ] Run one intent against OpenAI vs MiniMax (and new providers) in parallel, labeled columns

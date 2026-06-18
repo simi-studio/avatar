@@ -120,7 +120,7 @@ the BYOK / no-login / no-database red lines:
 - [x] 9.1 — New themes (Cats / Robots / Pixel Heroes)
 - [x] 9.1 — New provider behind `ImageProvider` (fal.ai / FLUX)
 - [x] 9.2 — Copyable compiled prompt
-- [ ] 9.2 — Couple same-frame composite
+- [x] 9.2 — Couple same-frame composite (couple-text; photo couple is a follow-up)
 - [ ] 9.2 — Provider side-by-side comparison
 - [x] 9.2 — Client-only local history
 - [x] 9.3 — Lint migration to ESLint CLI
