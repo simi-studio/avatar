@@ -63,7 +63,7 @@ npx wrangler secret put TURNSTILE_SECRET_KEY
 | CPU / duration   | Image generation takes 10–30s. Use the synchronous request→wait→response model with a ~60s client timeout (`PROVIDER_TIMEOUT`). |
 | Plan differences | Cloudflare **Free** has tighter CPU-time and subrequest limits than **Paid**; heavy/public demos should use a Paid plan.        |
 | Concurrency      | No server queue in MVP; throttle the public demo with Cloudflare WAF / Rate Limiting and optional Turnstile. The app's `RATE_LIMIT_PER_MINUTE` guard is instance-local fallback protection, not the primary multi-instance public-demo control. |
-| Outbound         | Only the fixed provider hosts are called (OpenAI, MiniMax global/china).                                                        |
+| Outbound         | Only fixed provider hosts are called (OpenAI, MiniMax global/china, fal.run + fal.media for image download).                    |
 
 ## Custom domain (optional)
 

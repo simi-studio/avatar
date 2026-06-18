@@ -118,7 +118,7 @@ the BYOK / no-login / no-database red lines:
 ### M9 progress
 
 - [x] 9.1 — New themes (Cats / Robots / Pixel Heroes)
-- [ ] 9.1 — New provider behind `ImageProvider`
+- [x] 9.1 — New provider behind `ImageProvider` (fal.ai / FLUX)
 - [x] 9.2 — Copyable compiled prompt
 - [ ] 9.2 — Couple same-frame composite
 - [ ] 9.2 — Provider side-by-side comparison

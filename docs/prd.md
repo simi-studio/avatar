@@ -390,7 +390,9 @@ MiniMax operates two separate platforms with **different base URLs and separate 
 
 ### 8.3 Later providers
 
-V1.1: Fal.ai, Replicate, Stability AI.
+Shipped (M9): **fal.ai** (FLUX.1 [dev] text-to-image and image-to-image via the synchronous `fal.run` endpoint).
+
+Still planned (V1.1): Replicate, Stability AI.
 
 ### 8.4 Provider abstraction
 
@@ -779,3 +781,4 @@ README / deploy / providers / security docs complete and in English; MIT License
 | D11 | MiniMax is region-aware (Global vs China)                                   | Separate base URLs and keys; UI must make region explicit (§8.2)                                      |
 | D12 | Docs in English; app i18n EN + zh-CN, default English, locale auto-detected | Open-source audience is global; deployed app adapts to user origin (§13)                              |
 | D13 | Provider-neutral `AvatarIntent` compiles to provider-specific prompts       | Users express intent once; OpenAI and MiniMax receive wording tuned to their behavior (§7)            |
+| D14 | fal.ai added as a third provider (M9), FLUX via the synchronous `fal.run`    | Validates the abstraction beyond two providers; fal results are URLs, downloaded only from fal hosts (SSRF guard) |

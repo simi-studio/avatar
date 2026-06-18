@@ -120,6 +120,21 @@ async function minimaxGenerate(
 
 > For `couple`, call the endpoint twice with the same prompt/style — once per person — and label the results `A` / `B`. For `couple-text`, call the text-to-image endpoint twice with the same style/paired-consistency prompt and the same labels.
 
+### fal.ai
+
+| Mode                        | Endpoint                                          | Model                          |
+| --------------------------- | ------------------------------------------------- | ------------------------------ |
+| text / couple-text / themed | `POST /fal-ai/flux/dev` (text-to-image)           | FLUX.1 [dev]                   |
+| single / couple             | `POST /fal-ai/flux/dev/image-to-image`            | FLUX.1 [dev] image-to-image    |
+
+- Base URL: `https://fal.run` (synchronous endpoint — the result JSON is returned directly).
+- Auth: `Authorization: Key <apiKey>`.
+- Request: `{ prompt, image_size, num_images: 1, enable_safety_checker: true }`; image-to-image adds `image_url` (a `data:` URL of the upload) and `strength`.
+- Sizes: app square sizes map to FLUX `square` (512) and `square_hd` (1024).
+- `strength` inverts intent reference strength (higher likeness → lower transformation strength).
+- **Response handling**: fal returns image **URLs**, not base64. The adapter downloads each result and base64-encodes it, but **only from fal-controlled hosts** (`fal.media`, `*.fal.media`, `*.fal.run`, `*.fal.ai`) to prevent SSRF via a tampered response.
+- For `couple` / `couple-text`, call twice with the same style and label the results `A` / `B`.
+
 ## Prompt compilation and calibration
 
 The UI captures a provider-neutral `AvatarIntent` instead of treating the visible text box as the final provider prompt. The server compiles that intent through:
@@ -158,4 +173,4 @@ OpenAI receives richer natural-language prompts; MiniMax receives concise comma-
 
 ## Planned providers (V1.1)
 
-Fal.ai, Replicate, Stability AI — each behind the same interface, with security requirements identical to the above (no key persistence, no key logging).
+Replicate, Stability AI — each behind the same interface, with security requirements identical to the above (no key persistence, no key logging). **fal.ai is now shipped** (see above).

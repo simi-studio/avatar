@@ -21,15 +21,15 @@ intent-first prompt compiler:
 
 ## Checklist
 
-### New provider (pick one first; Fal.ai recommended for image-model fit)
-- [ ] Extend `ProviderId` and `lib/providers/index.ts` registry with the new provider
-- [ ] `lib/providers/<name>.ts` implementing `ImageProvider` (generate + edit/reference paths)
-- [ ] Base URL from a fixed allowlist; **never** user-settable upstream host
-- [ ] `lib/provider-capabilities.ts`: declare supported sizes + default size truthfully
-- [ ] Prompt compiler branch in `lib/prompt-compiler.ts` (NL vs descriptor style as the API expects)
-- [ ] Calibration entries in `lib/provider-calibration.ts` for every built-in style
-- [ ] Mocked-fetch tests: success, normalized error mapping, size enum, region/base-URL selection
-- [ ] i18n: provider label + any region switch copy in `i18n/en.json` and `i18n/zh-CN.json`
+### New provider — fal.ai (FLUX) shipped
+- [x] Extend `ProviderId` and `lib/providers/index.ts` registry with fal
+- [x] `lib/providers/fal.ts` implementing `ImageProvider` (text-to-image + image-to-image paths)
+- [x] Base URL from a fixed allowlist (`https://fal.run`); image download restricted to fal hosts (SSRF guard)
+- [x] `lib/provider-capabilities.ts`: fal exposes `512x512` + `1024x1024`
+- [x] Prompt compiler reuses the natural-language branch (FLUX prefers prose) via the fal prompt profile
+- [x] Calibration entries in `lib/provider-calibration.ts` for every built-in style
+- [x] Mocked-fetch tests: success, normalized error mapping, size + strength mapping, SSRF host allowlist
+- [x] i18n: provider label in `i18n/en.json` and `i18n/zh-CN.json` (no region switch needed)
 
 ### New themes
 - [x] `styles/avatar-themes.ts`: Cats / Robots / Pixel Heroes themes + variants
@@ -47,8 +47,8 @@ intent-first prompt compiler:
 - No secret/key path regressions: `npm run guard:secrets`, lint, typecheck, test, build all green.
 - `docs/providers.md` and the decision log updated to reflect the newly supported provider.
 
-## Open questions
+## Resolved decisions
 
-- Which provider first? Fal.ai and Replicate both expose strong image models; Stability is
-  most direct for text-to-image. Recommend Fal.ai for reference/likeness support parity.
-- Does the new provider need a region/base-URL switch like MiniMax, or a single global host?
+- **First provider: fal.ai** (FLUX), for image-model fit and reference/likeness parity.
+- **Single global host** (`https://fal.run`) — no region switch needed, unlike MiniMax.
+- Replicate / Stability AI remain candidates for a future provider epic.
