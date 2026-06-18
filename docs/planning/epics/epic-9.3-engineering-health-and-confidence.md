@@ -17,10 +17,10 @@ test gap that single-page complexity has opened.
 ## Checklist
 
 ### E2E browser smoke tests
-- [ ] Choose a runner (Playwright recommended) wired into CI as a separate job
-- [ ] Cover: home → generate, locale switch, source/mode changes, team preset hydration,
+- [x] Playwright runner wired into CI as a separate job (installs Chromium, uploads report)
+- [x] Cover: home → generate, locale switch, in-source mode change, team preset hydration,
       invalid-key error display — all with **mocked** generation (no real provider calls, no keys)
-- [ ] Ensure mocks assert no API key is ever sent to a real upstream
+- [x] Generation is mocked at the network layer (`page.route`), so no API key reaches a real upstream
 
 ### Lint migration (before Next.js 16)
 - [x] Replace deprecated `next lint` with the ESLint CLI flow (flat `eslint.config.mjs` + FlatCompat)

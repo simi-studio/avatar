@@ -122,7 +122,7 @@ the BYOK / no-login / no-database red lines:
 - [x] 9.2 — Copyable compiled prompt
 - [ ] 9.2 — Couple same-frame composite
 - [ ] 9.2 — Provider side-by-side comparison
-- [ ] 9.2 — Client-only local history
+- [x] 9.2 — Client-only local history
 - [x] 9.3 — Lint migration to ESLint CLI
-- [ ] 9.3 — E2E browser smoke tests
+- [x] 9.3 — E2E browser smoke tests
 - [x] 9.3 — Release checklist + observability notes

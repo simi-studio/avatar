@@ -33,9 +33,10 @@ respect the no-database / no-history-server red lines. Each item is independentl
 - [x] i18n copy for the panel in `en.json` / `zh-CN.json`
 
 ### Local-only history (client persistence, no DB)
-- [ ] Store recent intents (not images, or thumbnails only) in `localStorage`/IndexedDB
-- [ ] Explicit "history is local to this browser, never uploaded" copy + a Clear control
-- [ ] Honor the existing Clear Key flow — clearing key offers to clear local history too
+- [x] Store recent intents (never images/keys/photos) in `localStorage`, capped at 10
+- [x] Explicit "saved only in this browser, never uploaded" copy + a Clear control
+- [x] Honor the existing Clear Key flow — clearing key offers to clear local history too
+- [x] Unit tests for the store (cap, ordering, malformed recovery, no-credentials assertion)
 
 ## Acceptance
 
