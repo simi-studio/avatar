@@ -11,7 +11,7 @@ SHELL := bash
 NPM ?= npm
 
 .PHONY: help install dev build start lint typecheck test test-watch coverage \
-	guard check qa preview deploy deploy-prod clean
+	e2e guard check qa preview deploy deploy-prod clean
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -43,6 +43,9 @@ test-watch: ## Run unit tests in watch mode
 
 coverage: ## Run unit tests with coverage
 	$(NPM) run test:coverage
+
+e2e: ## Run Playwright E2E smoke tests (auto-starts the dev server)
+	$(NPM) run test:e2e
 
 guard: ## Guard against secret logging
 	$(NPM) run guard:secrets

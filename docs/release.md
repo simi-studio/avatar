@@ -15,6 +15,13 @@ make check     # guard:secrets + lint + typecheck + test + build
 
 `make check` is the same gate CI runs. Do not tag or deploy on a red gate.
 
+For browser-level confidence, run the E2E smoke suite (auto-starts a dev server and
+mocks generation, so no key is needed):
+
+```bash
+make e2e        # or: npm run test:e2e
+```
+
 | Step           | Command               | Must show                          |
 | -------------- | --------------------- | ---------------------------------- |
 | Secret guard   | `npm run guard:secrets` | `Secret-logging guard passed.`     |
