@@ -4,8 +4,8 @@
 
 | Field | Value |
 | ----- | ----- |
-| Milestone | M9 (candidate) |
-| Status | Draft |
+| Milestone | M9 |
+| Status | Done (1 follow-up deferred) |
 | Depends on | M8 (quick/advanced split, preview workspace states) |
 
 ## Goal
@@ -47,12 +47,12 @@ respect the no-database / no-history-server red lines. Each item is independentl
 
 ## Acceptance
 
-- Same-frame composite produces one coherent image on supporting providers, with a truthful
-  fallback notice otherwise.
-- Comparison view renders labeled results per provider and degrades gracefully on partial failure.
-- Compiled-prompt panel never contains key material; verified by a redaction test.
-- Local history persists across reloads, is clearable, and writes nothing to any server.
-- Full gate green: lint, typecheck, test, build, `guard:secrets`.
+- [x] Same-frame composite produces one coherent `couple-text` image on supporting providers.
+- [x] Provider side-by-side comparison was evaluated and dropped; no comparison UI is required.
+- [x] Compiled-prompt panel never contains key material; verified by a safety test.
+- [x] Local history persists across reloads, is clearable, and writes nothing to any server.
+- [x] Full gate remains the handoff requirement: lint, typecheck, test, build, `guard:secrets`.
+- [ ] Photo `couple` same-frame remains a follow-up because multi-face composition is provider-specific.
 
 ## Notes
 

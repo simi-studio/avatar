@@ -16,7 +16,7 @@ Live demo: [avatar.simi.studio](https://avatar.simi.studio)
 | **From a photo**               | **Single**   | 1 photo  | Restyle your photo into an avatar (10 built-in styles)          |
 | **From a photo**               | **Couple**   | 2 photos | Generate a style-consistent paired set for two people           |
 
-- 🔑 **BYOK** — use your own OpenAI or MiniMax API key; nothing is stored
+- 🔑 **BYOK** — use your own OpenAI, MiniMax, or fal.ai API key; nothing is stored
 - ✍️ **Text-to-avatar** — start from a style + description, no upload required
 - 🎯 **Intent-first controls** — choose goal, likeness, creativity, composition, background, palette, accessories, and avoid-list
 - 🔁 **One-click refinement** — try closer likeness, more realistic, cuter, cleaner background, or another variation
@@ -27,12 +27,13 @@ Live demo: [avatar.simi.studio](https://avatar.simi.studio)
 - 🧩 **Extensible providers** — add a new provider by implementing one interface
 - ☁️ **Self-host** — reference deployment on Cloudflare Workers
 
-## Supported providers (MVP)
+## Supported providers
 
 | Provider | Models                      | Notes                                                                         |
 | -------- | --------------------------- | ----------------------------------------------------------------------------- |
-| OpenAI   | `gpt-image-1`               | image-to-image (edits) + text-to-image (generations)                          |
+| OpenAI   | `gpt-image-2`               | image-to-image (edits) + text-to-image (generations)                          |
 | MiniMax  | `image-01`, `image-01-live` | Region-aware: **Global** (`api.minimax.io`) or **China** (`api.minimaxi.com`) |
+| fal.ai   | FLUX.1 [dev]                | Text-to-image + image-to-image via `fal.run`; result downloads are host-allowlisted |
 
 > Note: MiniMax **M3 is a text/coding model** — avatar generation uses MiniMax's **image** models (`image-01`). Pick your MiniMax region in the provider selector; keys are not interchangeable between regions.
 

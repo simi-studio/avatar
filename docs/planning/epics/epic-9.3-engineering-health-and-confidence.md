@@ -4,8 +4,8 @@
 
 | Field | Value |
 | ----- | ----- |
-| Milestone | M9 (candidate) |
-| Status | Draft |
+| Milestone | M9 |
+| Status | Done |
 | Depends on | M5 (CI, deploy), existing unit suite |
 
 ## Goal
@@ -36,10 +36,10 @@ test gap that single-page complexity has opened.
 
 ## Acceptance
 
-- CI runs unit + E2E smoke green; E2E proves no key leaves the browser to a real host.
-- `npm run lint` passes on the ESLint CLI flow with no `next lint` deprecation warning.
-- A maintainer can follow the release checklist to deploy and roll back unaided.
-- Observability notes reviewed against `security.md`; no logging path can surface secrets.
+- [x] CI runs unit + E2E smoke green; E2E proves no key leaves the browser to a real host.
+- [x] `npm run lint` passes on the ESLint CLI flow with no `next lint` deprecation warning.
+- [x] A maintainer can follow the release checklist to deploy and roll back unaided.
+- [x] Observability notes reviewed against `security.md`; no logging path can surface secrets.
 
 ## Notes
 

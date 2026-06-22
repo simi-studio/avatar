@@ -4,9 +4,9 @@
 
 | Field        | Value                                               |
 | ------------ | --------------------------------------------------- |
-| Status       | Draft (pending review)                              |
-| Version      | v0.3                                                |
-| Last updated | 2026-06-01                                          |
+| Status       | Implemented through M9; next requirements proposed  |
+| Version      | v0.4                                                |
+| Last updated | 2026-06-19                                          |
 | GitHub       | https://github.com/simi-studio/avatar               |
 | Positioning  | Open Source / No signup / Non-commercial / BYOK     |
 | App stack    | Next.js + TypeScript + Tailwind CSS + Shadcn UI     |
@@ -189,7 +189,7 @@ Users can click **Clear Key** at any time to remove the locally stored API key.
 
 #### Provider
 
-MVP supports **OpenAI** and **MiniMax** (see §8). The provider selector also exposes a region switch for MiniMax (Global vs China). Fal.ai / Replicate / Stability AI come later.
+MVP supports **OpenAI** and **MiniMax** (see §8). M9 adds **fal.ai** as a third provider. The provider selector also exposes a region switch for MiniMax (Global vs China). Replicate / Stability AI remain later candidates.
 
 #### API Key
 
@@ -388,11 +388,11 @@ MiniMax operates two separate platforms with **different base URLs and separate 
 - Image-to-image: add `subject_reference` (character reference image) to carry the source face/subject
 - A key from one region does **not** work on the other; the UI must make the region explicit.
 
-### 8.3 Later providers
+### 8.3 Provider expansion
 
 Shipped (M9): **fal.ai** (FLUX.1 [dev] text-to-image and image-to-image via the synchronous `fal.run` endpoint).
 
-Still planned (V1.1): Replicate, Stability AI.
+Still planned: Replicate, Stability AI.
 
 ### 8.4 Provider abstraction
 
@@ -496,7 +496,7 @@ Body is `multipart/form-data` (with images) or `application/json` (themed, no im
 type GenerationMode = "text" | "couple-text" | "single" | "couple" | "themed";
 
 type GenerateRequest = {
-  provider: "openai" | "minimax";
+  provider: "openai" | "minimax" | "fal";
   region?: "global" | "china"; // MiniMax only
   apiKey: string;
   mode: GenerationMode;
@@ -736,8 +736,9 @@ README / deploy / providers / security docs complete and in English; MIT License
 
 ## 21. Roadmap
 
-- **V1.1**: Fal.ai / Replicate / Stability AI; Turnstile; more styles/themes (Cats / Robots / Pixel Heroes); couple same-frame composite; optional zero-trust browser-direct mode (§9 Scheme A); more languages.
-- **V1.2**: R2 temporary image hosting; share links; local history; batch generation.
+- **M9 shipped**: fal.ai, Cats / Robots / Pixel Heroes themes, couple-text same-frame composite, copyable compiled prompt, local-only history, E2E smoke tests, release/observability docs.
+- **M10 candidates**: photo couple same-frame composite, app-level Turnstile challenge, browser-direct zero-trust research, provider pricing links, Replicate or Stability AI, one additional UI locale, optional release automation.
+- **V1.2+**: R2 temporary image hosting; share links; batch generation.
 - **V2**: optional login; optional D1; user history; team workspace; theme/template marketplace; hosted SaaS; private deployment.
 
 ---

@@ -51,7 +51,7 @@ All modes share one provider abstraction, intent model, prompt compiler, and `/a
 | `lib/avatar-intent.ts`        | Canonical intent, goal presets, refinement actions         | Know provider HTTP details |
 | `lib/prompt-compiler.ts`      | Compile one intent into provider-specific prompt payloads  | Touch API keys/images      |
 | `lib/provider-calibration.ts` | Provider/style prompt profiles, known bias, recovery hints | Contain user data/secrets  |
-| `lib/providers/*`             | Provider adapters (OpenAI, MiniMax)                        | Hold global state          |
+| `lib/providers/*`             | Provider adapters (OpenAI, MiniMax, fal.ai)                 | Hold global state          |
 | `lib/prompt-builder.ts`       | Backward-compatible prompt-builder wrapper                 | Know about HTTP            |
 | `lib/preset.ts`               | Encode/decode team preset (URL-safe)                       | Ever include an API key    |
 | `lib/image-utils.ts`          | EXIF strip, downscale/compress                             | —                          |

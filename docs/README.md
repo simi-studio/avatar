@@ -17,7 +17,7 @@
 | Doc                                                  | Purpose                                                                 |
 | ---------------------------------------------------- | ----------------------------------------------------------------------- |
 | [architecture.md](./architecture.md)                 | Architecture, data flow, module boundaries (HOW)                        |
-| [providers.md](./providers.md)                       | Provider interface, OpenAI + MiniMax, how to add one                    |
+| [providers.md](./providers.md)                       | Provider interface, supported providers, how to add one                 |
 | [provider-calibration.md](./provider-calibration.md) | Provider/style prompt calibration and QA rules                          |
 | [security.md](./security.md)                         | Security & privacy model, hard constraints, checklist                   |
 | [cloudflare-deploy.md](./cloudflare-deploy.md)       | Cloudflare Workers deployment guide                                     |

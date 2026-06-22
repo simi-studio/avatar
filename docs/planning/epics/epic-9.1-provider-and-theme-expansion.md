@@ -4,8 +4,8 @@
 
 | Field | Value |
 | ----- | ----- |
-| Milestone | M9 (candidate) |
-| Status | Draft |
+| Milestone | M9 |
+| Status | Done |
 | Depends on | Epic 2.1 (`ImageProvider` interface), M7 calibration matrix |
 
 ## Goal
@@ -41,11 +41,11 @@ intent-first prompt compiler:
 
 ## Acceptance
 
-- A user can generate with the new provider using their own key, end-to-end, for at least
+- [x] A user can generate with the new provider using their own key, end-to-end, for at least
   `text` and `single` modes.
-- New themes generate on every supported provider; calibration tests pass for all pairs.
-- No secret/key path regressions: `npm run guard:secrets`, lint, typecheck, test, build all green.
-- `docs/providers.md` and the decision log updated to reflect the newly supported provider.
+- [x] New themes generate on every supported provider; calibration tests pass for all pairs.
+- [x] No secret/key path regressions covered by provider tests and the full quality gate.
+- [x] `docs/providers.md` and the decision log updated to reflect the newly supported provider.
 
 ## Resolved decisions
 

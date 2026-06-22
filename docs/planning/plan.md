@@ -27,12 +27,14 @@
 - **M4 — Experience & security**: error handling + codes; download/regenerate/Clear Key; mode×input validation; timeout + edge rate limiting guidance with app-level fallback; log redaction + CI guard; mobile + a11y; core unit tests ≥ 80%.
 - **M5 — Open source & deploy**: finalize English docs + legal pages; Wrangler config; GitHub Actions CI; deploy Cloudflare Workers + bind domain.
 
-## Current progress snapshot (2026-06-11)
+## Current progress snapshot (2026-06-19)
 
 - **M1–M5 are complete**: foundation, i18n, five generation modes, provider adapters, intent-first prompt compilation, security guards, open-source docs, CI, and Cloudflare deployment are implemented.
+- **M6–M8 are complete**: text-first sources, intent controls/refinement, provider-aware capabilities, quick/advanced form split, preview states, partial couple handling, and contextual team preset sharing are shipped.
+- **M9 is complete**: Cats / Robots / Pixel Heroes themes, fal.ai FLUX provider support, copyable compiled prompts, couple-text same-frame composite, client-only local history, E2E smoke coverage, ESLint CLI migration, release checklist, and production observability notes are shipped.
 - **Public demo is live**: `https://avatar.simi.studio/zh-CN` returns `HTTP/2 200` on Cloudflare/OpenNext with the custom domain bound.
 - **GitHub repository metadata is set**: `simi-studio/avatar` is public, has a concise description, homepage URL, and topics configured.
-- **Local verification passed on 2026-06-11**: `npm run guard:secrets`, `npm run lint`, `npm run typecheck`, `npm run test` (104 tests), and `npm run build`.
+- **Last recorded full local gate passed on 2026-06-11**: `npm run guard:secrets`, `npm run lint`, `npm run typecheck`, `npm run test` (104 tests), and `npm run build`. M9 added more tests and Playwright smoke coverage after that snapshot.
 - A local gitignored `wrangler.prod.jsonc` exists for `avatar.simi.studio`; the open-source deliverable remains `wrangler.prod.jsonc.example`.
 - **Screenshots are intentionally deferred** while the product is changing quickly; keeping screenshots current would create avoidable maintenance churn.
 
@@ -54,17 +56,17 @@ flowchart LR
 - Core lib unit coverage ≥ 80%; CI green.
 - All docs in English; Cloudflare deploy succeeds.
 
-## Recommended next implementation queue
+## Recommended next implementation queue (completed in M9)
 
 > These items are now tracked under **M9** and split across the M9 epics below
 > ([9.1](./epics/epic-9.1-provider-and-theme-expansion.md) /
 > [9.2](./epics/epic-9.2-generation-experience-upgrade.md) /
 > [9.3](./epics/epic-9.3-engineering-health-and-confidence.md)).
 
-- [ ] **Add a lightweight release checklist** (Epic 9.3): document the repeatable flow for local gate, deploy, smoke check, and rollback before tagging releases.
-- [ ] **Migrate lint script before Next.js 16** (Epic 9.3): replace deprecated `next lint` with the ESLint CLI flow.
-- [ ] **Add optional E2E browser smoke tests** (Epic 9.3): cover home → generate, locale switch, source/mode changes, team preset hydration, and invalid-key error display with mocked generation.
-- [ ] **Consider production observability notes** (Epic 9.3): document how maintainers check Cloudflare logs without exposing keys, prompts, or uploaded images.
+- [x] **Add a lightweight release checklist** (Epic 9.3): document the repeatable flow for local gate, deploy, smoke check, and rollback before tagging releases.
+- [x] **Migrate lint script before Next.js 16** (Epic 9.3): replace deprecated `next lint` with the ESLint CLI flow.
+- [x] **Add optional E2E browser smoke tests** (Epic 9.3): cover home → generate, locale switch, source/mode changes, team preset hydration, and invalid-key error display with mocked generation.
+- [x] **Consider production observability notes** (Epic 9.3): document how maintainers check Cloudflare logs without exposing keys, prompts, or uploaded images.
 
 ## Post-MVP enhancements (M6)
 
@@ -101,7 +103,7 @@ Shipped after M7 to make the completed feature set easier to use and more truthf
 - [x] **Contextual team preset sharing**: preset links appear only for themed, couple, or team-character contexts.
 - [x] **Generation count cues**: the form shows whether the current mode runs one generation or two.
 
-## Post-MVP expansion (M9, in progress)
+## Post-MVP expansion (M9, shipped)
 
 Three parallel epics, all gated by the same lint/typecheck/test/build pipeline and bound by
 the BYOK / no-login / no-database red lines:
@@ -126,3 +128,26 @@ the BYOK / no-login / no-database red lines:
 - [x] 9.3 — Lint migration to ESLint CLI
 - [x] 9.3 — E2E browser smoke tests
 - [x] 9.3 — Release checklist + observability notes
+
+## Next implementable requirements (M10 candidates)
+
+These are intentionally scoped so each item can ship independently while preserving the
+BYOK / no-login / no-database constraints.
+
+- [ ] **Photo couple same-frame composite**: extend the M9 same-frame option from `couple-text`
+      to photo `couple`, with provider-specific capability checks and truthful fallback copy.
+- [ ] **Browser-direct zero-trust mode research spike**: evaluate whether each supported provider
+      can be called directly from the browser without CORS or secret-handling regressions; document
+      the result before implementing a toggle.
+- [ ] **App-level Turnstile challenge**: docs and env placeholders already mention optional
+      Turnstile, but the app does not yet render a challenge or verify `TURNSTILE_SECRET_KEY`
+      in `/api/generate`. Add that optional runtime path, disabled by default for self-hosters.
+- [ ] **Provider pricing links**: generation count cues already exist in the form; add official
+      pricing links and conservative cost disclaimers for OpenAI, MiniMax, and fal.ai without
+      hard-coding stale per-token/image prices.
+- [ ] **Next provider epic**: add either Replicate or Stability AI behind `ImageProvider`, with the
+      same mocked-fetch, fixed-host, no-secret-logging, and capability tests used for fal.ai.
+- [ ] **Additional locale**: add one new UI locale after choosing target language, with i18n parity
+      tests and no repository-doc translation requirement.
+- [ ] **Release automation follow-up**: CI already runs on `main`; consider optional auto-deploy
+      on default-branch merges using Wrangler secrets, keeping manual rollback documented.

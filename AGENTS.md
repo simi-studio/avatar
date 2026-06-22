@@ -10,7 +10,7 @@
 
 ## Project overview
 
-Simi Avatar is an open-source BYOK AI avatar generator. MVP supports five generation modes (`text`, `couple-text`, `single`, `couple`, `themed`), two providers (OpenAI and MiniMax), English + Simplified Chinese UI, and English-only repository documentation.
+Simi Avatar is an open-source BYOK AI avatar generator. It supports five generation modes (`text`, `couple-text`, `single`, `couple`, `themed`), three providers (OpenAI, MiniMax, and fal.ai — the MVP shipped with OpenAI and MiniMax; fal.ai was added in M9), English + Simplified Chinese UI, and English-only repository documentation.
 
 The project is currently docs-first. Before implementation, read:
 
@@ -26,7 +26,7 @@ The project is currently docs-first. Before implementation, read:
 - BYOK only: users enter their own provider API key in the UI.
 - Do not add login, subscriptions, credits, database persistence, or image history to the MVP.
 - Cloudflare Workers is the reference deployment target, not a product-level architectural principle.
-- MVP providers are **OpenAI** and **MiniMax**.
+- Supported providers are **OpenAI**, **MiniMax**, and **fal.ai**. The MVP shipped with OpenAI and MiniMax; fal.ai was added in M9.
 - MiniMax **M3 is a text/coding model**, not an avatar image model. Product image generation uses MiniMax `image-01` / `image-01-live` via `/v1/image_generation`.
 - MiniMax must be region-aware: Global `https://api.minimax.io`, China `https://api.minimaxi.com`; keys are not interchangeable.
 - UI languages: English and Simplified Chinese. Default is English. Auto-detect initial locale from the user's source/locale and keep a manual switcher.

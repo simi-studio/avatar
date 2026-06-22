@@ -4,7 +4,7 @@ Follow the shared project instructions in `AGENTS.md`. That file is the canonica
 
 ## Repository context
 
-Simi Avatar is an open-source BYOK AI avatar generator. MVP modes are `text`, `couple-text`, `single`, `couple`, and `themed`; MVP providers are OpenAI and MiniMax; UI languages are English and Simplified Chinese; repository docs are English by default.
+Simi Avatar is an open-source BYOK AI avatar generator. Generation modes are `text`, `couple-text`, `single`, `couple`, and `themed`; supported providers are OpenAI, MiniMax, and fal.ai (the MVP shipped with OpenAI and MiniMax; fal.ai was added in M9); UI languages are English and Simplified Chinese; repository docs are English by default.
 
 Before implementing, read the relevant docs:
 
