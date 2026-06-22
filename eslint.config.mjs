@@ -22,6 +22,11 @@ const eslintConfig = [
       "coverage/**",
       "out/**",
       "next-env.d.ts",
+      // design-sync (claude.ai/design) staged scripts, vendored bundle, and
+      // build output. These are gitignored and not part of the app source.
+      ".ds-sync/**",
+      "ds-bundle/**",
+      ".design-sync/**",
     ],
   },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
