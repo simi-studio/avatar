@@ -1,0 +1,23 @@
+{
+  "projectId": "5ef23fd5-ad12-4c87-9dea-3ac9d7f7a771",
+  "shape": "package",
+  "pkg": "simi-avatar",
+  "globalName": "SimiAvatar",
+  "entry": ".design-sync/ds-entry.ts",
+  "srcDir": "components/ui",
+  "tsconfig": "./tsconfig.json",
+  "cssEntry": ".design-sync/compiled.css",
+  "guidelinesGlob": [],
+  "readmeHeader": ".design-sync/conventions.md",
+  "componentSrcMap": {
+    "Button": "components/ui/button.tsx",
+    "Card": "components/ui/card.tsx",
+    "CardHeader": "components/ui/card.tsx",
+    "CardTitle": "components/ui/card.tsx",
+    "CardContent": "components/ui/card.tsx",
+    "Input": "components/ui/input.tsx",
+    "Label": "components/ui/label.tsx",
+    "Select": "components/ui/select.tsx",
+    "Textarea": "components/ui/textarea.tsx"
+  }
+}
