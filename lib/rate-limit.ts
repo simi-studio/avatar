@@ -16,6 +16,25 @@ export type RateLimitResult = {
 const WINDOW_MS = 60_000;
 
 /**
+ * Cap on tracked identifiers before an opportunistic sweep runs. Without it the
+ * instance-local Map would retain one entry per identifier seen forever, since
+ * stale entries are only pruned when that identifier reappears.
+ */
+const MAX_TRACKED_IDENTIFIERS = 10_000;
+
+/** Drop identifiers whose hits have all aged out of the current window. */
+function sweepExpired(state: RateLimitState, windowStart: number): void {
+  for (const [identifier, hits] of state) {
+    const fresh = hits.filter((ts) => ts > windowStart);
+    if (fresh.length === 0) {
+      state.delete(identifier);
+    } else if (fresh.length !== hits.length) {
+      state.set(identifier, fresh);
+    }
+  }
+}
+
+/**
  * Pure, testable sliding-window check. Mutates `state` to record the hit when
  * allowed. `now` is injectable for deterministic tests.
  */
@@ -30,6 +49,10 @@ export function checkRateLimit(
   }
 
   const windowStart = now - WINDOW_MS;
+
+  if (state.size > MAX_TRACKED_IDENTIFIERS) {
+    sweepExpired(state, windowStart);
+  }
   const hits = (state.get(identifier) ?? []).filter((ts) => ts > windowStart);
 
   if (hits.length >= limitPerMinute) {
