@@ -1,3 +1,6 @@
+// @vitest-environment node
+// The generate route is server-only; exercise it under Node's fetch primitives
+// (streaming request bodies, Blob/Request reconstruction) rather than jsdom's.
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { POST } from "@/app/api/generate/route";
@@ -75,6 +78,10 @@ describe("/api/generate", () => {
     );
 
     expect(res.status).toBe(403);
+    const body = (await res.json()) as {
+      error?: { code?: string };
+    };
+    expect(body.error?.code).toBe("FORBIDDEN");
   });
 
   it("rejects unknown style ids before calling a provider", async () => {

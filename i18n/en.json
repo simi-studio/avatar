@@ -289,6 +289,7 @@
     "CONTENT_REJECTED": "The request was blocked by the provider's content policy.",
     "RATE_LIMITED": "Too many requests. Please wait a moment and try again.",
     "UNSUPPORTED_MEDIA_TYPE": "Unsupported request type. Please submit the form again.",
+    "FORBIDDEN": "This request was blocked. Please reload the page and try again.",
     "UNKNOWN_ERROR": "An unexpected error occurred. Please try again.",
     "MISSING_API_KEY": "Please enter your API key first."
   },

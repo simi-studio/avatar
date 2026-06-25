@@ -46,6 +46,7 @@ const STATUS_BY_CODE: Partial<Record<ErrorCode, number>> = {
   CONTENT_REJECTED: 422,
   RATE_LIMITED: 429,
   UNSUPPORTED_MEDIA_TYPE: 415,
+  FORBIDDEN: 403,
   PROVIDER_TIMEOUT: 504,
   UNKNOWN_ERROR: 502,
 };
@@ -62,6 +63,7 @@ const MESSAGE_BY_CODE: Record<ErrorCode, string> = {
   CONTENT_REJECTED: "The provider rejected the content.",
   RATE_LIMITED: "Too many requests.",
   UNSUPPORTED_MEDIA_TYPE: "Unsupported request media type.",
+  FORBIDDEN: "The request origin is not allowed.",
   PROVIDER_TIMEOUT: "The provider timed out.",
   UNKNOWN_ERROR: "Unexpected generation error.",
 };
@@ -160,11 +162,11 @@ function headerExceedsRequestSizeLimit(headers: Headers): boolean {
 async function enforceRequestSizeLimit(
   req: Request,
 ): Promise<Request | "image-too-large"> {
+  // Fast-reject an honest oversized header, then always count the streamed body:
+  // the `content-length` header is client-controlled and may understate the body.
   if (headerExceedsRequestSizeLimit(req.headers)) {
     return "image-too-large";
   }
-
-  if (req.headers.get("content-length")) return req;
 
   if (!req.body) return req;
 
@@ -185,9 +187,13 @@ async function enforceRequestSizeLimit(
     chunks.push(chunk.buffer);
   }
 
+  // Drop the original content-length: it is recomputed from the rebuilt body,
+  // and a stale value would mismatch the Blob and fail downstream parsing.
+  const headers = new Headers(req.headers);
+  headers.delete("content-length");
   return new Request(req.url, {
     method: req.method,
-    headers: req.headers,
+    headers,
     body: new Blob(chunks),
     signal: req.signal,
   });
@@ -222,7 +228,7 @@ export async function POST(
   req: Request,
 ): Promise<NextResponse<GenerateResponse>> {
   if (!isAllowedOrigin(req)) {
-    return errorResponse("INVALID_MODE_INPUT", 403);
+    return errorResponse("FORBIDDEN");
   }
 
   let sizedReq: Request | "image-too-large";
