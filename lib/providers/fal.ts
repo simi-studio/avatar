@@ -8,8 +8,11 @@ import type { ErrorCode, ImageSize } from "@/lib/constants";
 import { isPhotoMode } from "@/lib/constants";
 import {
   assertMime,
+  coerceString,
+  collectSuccessful,
   fetchWithTimeout,
   fileToDataUrl,
+  isRecord,
   toGeneratedImage,
   withCoupleTextPartnerPrompt,
 } from "./shared";
@@ -31,17 +34,6 @@ export function mapFalSize(size: ImageSize): "square_hd" | "square" {
 export function mapFalStrength(referenceStrength: number | undefined): number {
   const ref = referenceStrength ?? 0.65;
   return Math.min(0.95, Math.max(0.4, 0.95 - ref * 0.4));
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function coerceString(value: unknown): string {
-  if (typeof value === "string") return value;
-  if (Array.isArray(value)) return value.map(coerceString).join(" ");
-  if (isRecord(value)) return coerceString(value.msg ?? value.detail ?? "");
-  return "";
 }
 
 /** Map a fal HTTP status + error body to a normalized error code. */
@@ -186,25 +178,6 @@ async function generateFromImage(
     IMAGE_MODEL,
     label,
   );
-}
-
-async function collectSuccessful(
-  calls: Array<Promise<GeneratedImage[]>>,
-): Promise<GeneratedImage[]> {
-  const results = await Promise.allSettled(calls);
-  const images = results.flatMap((result) =>
-    result.status === "fulfilled" ? result.value : [],
-  );
-  if (images.length > 0) return images;
-
-  const firstFailure = results.find((result) => result.status === "rejected");
-  if (
-    firstFailure?.status === "rejected" &&
-    firstFailure.reason instanceof ProviderError
-  ) {
-    throw firstFailure.reason;
-  }
-  throw new ProviderError("UNKNOWN_ERROR");
 }
 
 export const falProvider: ImageProvider = {

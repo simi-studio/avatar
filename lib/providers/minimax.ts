@@ -7,8 +7,10 @@ import { ProviderError } from "@/lib/types";
 import type { ErrorCode, MiniMaxRegion } from "@/lib/constants";
 import { isPhotoMode } from "@/lib/constants";
 import {
+  collectSuccessful,
   fetchWithTimeout,
   fileToDataUrl,
+  isRecord,
   toGeneratedImage,
   withCoupleTextPartnerPrompt,
 } from "./shared";
@@ -75,10 +77,6 @@ type MiniMaxResponse = {
   data?: { image_base64?: string[]; image_urls?: string[] };
   base_resp?: { status_code?: number; status_msg?: string };
 };
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
 
 function parseMiniMaxResponse(value: unknown): MiniMaxResponse {
   if (!isRecord(value)) return {};
@@ -162,22 +160,6 @@ async function callMiniMax(
     throw new ProviderError("UNKNOWN_ERROR");
   }
   return [toGeneratedImage(base64, "image/png", label)];
-}
-
-async function collectSuccessful(
-  calls: Array<Promise<GeneratedImage[]>>,
-): Promise<GeneratedImage[]> {
-  const results = await Promise.allSettled(calls);
-  const images = results.flatMap((result) =>
-    result.status === "fulfilled" ? result.value : [],
-  );
-  if (images.length > 0) return images;
-
-  const firstFailure = results.find((result) => result.status === "rejected");
-  if (firstFailure?.status === "rejected" && firstFailure.reason instanceof ProviderError) {
-    throw firstFailure.reason;
-  }
-  throw new ProviderError("UNKNOWN_ERROR");
 }
 
 export const minimaxProvider: ImageProvider = {

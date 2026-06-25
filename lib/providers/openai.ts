@@ -7,7 +7,10 @@ import { ProviderError } from "@/lib/types";
 import type { ErrorCode, ImageSize } from "@/lib/constants";
 import { isPhotoMode } from "@/lib/constants";
 import {
+  coerceString,
+  collectSuccessful,
   fetchWithTimeout,
+  isRecord,
   toGeneratedImage,
   withCoupleTextPartnerPrompt,
 } from "./shared";
@@ -29,18 +32,6 @@ export function mapOpenAISize(size: ImageSize): "1024x1024" {
 type OpenAIErrorBody = {
   error?: { code?: unknown; type?: unknown; message?: unknown };
 };
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function coerceString(value: unknown): string {
-  if (typeof value === "string") return value;
-  if (typeof value === "number" || typeof value === "boolean") {
-    return String(value);
-  }
-  return "";
-}
 
 function readOpenAIErrorBody(body: unknown): OpenAIErrorBody {
   if (!isRecord(body) || !isRecord(body.error)) return {};
@@ -153,22 +144,6 @@ async function editImage(
 
 function sanitizeFilename(filename: string): string {
   return filename.replace(/[^\w.-]/g, "_") || "image.png";
-}
-
-async function collectSuccessful(
-  calls: Array<Promise<GeneratedImage[]>>,
-): Promise<GeneratedImage[]> {
-  const results = await Promise.allSettled(calls);
-  const images = results.flatMap((result) =>
-    result.status === "fulfilled" ? result.value : [],
-  );
-  if (images.length > 0) return images;
-
-  const firstFailure = results.find((result) => result.status === "rejected");
-  if (firstFailure?.status === "rejected" && firstFailure.reason instanceof ProviderError) {
-    throw firstFailure.reason;
-  }
-  throw new ProviderError("UNKNOWN_ERROR");
 }
 
 export const openaiProvider: ImageProvider = {

@@ -51,6 +51,50 @@ export function toGeneratedImage(
   return { base64, mimeType, label };
 }
 
+/** Narrow an unknown value to a plain object (not an array). */
+export function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Best-effort coercion of an unknown provider error payload to a string.
+ * Handles primitives, arrays, and nested `{ msg | detail }` shapes so a single
+ * helper serves every adapter's error mapping.
+ */
+export function coerceString(value: unknown): string {
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  if (Array.isArray(value)) return value.map(coerceString).join(" ");
+  if (isRecord(value)) return coerceString(value.msg ?? value.detail ?? "");
+  return "";
+}
+
+/**
+ * Run provider calls and return every successful image. When all calls fail,
+ * rethrow the first `ProviderError` so the route maps a meaningful code instead
+ * of a generic failure.
+ */
+export async function collectSuccessful(
+  calls: Array<Promise<GeneratedImage[]>>,
+): Promise<GeneratedImage[]> {
+  const results = await Promise.allSettled(calls);
+  const images = results.flatMap((result) =>
+    result.status === "fulfilled" ? result.value : [],
+  );
+  if (images.length > 0) return images;
+
+  const firstFailure = results.find((result) => result.status === "rejected");
+  if (
+    firstFailure?.status === "rejected" &&
+    firstFailure.reason instanceof ProviderError
+  ) {
+    throw firstFailure.reason;
+  }
+  throw new ProviderError("UNKNOWN_ERROR");
+}
+
 export function withCoupleTextPartnerPrompt(
   input: ProviderGenerateInput,
   label: "A" | "B",
