@@ -6,46 +6,38 @@ import { useTranslations } from "next-intl";
 import { KeyRound, Settings2, Sparkles } from "lucide-react";
 
 import {
-  CLIENT_TIMEOUT_MS,
-  DEFAULT_IMAGE_SIZE,
   DEFAULT_MODE_BY_SOURCE,
-  MINIMAX_REGIONS,
   MODES_BY_SOURCE,
-  PROVIDERS,
   isCoupleMode,
   sourceForMode,
-  type ErrorCode,
   type GenerationMode,
   type ImageSize,
   type InputSource,
-  type MiniMaxRegion,
-  type ProviderId,
 } from "@/lib/constants";
-import type { GeneratedImage, GenerateResponse } from "@/lib/types";
 import { useSessionApiKey } from "@/lib/use-session-key";
+import { useProviderSession } from "@/lib/use-provider-session";
+import { useGenerationHistory } from "@/lib/use-generation-history";
+import { useGenerationRequest } from "@/lib/use-generation-request";
+import {
+  formFromIntent,
+  useAvatarIntentForm,
+  type IntentForm,
+} from "@/lib/use-avatar-intent-form";
 import { decodePreset, type TeamPreset } from "@/lib/preset";
 import {
   defaultSizeForProvider,
   sizesForProvider,
 } from "@/lib/provider-capabilities";
 import {
-  GOAL_PRESETS,
   applyGoalPreset,
   applyRefinementAction,
   createAvatarIntent,
-  type AvatarBackground,
-  type AvatarComposition,
   type AvatarGoal,
   type AvatarIntent,
-  type IntentLevel,
   type RefinementAction,
 } from "@/lib/avatar-intent";
-import { AVATAR_STYLES, getStyleById } from "@/styles/avatar-styles";
-import {
-  AVATAR_THEMES,
-  getThemeById,
-  getVariant,
-} from "@/styles/avatar-themes";
+import { getStyleById } from "@/styles/avatar-styles";
+import { getThemeById, getVariant } from "@/styles/avatar-themes";
 import { compileAvatarPrompt } from "@/lib/prompt-compiler";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,21 +60,10 @@ import { ImageUploader, type UploadedImage } from "@/components/image-uploader";
 import { CompiledPromptPanel } from "@/components/compiled-prompt-panel";
 import { GenerationHistory } from "@/components/generation-history";
 import {
-  addHistoryEntry,
-  clearHistory,
-  readHistory,
-  type HistoryEntry,
-} from "@/lib/local-history";
-import {
   ResultPreview,
   type GenerationStatus,
   type SourcePreviewImage,
 } from "@/components/result-preview";
-
-const DEFAULT_GOAL: AvatarGoal = "professional-profile";
-const DEFAULT_GOAL_PRESET = GOAL_PRESETS[DEFAULT_GOAL];
-const SESSION_PROVIDER_KEY = "simi-avatar-provider";
-const SESSION_REGION_KEY = "simi-avatar-minimax-region";
 
 export function GenerationForm() {
   const t = useTranslations("Generate");
@@ -92,101 +73,61 @@ export function GenerationForm() {
 
   const searchParams = useSearchParams();
 
-  // `text` is the default, lowest-friction entry point: no upload required.
-  const [mode, setMode] = useState<GenerationMode>("text");
-  const [provider, setProvider] = useState<ProviderId>("openai");
-  const [region, setRegion] = useState<MiniMaxRegion>("global");
-  const [showKey, setShowKey] = useState(false);
   const { apiKey, setApiKey, saveForSession, toggleSave, clear, hydrated } =
     useSessionApiKey();
+  const { provider, setProvider, region, setRegion } = useProviderSession({
+    persist: saveForSession && Boolean(apiKey),
+    hydrated,
+  });
+  const history = useGenerationHistory();
+  const { status, images, errorCode, lastIntent, run } = useGenerationRequest();
+  const { form, patch } = useAvatarIntentForm();
 
+  // The intent form is the single source of truth; destructure for reads so the
+  // markup stays declarative, and write through thin `patch` wrappers.
+  const {
+    mode,
+    goal,
+    styleId,
+    themeId,
+    variantId,
+    userPrompt,
+    likeness,
+    creativity,
+    composition,
+    background,
+    palette,
+    mood,
+    accessories,
+    avoid,
+    pairedConsistency,
+    sameFrame,
+    size,
+  } = form;
+  const setMode = (value: GenerationMode) => patch({ mode: value });
+  const setStyleId = (value: string | undefined) => patch({ styleId: value });
+  const setThemeId = (value: string | undefined) => patch({ themeId: value });
+  const setVariantId = (value: string | undefined) =>
+    patch({ variantId: value });
+  const setUserPrompt = (value: string) => patch({ userPrompt: value });
+  const setSameFrame = (value: boolean) => patch({ sameFrame: value });
+  const setPairedConsistency = (value: boolean) =>
+    patch({ pairedConsistency: value });
+  const setSize = (value: ImageSize) => patch({ size: value });
+
+  const [showKey, setShowKey] = useState(false);
   const [imageA, setImageA] = useState<UploadedImage | null>(null);
   const [imageB, setImageB] = useState<UploadedImage | null>(null);
-  const [styleId, setStyleId] = useState<string | undefined>(
-    DEFAULT_GOAL_PRESET.styleId ?? AVATAR_STYLES[0]?.id,
-  );
-  const [themeId, setThemeId] = useState<string | undefined>(
-    AVATAR_THEMES[0]?.id,
-  );
-  const [variantId, setVariantId] = useState<string>();
-  const [pairedConsistency, setPairedConsistency] = useState(true);
-  const [sameFrame, setSameFrame] = useState(false);
-  const [userPrompt, setUserPrompt] = useState("");
-  const [goal, setGoal] = useState<AvatarGoal>(DEFAULT_GOAL);
-  const [likeness, setLikeness] = useState<IntentLevel>(
-    DEFAULT_GOAL_PRESET.likeness,
-  );
-  const [creativity, setCreativity] = useState<IntentLevel>(
-    DEFAULT_GOAL_PRESET.creativity,
-  );
-  const [composition, setComposition] = useState<AvatarComposition>(
-    DEFAULT_GOAL_PRESET.composition,
-  );
-  const [background, setBackground] = useState<AvatarBackground>(
-    DEFAULT_GOAL_PRESET.background,
-  );
-  const [palette, setPalette] = useState(DEFAULT_GOAL_PRESET.palette ?? "");
-  const [mood, setMood] = useState(DEFAULT_GOAL_PRESET.mood ?? "");
-  const [accessories, setAccessories] = useState(
-    DEFAULT_GOAL_PRESET.accessories ?? "",
-  );
-  const [avoid, setAvoid] = useState(DEFAULT_GOAL_PRESET.avoid ?? "");
-  const [size, setSize] = useState<ImageSize>(DEFAULT_IMAGE_SIZE);
-
-  const [status, setStatus] = useState<GenerationStatus>("idle");
-  const [images, setImages] = useState<GeneratedImage[]>([]);
-  const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [advancedOpen, setAdvancedOpen] = useState(false);
-  const [lastIntent, setLastIntent] = useState<AvatarIntent | null>(null);
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
-
-  // History is client-only; hydrate it after mount to avoid SSR mismatch.
-  useEffect(() => {
-    setHistory(readHistory());
-  }, []);
 
   const source: InputSource = sourceForMode(mode);
   const availableSizes = sizesForProvider(provider);
 
   useEffect(() => {
     if (!availableSizes.includes(size)) {
-      setSize(defaultSizeForProvider(provider));
+      patch({ size: defaultSizeForProvider(provider) });
     }
-  }, [availableSizes, provider, size]);
-
-  useEffect(() => {
-    try {
-      const storedProvider = window.sessionStorage.getItem(SESSION_PROVIDER_KEY);
-      const storedRegion = window.sessionStorage.getItem(SESSION_REGION_KEY);
-      if (PROVIDERS.includes(storedProvider as ProviderId)) {
-        setProvider(storedProvider as ProviderId);
-      }
-      if (MINIMAX_REGIONS.includes(storedRegion as MiniMaxRegion)) {
-        setRegion(storedRegion as MiniMaxRegion);
-      }
-    } catch {
-      // Ignore storage access errors.
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!hydrated) return;
-    try {
-      if (saveForSession && apiKey) {
-        window.sessionStorage.setItem(SESSION_PROVIDER_KEY, provider);
-        if (provider === "minimax") {
-          window.sessionStorage.setItem(SESSION_REGION_KEY, region);
-        } else {
-          window.sessionStorage.removeItem(SESSION_REGION_KEY);
-        }
-      } else {
-        window.sessionStorage.removeItem(SESSION_PROVIDER_KEY);
-        window.sessionStorage.removeItem(SESSION_REGION_KEY);
-      }
-    } catch {
-      // Ignore storage access errors.
-    }
-  }, [apiKey, hydrated, provider, region, saveForSession]);
+  }, [availableSizes, provider, size, patch]);
 
   function buildIntent(overrides: Partial<AvatarIntent> = {}): AvatarIntent {
     return createAvatarIntent({
@@ -212,54 +153,44 @@ export function GenerationForm() {
   }
 
   function syncIntent(intent: AvatarIntent) {
-    setMode(intent.mode);
-    setGoal(intent.goal);
-    setLikeness(intent.likeness);
-    setCreativity(intent.creativity);
-    setComposition(intent.composition);
-    setBackground(intent.background);
-    setPalette(intent.palette ?? "");
-    setMood(intent.mood ?? "");
-    setAccessories(intent.accessories ?? "");
-    setAvoid(intent.avoid ?? "");
-    setUserPrompt(intent.subjectDescription ?? "");
-    setPairedConsistency(intent.pairedConsistency ?? pairedConsistency);
-    setSameFrame(intent.sameFrame ?? false);
-    setSize(intent.size);
-    if (intent.styleId) setStyleId(intent.styleId);
-    if (intent.themeId) setThemeId(intent.themeId);
-    if (intent.variantId) setVariantId(intent.variantId);
+    patch(formFromIntent(intent));
   }
 
   function onGoalChange(nextGoal: AvatarGoal) {
     syncIntent(applyGoalPreset(buildIntent(), nextGoal));
   }
 
-  function onIntentControlChange(patch: Partial<IntentControlValue>) {
-    if (patch.likeness) setLikeness(patch.likeness);
-    if (patch.creativity) setCreativity(patch.creativity);
-    if (patch.composition) setComposition(patch.composition);
-    if (patch.background) setBackground(patch.background);
-    if (typeof patch.palette === "string") setPalette(patch.palette);
-    if (typeof patch.mood === "string") setMood(patch.mood);
-    if (typeof patch.accessories === "string") {
-      setAccessories(patch.accessories);
+  function onIntentControlChange(controlPatch: Partial<IntentControlValue>) {
+    const next: Partial<IntentForm> = {};
+    if (controlPatch.likeness) next.likeness = controlPatch.likeness;
+    if (controlPatch.creativity) next.creativity = controlPatch.creativity;
+    if (controlPatch.composition) next.composition = controlPatch.composition;
+    if (controlPatch.background) next.background = controlPatch.background;
+    if (typeof controlPatch.palette === "string") {
+      next.palette = controlPatch.palette;
     }
-    if (typeof patch.avoid === "string") setAvoid(patch.avoid);
+    if (typeof controlPatch.mood === "string") next.mood = controlPatch.mood;
+    if (typeof controlPatch.accessories === "string") {
+      next.accessories = controlPatch.accessories;
+    }
+    if (typeof controlPatch.avoid === "string") next.avoid = controlPatch.avoid;
+    patch(next);
   }
 
   // Load a shared team preset (non-sensitive base setup) from the URL once.
   useEffect(() => {
     const preset = decodePreset(searchParams.get("preset"));
-    if (preset.mode) setMode(preset.mode);
+    const next: Partial<IntentForm> = {};
+    if (preset.mode) next.mode = preset.mode;
+    if (preset.styleId) next.styleId = preset.styleId;
+    if (preset.themeId) next.themeId = preset.themeId;
+    if (preset.variantId) next.variantId = preset.variantId;
+    if (typeof preset.pairedConsistency === "boolean") {
+      next.pairedConsistency = preset.pairedConsistency;
+    }
+    if (Object.keys(next).length > 0) patch(next);
     if (preset.provider) setProvider(preset.provider);
     if (preset.region) setRegion(preset.region);
-    if (preset.styleId) setStyleId(preset.styleId);
-    if (preset.themeId) setThemeId(preset.themeId);
-    if (preset.variantId) setVariantId(preset.variantId);
-    if (typeof preset.pairedConsistency === "boolean") {
-      setPairedConsistency(preset.pairedConsistency);
-    }
     // Only run on first mount; the URL is the source of truth for presets.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -290,83 +221,59 @@ export function GenerationForm() {
           ? Boolean(imageA) && Boolean(styleId)
           : Boolean(imageA) && Boolean(imageB) && Boolean(styleId));
 
-  async function onGenerate(intentOverride?: AvatarIntent) {
-    const requestIntent = intentOverride ?? buildIntent();
+  function buildGenerateForm(requestIntent: AvatarIntent): FormData {
     const requestMode = requestIntent.mode;
-
-    if (!apiKey) {
-      setErrorCode("MISSING_API_KEY");
-      setStatus("error");
-      return;
-    }
-    setLastIntent(requestIntent);
-    setStatus("generating");
-    setErrorCode(null);
-    setImages([]);
-
-    const form = new FormData();
-    form.append("provider", provider);
-    if (provider === "minimax") form.append("region", region);
-    form.append("apiKey", apiKey);
-    form.append("mode", requestMode);
-    form.append("size", requestIntent.size);
+    const formData = new FormData();
+    formData.append("provider", provider);
+    if (provider === "minimax") formData.append("region", region);
+    formData.append("apiKey", apiKey);
+    formData.append("mode", requestMode);
+    formData.append("size", requestIntent.size);
     if (requestIntent.subjectDescription) {
-      form.append("userPrompt", requestIntent.subjectDescription);
+      formData.append("userPrompt", requestIntent.subjectDescription);
     }
-    form.append("intent", JSON.stringify(requestIntent));
+    formData.append("intent", JSON.stringify(requestIntent));
 
     if (requestMode === "themed") {
-      if (requestIntent.themeId) form.append("themeId", requestIntent.themeId);
+      if (requestIntent.themeId) {
+        formData.append("themeId", requestIntent.themeId);
+      }
       if (requestIntent.variantId) {
-        form.append("variantId", requestIntent.variantId);
+        formData.append("variantId", requestIntent.variantId);
       }
     } else if (requestMode === "text" || requestMode === "couple-text") {
-      if (requestIntent.styleId) form.append("styleId", requestIntent.styleId);
+      if (requestIntent.styleId) {
+        formData.append("styleId", requestIntent.styleId);
+      }
       if (requestMode === "couple-text") {
-        form.append(
+        formData.append(
           "pairedConsistency",
           String(requestIntent.pairedConsistency),
         );
       }
     } else {
-      if (requestIntent.styleId) form.append("styleId", requestIntent.styleId);
-      if (imageA) form.append("images", imageA.file, imageA.file.name);
+      if (requestIntent.styleId) {
+        formData.append("styleId", requestIntent.styleId);
+      }
+      if (imageA) formData.append("images", imageA.file, imageA.file.name);
       if (requestMode === "couple") {
-        if (imageB) form.append("images", imageB.file, imageB.file.name);
-        form.append(
+        if (imageB) formData.append("images", imageB.file, imageB.file.name);
+        formData.append(
           "pairedConsistency",
           String(requestIntent.pairedConsistency),
         );
       }
     }
+    return formData;
+  }
 
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), CLIENT_TIMEOUT_MS);
-    try {
-      const res = await fetch("/api/generate", {
-        method: "POST",
-        body: form,
-        signal: controller.signal,
-      });
-      const data = (await res.json()) as GenerateResponse;
-      if (data.success && data.images) {
-        setImages(data.images);
-        setStatus("success");
-        setHistory(addHistoryEntry(requestIntent));
-      } else {
-        setErrorCode(data.error?.code ?? "UNKNOWN_ERROR");
-        setStatus("error");
-      }
-    } catch (error) {
-      setErrorCode(
-        error instanceof DOMException && error.name === "AbortError"
-          ? "PROVIDER_TIMEOUT"
-          : "UNKNOWN_ERROR",
-      );
-      setStatus("error");
-    } finally {
-      clearTimeout(timer);
-    }
+  async function onGenerate(intentOverride?: AvatarIntent) {
+    await run({
+      intent: intentOverride ?? buildIntent(),
+      apiKey,
+      buildForm: buildGenerateForm,
+      onSuccess: history.record,
+    });
   }
 
   function onRefine(action: RefinementAction) {
@@ -375,21 +282,16 @@ export function GenerationForm() {
     void onGenerate(nextIntent);
   }
 
-  function handleClearHistory() {
-    clearHistory();
-    setHistory([]);
-  }
-
   // Clearing the key also offers to clear local history, since both are
   // browser-local user data (Epic 9.2).
   function handleClearKey() {
     clear();
     if (
-      history.length > 0 &&
+      history.entries.length > 0 &&
       typeof window !== "undefined" &&
       window.confirm(tHistory("clearOnKeyClear"))
     ) {
-      handleClearHistory();
+      history.clear();
     }
   }
 
@@ -689,12 +591,12 @@ export function GenerationForm() {
           </div>
           </form>
 
-          {history.length > 0 && (
+          {history.entries.length > 0 && (
             <div className="mt-6">
               <GenerationHistory
-                entries={history}
+                entries={history.entries}
                 onRestore={syncIntent}
-                onClear={handleClearHistory}
+                onClear={history.clear}
               />
             </div>
           )}
