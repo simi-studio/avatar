@@ -737,7 +737,8 @@ README / deploy / providers / security docs complete and in English; MIT License
 ## 21. Roadmap
 
 - **M9 shipped**: fal.ai, Cats / Robots / Pixel Heroes themes, couple-text same-frame composite, copyable compiled prompt, local-only history, E2E smoke tests, release/observability docs.
-- **M10 candidates**: photo couple same-frame composite, app-level Turnstile challenge, browser-direct zero-trust research, provider pricing links, Replicate or Stability AI, one additional UI locale, optional release automation.
+- **M10 scoped** (see [planning/plan.md](./planning/plan.md) and [planning/epics/](./planning/epics/)): 10.1 public-demo abuse protection (Turnstile), 10.2 cost & call transparency, 10.3 avatar-agent experience (deterministic brief→intent), 10.4 photo couple same-frame; plus a cross-cutting provider model/capability drift guard.
+- **Later candidates**: browser-direct zero-trust research, Replicate or Stability AI, one additional UI locale, optional release automation.
 - **V1.2+**: R2 temporary image hosting; share links; batch generation.
 - **V2**: optional login; optional D1; user history; team workspace; theme/template marketplace; hosted SaaS; private deployment.
 
@@ -755,12 +756,13 @@ README / deploy / providers / security docs complete and in English; MIT License
 | Key passing through Worker raises trust concerns           | Adoption            | Explicit commitment boundary (§9); browser-direct mode in V1.1                   |
 | Confusing MiniMax M3 (text) with image models              | Wrong integration   | Docs pin image models `image-01`/`image-01-live` and region base URLs (§8.1–8.2) |
 | Provider API / size changes                                | Broken flow         | Provider abstraction; pin/validate model & size enums                            |
+| Hard-coded provider model IDs drift from upstream docs      | Broken/invalid calls | Verify model IDs each release via the drift guard in `provider-calibration.md`; surface display labels from the same source (M10.2) |
 
 ### 22.2 Open questions
 
 1. Ship browser-direct (zero-trust) mode at launch, or in V1.1?
 2. Public-demo Cloudflare edge rate-limit thresholds and app fallback thresholds (per-IP/min, concurrency cap)?
-3. Inline each provider's official pricing link for cost transparency?
+3. Inline each provider's official pricing link for cost transparency? — **Resolved: yes** (M10.2, D18).
 4. Beyond EN + zh-CN, which language is next?
 
 ---
@@ -784,3 +786,7 @@ README / deploy / providers / security docs complete and in English; MIT License
 | D13 | Provider-neutral `AvatarIntent` compiles to provider-specific prompts       | Users express intent once; OpenAI and MiniMax receive wording tuned to their behavior (§7)            |
 | D14 | fal.ai added as a third provider (M9), FLUX via the synchronous `fal.run`    | Validates the abstraction beyond two providers; fal results are URLs, downloaded only from fal hosts (SSRF guard) |
 | D15 | Provider side-by-side comparison dropped (won't do)                          | One-time selection is served by switching the provider dropdown; a true compare needs two keys at once, breaking single-key BYOK and adding lasting complexity for niche value (M9) |
+| D16 | App-level Turnstile is optional and default-off; the in-memory rate limiter is only a per-isolate fallback | On Workers the limiter's `Map` is per isolate, so WAF / Rate Limiting + optional Turnstile are the real controls; self-hosters need no extra config (M10.1, §12.4) |
+| D17 | Avatar-agent brief uses deterministic intent mapping, not an LLM            | The three image providers share no chat model; deterministic free-text → `AvatarIntent` keeps BYOK-image-only / no-extra-provider / no-DB intact (M10.3, §7) |
+| D18 | Cost transparency shows provider/model/size/call-count + official pricing links, never hard-coded prices | Prices change and would go stale in code; users need call count and refinement re-call cost, not embedded numbers (M10.2, §6.2, resolves §22.2 Q3) |
+| D19 | Photo `couple` same-frame is gated on a verified multi-image capability bit  | Multi-image composition is provider-specific; advertise it only where real, with truthful A/B fallback elsewhere (M10.4, §8.4) |

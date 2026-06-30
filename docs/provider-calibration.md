@@ -30,6 +30,28 @@ The calibration matrix records how each built-in style should be worded for each
 - `__tests__/lib/prompt-compiler.test.ts` verifies the same intent compiles differently for OpenAI and MiniMax.
 - Built-in styles and theme variants render as text chips (no preview thumbnails), keeping the form compact and avoiding bundled raster/SVG preview assets.
 
+## Model & Capability Drift Guard
+
+Provider model IDs, supported sizes, edit/composition support, and pricing change upstream. The
+adapters hard-code these (e.g. `lib/providers/openai.ts` `gpt-image-2`, `lib/providers/minimax.ts`
+`image-01` / `image-01-live`, `lib/providers/fal.ts` FLUX), so they must be re-verified, not assumed.
+
+**Cadence:** run this checklist every release, and before flipping any new capability bit on.
+
+- [ ] Confirm each hard-coded model ID still exists in the provider's current docs (OpenAI image
+      generation, MiniMax `image_generation`, fal FLUX). Update the ID and the cost-transparency
+      display label (M10.2) together if it changed.
+- [ ] Confirm supported sizes in `lib/provider-capabilities.ts` still match each provider.
+- [ ] Confirm multi-image composition / edit support before exposing photo `couple` same-frame
+      (M10.4): OpenAI edits accept multiple inputs; MiniMax `image-01` supports subject reference;
+      FLUX image-to-image is single-image.
+- [ ] Confirm the official pricing-page URLs used by the cost surface still resolve.
+- [ ] If any upstream parameter (native negative prompt, reference strength) becomes stable, add it
+      to the prompt profile **with** request-payload tests before sending it.
+
+Record outcomes in the PR description; do not paste keys, user prompts, generated images, or
+production logs into this file. Known model-ID risk is tracked in [prd.md](./prd.md) §22.1.
+
 ## Maintenance Rules
 
 - Add calibration before exposing a new built-in style.

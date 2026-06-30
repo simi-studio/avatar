@@ -4,7 +4,7 @@
 
 | Field           | Value                                                            |
 | --------------- | ---------------------------------------------------------------- |
-| Status          | MVP complete; public demo deployed; M9 expansion shipped (1 item dropped) |
+| Status          | MVP complete; public demo deployed; M9 expansion shipped (1 item dropped); M10 planned |
 | Scope           | MVP (M1–M5)                                                      |
 | Providers (MVP) | OpenAI + MiniMax                                                 |
 | Languages (MVP) | English (default) + Simplified Chinese                           |
@@ -129,22 +129,42 @@ the BYOK / no-login / no-database red lines:
 - [x] 9.3 — E2E browser smoke tests
 - [x] 9.3 — Release checklist + observability notes
 
-## Next implementable requirements (M10 candidates)
+## Next round (M10 — Agent experience & demo hardening)
 
-These are intentionally scoped so each item can ship independently while preserving the
-BYOK / no-login / no-database constraints.
+Scoped from the 2026-06-30 review. The engineering base is healthy; the highest-value next
+investment is "agent-ification" of the experience plus real public-demo abuse protection, not more
+providers. Each epic is independently shippable and bound by the BYOK / no-login / no-database red
+lines and the same lint/typecheck/test/build/`guard:secrets` gate.
 
-- [ ] **Photo couple same-frame composite**: extend the M9 same-frame option from `couple-text`
-      to photo `couple`, with provider-specific capability checks and truthful fallback copy.
+| Epic | Goal | Priority |
+| ---- | ---- | -------- |
+| [Epic 10.1 — Public Demo Abuse Protection](./epics/epic-10.1-public-demo-abuse-protection.md) | Optional, default-off Turnstile verified server-side; in-memory limiter is only a per-isolate fallback | P0 |
+| [Epic 10.2 — Cost & Call Transparency](./epics/epic-10.2-cost-and-call-transparency.md) | Show provider/model/size/call-count + official pricing links; warn that refinement re-calls the provider | P1 |
+| [Epic 10.3 — Avatar Agent Experience](./epics/epic-10.3-avatar-agent-experience.md) | Free-text brief → `AvatarIntent` (deterministic), plan preview, natural-language refinement | P1 |
+| [Epic 10.4 — Photo Couple Same-Frame Composite](./epics/epic-10.4-photo-couple-same-frame.md) | Extend same-frame to photo `couple`, gated on a real multi-image capability bit | P2 |
+
+### M10 progress
+
+- [ ] 10.1 — App-level Turnstile (optional, default-off, server `siteverify`)
+- [ ] 10.2 — Cost & call transparency (provider/model/size/count, refinement re-call notice, pricing links)
+- [ ] 10.3 — Avatar agent experience (deterministic brief→intent, plan preview, NL refinement)
+- [ ] 10.4 — Photo couple same-frame composite (capability-gated)
+
+### Cross-cutting maintenance (tracked in docs, not a standalone epic)
+
+- [ ] **Provider model/capability drift guard**: verify hard-coded model IDs (e.g.
+      `lib/providers/openai.ts` `gpt-image-2`) against current provider docs each release; checklist
+      and cadence live in [provider-calibration.md](../provider-calibration.md). This feeds 10.2's
+      model labels and 10.4's capability bit.
+
+## Later candidates (not yet scheduled)
+
+Preserve the same BYOK / no-login / no-database constraints; pull into a future milestone when M10
+lands.
+
 - [ ] **Browser-direct zero-trust mode research spike**: evaluate whether each supported provider
       can be called directly from the browser without CORS or secret-handling regressions; document
       the result before implementing a toggle.
-- [ ] **App-level Turnstile challenge**: docs and env placeholders already mention optional
-      Turnstile, but the app does not yet render a challenge or verify `TURNSTILE_SECRET_KEY`
-      in `/api/generate`. Add that optional runtime path, disabled by default for self-hosters.
-- [ ] **Provider pricing links**: generation count cues already exist in the form; add official
-      pricing links and conservative cost disclaimers for OpenAI, MiniMax, and fal.ai without
-      hard-coding stale per-token/image prices.
 - [ ] **Next provider epic**: add either Replicate or Stability AI behind `ImageProvider`, with the
       same mocked-fetch, fixed-host, no-secret-logging, and capability tests used for fal.ai.
 - [ ] **Additional locale**: add one new UI locale after choosing target language, with i18n parity
