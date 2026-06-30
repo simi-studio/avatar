@@ -175,6 +175,8 @@
     "creativeSetupHint": "Pick the source, mode, style, and description before connecting a provider.",
     "providerSetup": "Provider and key",
     "providerSetupHint": "Choose where to generate, then paste your own key only when you are ready.",
+    "verifyLabel": "Verification",
+    "verifyHint": "Complete the quick challenge so we know you are human. It protects the shared demo and is not stored.",
     "readyToGenerate": "Ready to generate.",
     "finishRequired": "Finish the required fields to generate.",
     "advancedSettings": "Advanced settings",
@@ -290,6 +292,7 @@
     "RATE_LIMITED": "Too many requests. Please wait a moment and try again.",
     "UNSUPPORTED_MEDIA_TYPE": "Unsupported request type. Please submit the form again.",
     "FORBIDDEN": "This request was blocked. Please reload the page and try again.",
+    "CHALLENGE_FAILED": "Verification failed. Please complete the challenge and try again.",
     "UNKNOWN_ERROR": "An unexpected error occurred. Please try again.",
     "MISSING_API_KEY": "Please enter your API key first."
   },

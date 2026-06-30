@@ -175,6 +175,8 @@
     "creativeSetupHint": "先选择来源、模式、风格和描述，再连接提供方。",
     "providerSetup": "提供方和 Key",
     "providerSetupHint": "选择生成位置，准备好后再粘贴你自己的 Key。",
+    "verifyLabel": "人机验证",
+    "verifyHint": "完成快速验证以确认你是真人。它用于保护共享演示，且不会被存储。",
     "readyToGenerate": "已准备好生成。",
     "finishRequired": "完成必填项后即可生成。",
     "advancedSettings": "高级设置",
@@ -290,6 +292,7 @@
     "RATE_LIMITED": "请求过于频繁，请稍候再试。",
     "UNSUPPORTED_MEDIA_TYPE": "不支持的请求类型，请重新提交表单。",
     "FORBIDDEN": "该请求被拦截，请刷新页面后重试。",
+    "CHALLENGE_FAILED": "人机验证失败，请完成验证后重试。",
     "UNKNOWN_ERROR": "发生了意外错误，请重试。",
     "MISSING_API_KEY": "请先输入你的 API Key。"
   },

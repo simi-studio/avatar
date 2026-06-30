@@ -36,6 +36,14 @@ npx wrangler secret put TURNSTILE_SECRET_KEY
 # NEXT_PUBLIC_TURNSTILE_SITE_KEY is public and can live in vars
 ```
 
+The Turnstile challenge is **disabled by default**: with `TURNSTILE_SECRET_KEY` unset the
+self-host flow is unchanged and no widget renders. Set **both** keys to turn it on — the client
+renders the widget (`NEXT_PUBLIC_TURNSTILE_SITE_KEY`) and `/api/generate` verifies the token
+server-side via Cloudflare `siteverify` (`TURNSTILE_SECRET_KEY`) **before** any provider call. WAF
+/ Rate Limiting + Turnstile are the real public-demo controls; the in-memory `RATE_LIMIT_PER_MINUTE`
+guard is only a per-isolate fallback. See [security.md](./security.md) §Interface protection and
+PRD §12.4.
+
 **Not needed** (BYOK): `OPENAI_API_KEY`, `MINIMAX_API_KEY`, `DATABASE_URL`, `AUTH_SECRET`, `STRIPE_SECRET_KEY`.
 
 ## `wrangler.jsonc` (example)

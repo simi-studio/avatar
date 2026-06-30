@@ -33,6 +33,7 @@ import {
   validateProviderRegion,
 } from "@/lib/validation";
 import { stripImageMetadata } from "@/lib/server-image-safety";
+import { isTurnstileEnabled, verifyTurnstileToken } from "@/lib/turnstile";
 
 const STATUS_BY_CODE: Partial<Record<ErrorCode, number>> = {
   MISSING_API_KEY: 400,
@@ -47,6 +48,7 @@ const STATUS_BY_CODE: Partial<Record<ErrorCode, number>> = {
   RATE_LIMITED: 429,
   UNSUPPORTED_MEDIA_TYPE: 415,
   FORBIDDEN: 403,
+  CHALLENGE_FAILED: 403,
   PROVIDER_TIMEOUT: 504,
   UNKNOWN_ERROR: 502,
 };
@@ -64,6 +66,7 @@ const MESSAGE_BY_CODE: Record<ErrorCode, string> = {
   RATE_LIMITED: "Too many requests.",
   UNSUPPORTED_MEDIA_TYPE: "Unsupported request media type.",
   FORBIDDEN: "The request origin is not allowed.",
+  CHALLENGE_FAILED: "The verification challenge failed. Please retry.",
   PROVIDER_TIMEOUT: "The provider timed out.",
   UNKNOWN_ERROR: "Unexpected generation error.",
 };
@@ -96,6 +99,7 @@ type ParsedRequest = {
   size: string;
   intentRaw?: unknown;
   intentJson?: string;
+  turnstileToken?: string;
 };
 
 async function parseRequest(
@@ -118,6 +122,9 @@ async function parseRequest(
       pairedConsistency: body.pairedConsistency === true,
       size: String(body.size ?? DEFAULT_IMAGE_SIZE),
       intentRaw: body.intent,
+      turnstileToken: body.turnstileToken
+        ? String(body.turnstileToken)
+        : undefined,
     };
   }
 
@@ -143,6 +150,7 @@ async function parseRequest(
       pairedConsistency: get("pairedConsistency") === "true",
       size: get("size") ?? DEFAULT_IMAGE_SIZE,
       intentJson: get("intent"),
+      turnstileToken: get("turnstileToken"),
     };
   }
 
@@ -263,6 +271,13 @@ export async function POST(
   }
   if (parsed === "unsupported-media-type") {
     return errorResponse("UNSUPPORTED_MEDIA_TYPE");
+  }
+
+  // Optional public-demo challenge: when enabled, verify before any provider
+  // call or image content work. Disabled (no secret) skips this entirely.
+  if (isTurnstileEnabled()) {
+    const passed = await verifyTurnstileToken(parsed.turnstileToken);
+    if (!passed) return errorResponse("CHALLENGE_FAILED");
   }
 
   if (!isValidMode(parsed.mode)) return errorResponse("INVALID_MODE_INPUT");

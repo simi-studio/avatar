@@ -57,6 +57,10 @@ import { ThemePicker } from "@/components/theme-picker";
 import { PromptSuggestions } from "@/components/prompt-suggestions";
 import { TeamPresetShare } from "@/components/team-preset-share";
 import { ImageUploader, type UploadedImage } from "@/components/image-uploader";
+import {
+  TurnstileWidget,
+  TURNSTILE_ENABLED,
+} from "@/components/turnstile-widget";
 import { CompiledPromptPanel } from "@/components/compiled-prompt-panel";
 import { GenerationHistory } from "@/components/generation-history";
 import {
@@ -119,6 +123,10 @@ export function GenerationForm() {
   const [imageA, setImageA] = useState<UploadedImage | null>(null);
   const [imageB, setImageB] = useState<UploadedImage | null>(null);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | undefined>(
+    undefined,
+  );
+  const [turnstileReset, setTurnstileReset] = useState(0);
 
   const source: InputSource = sourceForMode(mode);
   const availableSizes = sizesForProvider(provider);
@@ -213,6 +221,7 @@ export function GenerationForm() {
 
   const canGenerate =
     Boolean(apiKey) &&
+    (!TURNSTILE_ENABLED || Boolean(turnstileToken)) &&
     (mode === "text" || mode === "couple-text"
       ? Boolean(styleId)
       : mode === "themed"
@@ -233,6 +242,7 @@ export function GenerationForm() {
       formData.append("userPrompt", requestIntent.subjectDescription);
     }
     formData.append("intent", JSON.stringify(requestIntent));
+    if (turnstileToken) formData.append("turnstileToken", turnstileToken);
 
     if (requestMode === "themed") {
       if (requestIntent.themeId) {
@@ -274,6 +284,8 @@ export function GenerationForm() {
       buildForm: buildGenerateForm,
       onSuccess: history.record,
     });
+    // Turnstile tokens are single-use; force a fresh challenge for the next run.
+    if (TURNSTILE_ENABLED) setTurnstileReset((value) => value + 1);
   }
 
   function onRefine(action: RefinementAction) {
@@ -557,6 +569,18 @@ export function GenerationForm() {
               show={showKey}
               onToggleShow={() => setShowKey((v) => !v)}
             />
+            {TURNSTILE_ENABLED && (
+              <div className="flex flex-col gap-2">
+                <Label>{tf("verifyLabel")}</Label>
+                <p className="text-sm text-muted-foreground">
+                  {tf("verifyHint")}
+                </p>
+                <TurnstileWidget
+                  onToken={setTurnstileToken}
+                  resetSignal={turnstileReset}
+                />
+              </div>
+            )}
           </section>
 
           <div className="rounded-lg border bg-muted/30 p-4">

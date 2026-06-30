@@ -9,6 +9,7 @@ import { MAX_GENERATE_REQUEST_BYTES } from "@/lib/constants";
 afterEach(() => {
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
 });
 
 function request(body: BodyInit, headers: Record<string, string>): Request {
@@ -135,5 +136,77 @@ describe("/api/generate", () => {
 
     expect(res.status).toBe(400);
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects with 403 when Turnstile is enabled and the token is missing", async () => {
+    vi.stubEnv("TURNSTILE_SECRET_KEY", "secret");
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = await POST(
+      request(
+        JSON.stringify({
+          provider: "openai",
+          apiKey: "sk-test",
+          mode: "text",
+          styleId: "anime",
+          size: "1024x1024",
+        }),
+        {
+          "content-type": "application/json",
+          "content-length": "120",
+          origin: "https://avatar.test",
+          host: "avatar.test",
+        },
+      ),
+    );
+
+    expect(res.status).toBe(403);
+    await expect(res.json()).resolves.toMatchObject({
+      success: false,
+      error: { code: "CHALLENGE_FAILED" },
+    });
+    // No siteverify and no provider call happen for a missing token.
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("verifies the token, then proceeds past the challenge when it passes", async () => {
+    vi.stubEnv("TURNSTILE_SECRET_KEY", "secret");
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url.includes("siteverify")) {
+        return new Response(JSON.stringify({ success: true }), { status: 200 });
+      }
+      throw new Error("provider should not be reached for an invalid style");
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const res = await POST(
+      request(
+        JSON.stringify({
+          provider: "openai",
+          apiKey: "sk-test",
+          mode: "text",
+          styleId: "not-a-style",
+          size: "1024x1024",
+          turnstileToken: "tok",
+        }),
+        {
+          "content-type": "application/json",
+          "content-length": "150",
+          origin: "https://avatar.test",
+          host: "avatar.test",
+        },
+      ),
+    );
+
+    // Passed the challenge (not 403), then failed later on the invalid style.
+    expect(res.status).toBe(400);
+    await expect(res.json()).resolves.toMatchObject({
+      success: false,
+      error: { code: "INVALID_MODE_INPUT" },
+    });
+    // Exactly one fetch: the siteverify call; the provider was never reached.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0]?.[0]).toContain("siteverify");
   });
 });
