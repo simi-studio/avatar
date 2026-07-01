@@ -368,7 +368,7 @@ describe("GenerationForm", () => {
     fireEvent.click(screen.getByRole("button", { name: en.Generate.generate }));
 
     await waitFor(() =>
-      expect(screen.getByText("Partial pair generated")).toBeInTheDocument(),
+      expect(screen.getByText(en.Result.partialPair)).toBeInTheDocument(),
     );
     expect(screen.getByText("Avatar B was not returned.")).toBeInTheDocument();
   });
@@ -397,12 +397,42 @@ describe("GenerationForm", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows generation count copy for single and pair modes", () => {
+  it("shows generation count copy for single, pair, and same-frame modes", () => {
     renderForm();
 
+    // Text mode: one generation.
     expect(screen.getByText("Runs 1 generation.")).toBeInTheDocument();
 
+    // Couple-text pair: two generations.
     fireEvent.click(screen.getByRole("button", { name: en.Mode["couple-text"] }));
     expect(screen.getByText("Runs 2 generations.")).toBeInTheDocument();
+
+    // Same-frame couple renders one combined image: back to one generation.
+    fireEvent.click(screen.getByLabelText(en.Form.sameFrame));
+    expect(screen.getByText("Runs 1 generation.")).toBeInTheDocument();
+  });
+
+  it("shows a truthful provider, model, and size call plan with a pricing link", () => {
+    renderForm();
+
+    // Default provider is OpenAI; the model label must match the adapter.
+    expect(
+      screen.getByText("OpenAI · gpt-image-2 · 1024x1024."),
+    ).toBeInTheDocument();
+    const pricing = screen.getByRole("link", {
+      name: "View OpenAI pricing",
+    });
+    expect(pricing).toHaveAttribute("href", "https://openai.com/api/pricing/");
+
+    // Switching provider updates the model label and the pricing link.
+    fireEvent.change(screen.getByLabelText(en.Provider.label), {
+      target: { value: "minimax" },
+    });
+    expect(
+      screen.getByText("MiniMax · image-01 · 1024x1024."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "View MiniMax pricing" }),
+    ).toHaveAttribute("href", "https://platform.minimax.io/");
   });
 });

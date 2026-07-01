@@ -53,6 +53,8 @@
     "download": "Download",
     "estimatedCostSingle": "Runs 1 generation.",
     "estimatedCostPair": "Runs 2 generations.",
+    "callPlan": "{provider} · {model} · {size}.",
+    "pricingLink": "View {provider} pricing",
     "privacyNote": "Your image and API key are only used for this generation request. Simi Avatar does not store your API key or images.",
     "states": {
       "idle": "Configure the form and click Generate.",
@@ -252,7 +254,7 @@
     "more-cute": "Cuter",
     "cleaner-background": "Cleaner background",
     "variation": "Try variation",
-    "costNote": "Each refinement runs another generation."
+    "costNote": "Each refinement runs another provider generation and uses your API key's quota."
   },
   "Appearance": {
     "toggle": "Toggle theme",
@@ -271,7 +273,7 @@
     "sourceAltSingle": "Source image",
     "sourceAltLabeled": "Source image {label}",
     "sourceLabel": "Source {label}",
-    "partialPair": "Partial pair generated",
+    "partialPair": "Only part of the pair came back. The paired request still used your provider quota.",
     "missingAvatar": "Avatar {label} was not returned.",
     "emptyTitle": "Preview waits here",
     "empty": "Your generated avatar will appear here.",

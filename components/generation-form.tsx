@@ -26,6 +26,8 @@ import {
 import { decodePreset, type TeamPreset } from "@/lib/preset";
 import {
   defaultSizeForProvider,
+  modelLabelForProvider,
+  pricingUrlForProvider,
   sizesForProvider,
 } from "@/lib/provider-capabilities";
 import {
@@ -72,6 +74,7 @@ import {
 export function GenerationForm() {
   const t = useTranslations("Generate");
   const tf = useTranslations("Form");
+  const tp = useTranslations("Provider");
   const tUpload = useTranslations("Upload");
   const tHistory = useTranslations("History");
 
@@ -593,6 +596,21 @@ export function GenerationForm() {
                   {generationCount === 1
                     ? t("estimatedCostSingle")
                     : t("estimatedCostPair")}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {t("callPlan", {
+                    provider: tp(provider),
+                    model: modelLabelForProvider(provider),
+                    size,
+                  })}{" "}
+                  <a
+                    href={pricingUrlForProvider(provider)}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="underline underline-offset-2 hover:text-foreground"
+                  >
+                    {t("pricingLink", { provider: tp(provider) })}
+                  </a>
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {t("privacyNote")}

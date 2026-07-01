@@ -53,6 +53,8 @@
     "download": "下载",
     "estimatedCostSingle": "运行 1 次生成。",
     "estimatedCostPair": "运行 2 次生成。",
+    "callPlan": "{provider} · {model} · {size}。",
+    "pricingLink": "查看 {provider} 价格",
     "privacyNote": "你的图片和 API Key 仅用于本次生成请求。Simi Avatar 不会存储你的 API Key 或图片。",
     "states": {
       "idle": "完成表单后点击生成。",
@@ -252,7 +254,7 @@
     "more-cute": "更可爱",
     "cleaner-background": "背景更干净",
     "variation": "再来一版",
-    "costNote": "每次调整都会重新生成一次。"
+    "costNote": "每次调整都会再向服务商发起一次生成，并消耗你 API Key 的额度。"
   },
   "Appearance": {
     "toggle": "切换主题",
@@ -271,7 +273,7 @@
     "sourceAltSingle": "源图片",
     "sourceAltLabeled": "源图片 {label}",
     "sourceLabel": "源图片 {label}",
-    "partialPair": "已生成部分成对头像",
+    "partialPair": "只返回了成对头像中的一张，但这次成对请求仍消耗了你的服务商额度。",
     "missingAvatar": "头像 {label} 未返回。",
     "emptyTitle": "预览区在这里等待",
     "empty": "生成的头像将显示在这里。",
