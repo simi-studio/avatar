@@ -16,6 +16,8 @@ export function AvatarPlanPanel({ plan }: { plan: AvatarPlan }) {
   const tStyle = useTranslations("Style");
   const tTheme = useTranslations("Theme");
 
+  // The style/theme is shown as a headline value (not a labeled row) so the
+  // plan never duplicates the Style/Theme picker legends on the same screen.
   const subject =
     plan.mode === "themed"
       ? [plan.themeId ? tTheme(plan.themeId) : undefined, plan.variantId ? tTheme(plan.variantId) : undefined]
@@ -27,9 +29,6 @@ export function AvatarPlanPanel({ plan }: { plan: AvatarPlan }) {
 
   const rows: { label: string; value: string }[] = [
     { label: tPlan("goal"), value: tIntent(`goals.${plan.goal}`) },
-    ...(subject
-      ? [{ label: plan.mode === "themed" ? tPlan("theme") : tPlan("style"), value: subject }]
-      : []),
     { label: tPlan("composition"), value: tIntent(`compositions.${plan.composition}`) },
     { label: tPlan("background"), value: tIntent(`backgrounds.${plan.background}`) },
     { label: tPlan("likeness"), value: tIntent(`levels.${plan.likeness}`) },
@@ -42,10 +41,13 @@ export function AvatarPlanPanel({ plan }: { plan: AvatarPlan }) {
       className="flex flex-col gap-3 rounded-lg border bg-muted/20 p-4"
       aria-label={tPlan("title")}
     >
-      <h2 className="flex items-center gap-2 text-sm font-medium">
-        <ClipboardList className="h-4 w-4" aria-hidden />
-        {tPlan("title")}
-      </h2>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2 text-sm font-medium">
+          <ClipboardList className="h-4 w-4" aria-hidden />
+          {tPlan("title")}
+        </h2>
+        {subject && <span className="text-sm font-semibold">{subject}</span>}
+      </div>
       <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs sm:grid-cols-3">
         {rows.map((row) => (
           <div key={row.label} className="flex flex-col">
