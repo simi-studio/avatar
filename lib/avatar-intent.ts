@@ -2,6 +2,7 @@ import {
   DEFAULT_IMAGE_SIZE,
   GENERATION_MODES,
   IMAGE_SIZES,
+  isCoupleMode,
   type GenerationMode,
   type ImageSize,
 } from "@/lib/constants";
@@ -233,6 +234,25 @@ export function parseAvatarIntentJson(
   } catch {
     return fallback;
   }
+}
+
+/**
+ * Couple modes normally render an A/B pair (two provider calls). Same-frame
+ * places both partners in one image (one call). Same-frame is only supported for
+ * the text-driven `couple-text` mode today; photo `couple` same-frame is gated
+ * behind a real multi-image capability bit (Epic 10.4).
+ */
+export function isSameFrameCouple(intent: AvatarIntent): boolean {
+  return intent.mode === "couple-text" && intent.sameFrame === true;
+}
+
+/**
+ * Number of provider generations an intent triggers. Single source of truth for
+ * the pre-generate call count shown by the cost surface (Epic 10.2) and the
+ * plan preview (Epic 10.3).
+ */
+export function generationCountForIntent(intent: AvatarIntent): number {
+  return isCoupleMode(intent.mode) && !isSameFrameCouple(intent) ? 2 : 1;
 }
 
 export function applyGoalPreset(

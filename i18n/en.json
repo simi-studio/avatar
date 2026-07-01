@@ -256,6 +256,33 @@
     "variation": "Try variation",
     "costNote": "Each refinement runs another provider generation and uses your API key's quota."
   },
+  "Agent": {
+    "briefLabel": "Describe your avatar in a sentence",
+    "briefPlaceholder": "e.g. LinkedIn headshot, friendly, studio background",
+    "briefApply": "Build from description",
+    "briefHint": "We map your words to the settings below — no AI call, nothing leaves your browser. Adjust anything after.",
+    "refineLabel": "Refine in words",
+    "refinePlaceholder": "e.g. more like me, make it work for LinkedIn",
+    "refineApply": "Refine"
+  },
+  "Plan": {
+    "title": "Avatar plan",
+    "goal": "Goal",
+    "style": "Style",
+    "theme": "Theme",
+    "composition": "Framing",
+    "background": "Background",
+    "likeness": "Likeness",
+    "creativity": "Creativity",
+    "calls": "Provider calls",
+    "risk": {
+      "likeness-without-photo": "High likeness needs a photo; text modes can't match a real face.",
+      "creativity-vs-professional": "High creativity can undercut a clean professional look.",
+      "transparent-approximate": "Providers approximate cutout backgrounds; true transparency isn't guaranteed.",
+      "pair-consistency": "Two separate calls — the pair may not match perfectly.",
+      "same-frame-blend": "Both partners share one frame; features can blend."
+    }
+  },
   "Appearance": {
     "toggle": "Toggle theme",
     "light": "Light",

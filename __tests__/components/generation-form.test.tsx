@@ -412,6 +412,75 @@ describe("GenerationForm", () => {
     expect(screen.getByText("Runs 1 generation.")).toBeInTheDocument();
   });
 
+  it("builds an editable intent from a free-text brief (no network on parse)", async () => {
+    const fetchMock = setFetch({
+      success: true,
+      images: [{ base64: "AAAA", mimeType: "image/png" }],
+    });
+    renderForm();
+
+    fireEvent.change(screen.getByLabelText(en.Agent.briefLabel), {
+      target: { value: "anime social avatar" },
+    });
+    // Parsing the brief is deterministic and must not hit the network.
+    fireEvent.click(
+      screen.getByRole("button", { name: en.Agent.briefApply }),
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
+      target: { value: "sk-test-key" },
+    });
+    const generate = screen.getByRole("button", { name: en.Generate.generate });
+    await waitFor(() => expect(generate).toBeEnabled());
+    fireEvent.click(generate);
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    const form = (fetchMock.mock.calls[0]?.[1] as RequestInit).body as FormData;
+    const intent = JSON.parse(String(form.get("intent"))) as Record<
+      string,
+      unknown
+    >;
+    expect(intent.goal).toBe("social-avatar");
+    expect(intent.styleId).toBe("anime");
+    expect(intent.subjectDescription).toBe("anime social avatar");
+  });
+
+  it("applies a natural-language refinement as exactly one more provider call", async () => {
+    const fetchMock = setFetch({
+      success: true,
+      images: [{ base64: "AAAA", mimeType: "image/png" }],
+    });
+    renderForm();
+
+    fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
+      target: { value: "sk-test-key" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: en.Style.anime }));
+    const generate = screen.getByRole("button", { name: en.Generate.generate });
+    await waitFor(() => expect(generate).toBeEnabled());
+    fireEvent.click(generate);
+
+    await waitFor(() =>
+      expect(screen.getByAltText(en.Result.altSingle)).toBeInTheDocument(),
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    fireEvent.change(screen.getByLabelText(en.Agent.refineLabel), {
+      target: { value: "more realistic" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: en.Agent.refineApply }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    const secondForm = (fetchMock.mock.calls[1]?.[1] as RequestInit)
+      .body as FormData;
+    const intent = JSON.parse(String(secondForm.get("intent"))) as Record<
+      string,
+      unknown
+    >;
+    expect(intent.styleId).toBe("professional-headshot");
+  });
+
   it("shows a truthful provider, model, and size call plan with a pricing link", () => {
     renderForm();
 

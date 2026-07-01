@@ -34,10 +34,14 @@ import {
   applyGoalPreset,
   applyRefinementAction,
   createAvatarIntent,
+  generationCountForIntent,
+  isSameFrameCouple,
   type AvatarGoal,
   type AvatarIntent,
   type RefinementAction,
 } from "@/lib/avatar-intent";
+import { applyBriefRefinement, parseBriefToIntent } from "@/lib/avatar-brief";
+import { deriveAvatarPlan } from "@/lib/avatar-plan";
 import { getStyleById } from "@/styles/avatar-styles";
 import { getThemeById, getVariant } from "@/styles/avatar-themes";
 import { compileAvatarPrompt } from "@/lib/prompt-compiler";
@@ -63,6 +67,7 @@ import {
   TurnstileWidget,
   TURNSTILE_ENABLED,
 } from "@/components/turnstile-widget";
+import { AvatarPlanPanel } from "@/components/avatar-plan-panel";
 import { CompiledPromptPanel } from "@/components/compiled-prompt-panel";
 import { GenerationHistory } from "@/components/generation-history";
 import {
@@ -75,6 +80,7 @@ export function GenerationForm() {
   const t = useTranslations("Generate");
   const tf = useTranslations("Form");
   const tp = useTranslations("Provider");
+  const tAgent = useTranslations("Agent");
   const tUpload = useTranslations("Upload");
   const tHistory = useTranslations("History");
 
@@ -123,6 +129,7 @@ export function GenerationForm() {
   const setSize = (value: ImageSize) => patch({ size: value });
 
   const [showKey, setShowKey] = useState(false);
+  const [brief, setBrief] = useState("");
   const [imageA, setImageA] = useState<UploadedImage | null>(null);
   const [imageB, setImageB] = useState<UploadedImage | null>(null);
   const [advancedOpen, setAdvancedOpen] = useState(false);
@@ -169,6 +176,14 @@ export function GenerationForm() {
 
   function onGoalChange(nextGoal: AvatarGoal) {
     syncIntent(applyGoalPreset(buildIntent(), nextGoal));
+  }
+
+  // Deterministic brief → intent: map the free-text brief onto the editable
+  // controls. No network or LLM call; the user can still adjust every field.
+  function onApplyBrief() {
+    const text = brief.trim();
+    if (!text) return;
+    syncIntent(parseBriefToIntent(buildIntent(), text));
   }
 
   function onIntentControlChange(controlPatch: Partial<IntentControlValue>) {
@@ -297,6 +312,14 @@ export function GenerationForm() {
     void onGenerate(nextIntent);
   }
 
+  // Natural-language refinement: one intent transform + one provider call,
+  // consistent with the Epic 10.2 re-call notice.
+  function onRefineText(text: string) {
+    const nextIntent = applyBriefRefinement(buildIntent(), text);
+    syncIntent(nextIntent);
+    void onGenerate(nextIntent);
+  }
+
   // Clearing the key also offers to clear local history, since both are
   // browser-local user data (Epic 9.2).
   function handleClearKey() {
@@ -315,9 +338,17 @@ export function GenerationForm() {
     status === "idle" && canGenerate ? "ready" : status;
   const showTeamPresetShare =
     mode === "themed" || isCoupleMode(mode) || goal === "team-character";
+  // Single source of truth for the current intent used by the read-only
+  // previews (plan, call count, compiled prompt).
+  const previewIntent = buildIntent();
   // Couple-text same-frame renders a single combined image instead of an A/B pair.
-  const coupleSameFrame = mode === "couple-text" && sameFrame;
-  const generationCount = isCoupleMode(mode) && !coupleSameFrame ? 2 : 1;
+  const coupleSameFrame = isSameFrameCouple(previewIntent);
+  const generationCount = generationCountForIntent(previewIntent);
+  const avatarPlan = deriveAvatarPlan(previewIntent, {
+    style: getStyleById(styleId),
+    theme: getThemeById(themeId),
+    variant: getVariant(themeId, variantId),
+  });
   const sourceImages: SourcePreviewImage[] = [];
   if (mode === "single" && imageA) {
     sourceImages.push({ previewUrl: imageA.previewUrl });
@@ -368,6 +399,31 @@ export function GenerationForm() {
             className="flex flex-col gap-5"
             aria-label={tf("creativeSetup")}
           >
+            <div className="flex flex-col gap-2 rounded-lg border bg-muted/20 p-4">
+              <Label htmlFor="brief">{tAgent("briefLabel")}</Label>
+              <Textarea
+                id="brief"
+                value={brief}
+                placeholder={tAgent("briefPlaceholder")}
+                onChange={(event) => setBrief(event.target.value)}
+                className="min-h-16 resize-y"
+              />
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  disabled={!brief.trim()}
+                  onClick={onApplyBrief}
+                >
+                  {tAgent("briefApply")}
+                </Button>
+                <p className="text-xs text-muted-foreground">
+                  {tAgent("briefHint")}
+                </p>
+              </div>
+            </div>
+
             <SourceSelector value={source} onChange={onSourceChange} />
             <ModeSelector
               modes={MODES_BY_SOURCE[source]}
@@ -530,7 +586,7 @@ export function GenerationForm() {
                 <CompiledPromptPanel
                   request={compileAvatarPrompt({
                     provider,
-                    intent: buildIntent(),
+                    intent: previewIntent,
                     style: getStyleById(styleId),
                     theme: getThemeById(themeId),
                     variant: getVariant(themeId, variantId),
@@ -585,6 +641,8 @@ export function GenerationForm() {
               </div>
             )}
           </section>
+
+          <AvatarPlanPanel plan={avatarPlan} />
 
           <div className="rounded-lg border bg-muted/30 p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -660,6 +718,7 @@ export function GenerationForm() {
             }
             onRetry={() => void onGenerate(lastIntent ?? buildIntent())}
             onRefine={onRefine}
+            onRefineText={onRefineText}
             refinementDisabled={!canGenerate || status === "generating"}
           />
         </CardContent>

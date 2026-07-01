@@ -1,11 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { AlertCircle, Download, ImageIcon, Loader2, Wand2 } from "lucide-react";
 
 import type { ErrorCode, GeneratedImage } from "@/lib/types";
 import { REFINEMENT_ACTIONS, type RefinementAction } from "@/lib/avatar-intent";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export type GenerationStatus =
   | "idle"
@@ -40,6 +42,7 @@ export function ResultPreview({
   expectedImageLabels = [],
   onRetry,
   onRefine,
+  onRefineText,
   refinementDisabled = false,
 }: {
   status: GenerationStatus;
@@ -49,6 +52,7 @@ export function ResultPreview({
   expectedImageLabels?: string[];
   onRetry?: () => void;
   onRefine?: (action: RefinementAction) => void;
+  onRefineText?: (text: string) => void;
   refinementDisabled?: boolean;
 }) {
   const tc = useTranslations("Common");
@@ -56,6 +60,8 @@ export function ResultPreview({
   const tr = useTranslations("Result");
   const tErr = useTranslations("Errors");
   const tRefine = useTranslations("Refinement");
+  const tAgent = useTranslations("Agent");
+  const [refineText, setRefineText] = useState("");
 
   function download(image: GeneratedImage, index: number) {
     const link = document.createElement("a");
@@ -177,6 +183,33 @@ export function ResultPreview({
                 </Button>
               ))}
             </div>
+            {onRefineText && (
+              <form
+                className="flex flex-col gap-2 sm:flex-row"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  const value = refineText.trim();
+                  if (!value || refinementDisabled) return;
+                  onRefineText(value);
+                  setRefineText("");
+                }}
+              >
+                <Input
+                  value={refineText}
+                  placeholder={tAgent("refinePlaceholder")}
+                  aria-label={tAgent("refineLabel")}
+                  onChange={(event) => setRefineText(event.target.value)}
+                />
+                <Button
+                  type="submit"
+                  variant="outline"
+                  size="sm"
+                  disabled={refinementDisabled || !refineText.trim()}
+                >
+                  {tAgent("refineApply")}
+                </Button>
+              </form>
+            )}
             <p className="text-xs text-muted-foreground">
               {tRefine("costNote")}
             </p>

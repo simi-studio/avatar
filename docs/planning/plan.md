@@ -4,7 +4,7 @@
 
 | Field           | Value                                                            |
 | --------------- | ---------------------------------------------------------------- |
-| Status          | MVP complete; public demo deployed; M9 expansion shipped (1 item dropped); M10 in progress (10.1, 10.2 done) |
+| Status          | MVP complete; public demo deployed; M9 expansion shipped (1 item dropped); M10 in progress (10.1–10.3 done) |
 | Scope           | MVP (M1–M5)                                                      |
 | Providers (MVP) | OpenAI + MiniMax                                                 |
 | Languages (MVP) | English (default) + Simplified Chinese                           |
@@ -147,7 +147,7 @@ lines and the same lint/typecheck/test/build/`guard:secrets` gate.
 
 - [x] 10.1 — App-level Turnstile (optional, default-off, server `siteverify`)
 - [x] 10.2 — Cost & call transparency (provider/model/size/count, refinement re-call notice, pricing links)
-- [ ] 10.3 — Avatar agent experience (deterministic brief→intent, plan preview, NL refinement)
+- [x] 10.3 — Avatar agent experience (deterministic brief→intent, plan preview, NL refinement)
 - [ ] 10.4 — Photo couple same-frame composite (capability-gated)
 
 ### Cross-cutting maintenance (tracked in docs, not a standalone epic)

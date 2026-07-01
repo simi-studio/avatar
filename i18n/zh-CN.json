@@ -256,6 +256,33 @@
     "variation": "再来一版",
     "costNote": "每次调整都会再向服务商发起一次生成，并消耗你 API Key 的额度。"
   },
+  "Agent": {
+    "briefLabel": "用一句话描述你想要的头像",
+    "briefPlaceholder": "例如：LinkedIn 证件照，亲和，影棚背景",
+    "briefApply": "根据描述生成设置",
+    "briefHint": "我们会把你的描述映射到下方设置——不调用 AI，也不上传任何内容。之后可自由调整。",
+    "refineLabel": "用文字微调",
+    "refinePlaceholder": "例如：更像我、适合用于 LinkedIn",
+    "refineApply": "微调"
+  },
+  "Plan": {
+    "title": "头像方案",
+    "goal": "目标",
+    "style": "风格",
+    "theme": "主题",
+    "composition": "取景",
+    "background": "背景",
+    "likeness": "相似度",
+    "creativity": "创意度",
+    "calls": "服务商调用次数",
+    "risk": {
+      "likeness-without-photo": "高相似度需要照片；纯文字模式无法还原真实五官。",
+      "creativity-vs-professional": "创意度过高可能削弱专业、干净的观感。",
+      "transparent-approximate": "服务商只能近似生成镂空背景，无法保证真正透明。",
+      "pair-consistency": "两次独立调用——成对结果可能不完全一致。",
+      "same-frame-blend": "两人共处一帧，五官可能相互融合。"
+    }
+  },
   "Appearance": {
     "toggle": "切换主题",
     "light": "浅色",
