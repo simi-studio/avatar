@@ -139,3 +139,99 @@ Adapters map provider errors to a normalized set: `INVALID_API_KEY`, `INSUFFICIE
 - Preset codes never contain a key.
 - EXIF stripped client-side.
 - Full details in [security.md](./security.md).
+
+## M11 conversational generation architecture
+
+M11 adds a short-lived orchestration layer above the existing provider adapters. It does not add
+persistence or make Cloudflare a product-level requirement.
+
+```mermaid
+flowchart LR
+  B["Brief + optional references"] --> I["Intent extraction"]
+  I --> P["Editable AvatarIntent + call plan"]
+  P --> G["Candidate generation"]
+  G --> S["Session candidate graph"]
+  S --> E["Constrained edit: change + preserve"]
+  E --> C{"Provider capability"}
+  C -->|multi-turn edit| T["Continue selected result"]
+  C -->|image edit| R["Edit with selected image input"]
+  C -->|unsupported| F["Explicit regeneration fallback"]
+  T --> S
+  R --> S
+  F --> S
+  S --> X["Client-side platform export"]
+```
+
+### Session model
+
+`GenerationSession` is client-owned, memory-only state for the current page lifetime:
+
+```ts
+type CandidateNode = {
+  id: string;
+  parentId?: string;
+  operation: "generate" | "edit" | "regenerate";
+  intent: AvatarIntent;
+  change?: string[];
+  preserve?: string[];
+  image: GeneratedImage;
+  providerContext?: ProviderContinuation;
+};
+
+type GenerationSession = {
+  id: string;
+  candidates: CandidateNode[];
+  selectedCandidateId?: string;
+};
+```
+
+The concrete implementation may split image bytes from metadata, but must keep both ephemeral.
+`providerContext` may contain an upstream response/image ID only when required for continuation; it
+must never enter local history, URLs, analytics, logs, or error payloads.
+
+### Provider operation interface
+
+The existing `generateAvatar` path remains supported while adapters move toward operation-specific
+methods:
+
+```ts
+interface ConversationalImageProvider extends ImageProvider {
+  capabilities: ProviderCapabilitiesV2;
+  generateCandidates(input: GenerateCandidatesInput): Promise<GenerationResult>;
+  editCandidate?(input: EditCandidateInput): Promise<GenerationResult>;
+}
+```
+
+`EditCandidateInput` carries the selected image or provider continuation plus explicit `change` and
+`preserve` constraints. The route chooses one of three truthful execution paths:
+
+1. `conversation` — continue upstream context where supported.
+2. `image-edit` — submit the selected result as a new edit input.
+3. `regenerate` — compile the full accumulated intent again and label the result accordingly.
+
+### New module boundaries
+
+| Module | Responsibility | Must not |
+| ------ | -------------- | -------- |
+| `lib/generation-session.ts` | Candidate graph and selection transforms | Persist bytes or provider IDs |
+| `lib/provider-capabilities.ts` | Verified operation/capability truth | Infer support from provider name |
+| `lib/edit-intent.ts` | Normalize `change` / `preserve` constraints | Call providers |
+| `lib/avatar-evaluation/*` | Versioned fixtures, rubrics, score aggregation | Contain private user photos or keys |
+| `lib/export/*` | Client-side crops, safe areas, output manifests | Upload exported images |
+
+### Request and privacy boundaries
+
+- Candidate bytes may pass browser → route → provider for one edit request and are released after
+  the response, following the same rules as source uploads.
+- Provider continuation IDs are sensitive session metadata even when they are not credentials.
+- A page reload may intentionally destroy the active session. Local history continues to store only
+  safe intent metadata, never images or continuation IDs.
+- Multi-reference requests reuse client EXIF stripping, compression, content validation, fixed-host
+  allowlists, and total request-size enforcement.
+
+### Evaluation gate
+
+Unit and mocked-fetch tests remain mandatory, but M11 also adds an opt-in provider evaluation
+harness. It records only fixture IDs, model/version, normalized settings, rubric scores, latency,
+and call/cost metadata. Generated fixture outputs are gitignored local artifacts unless their
+license and inclusion are explicitly approved.

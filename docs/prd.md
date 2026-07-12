@@ -4,9 +4,9 @@
 
 | Field        | Value                                               |
 | ------------ | --------------------------------------------------- |
-| Status       | Implemented through M9; next requirements proposed  |
-| Version      | v0.4                                                |
-| Last updated | 2026-06-19                                          |
+| Status       | Implemented through M10.3; M11 requirements proposed |
+| Version      | v0.5                                                |
+| Last updated | 2026-07-12                                          |
 | GitHub       | https://github.com/simi-studio/avatar               |
 | Positioning  | Open Source / No signup / Non-commercial / BYOK     |
 | App stack    | Next.js + TypeScript + Tailwind CSS + Shadcn UI     |
@@ -98,6 +98,33 @@ User registration, login, paid subscription, credit system, database, avatar his
 
 > Note: "team avatars" are powered by a stateless shared preset code; this does **not** imply a server-side team workspace or account system.
 
+### 2.5 M11 product direction: Avatar Copilot
+
+M11 evolves the product from a one-shot image-generation form into an
+**identity-preserving conversational avatar copilot**. The primary outcome is no longer merely a
+successful provider call; it is a usable avatar that matches the user's identity, purpose, and
+requested edits with as few paid calls as practical.
+
+The target loop is:
+
+```text
+Describe purpose → optionally add reference photos → clarify only what matters
+→ preview plan → generate 3–4 distinct candidates → select one
+→ edit that result conversationally while preserving identity → export platform-ready assets
+```
+
+M11 keeps the existing product red lines:
+
+- BYOK only; no Simi-managed image credits.
+- No login, account, database, server-side history, or long-term image hosting.
+- Photos, generated images, provider response IDs, and edit context live only in browser/server
+  memory for the active session and are never persisted or logged.
+- Provider capabilities are advertised only when verified; unsupported edit operations fall back
+  with explicit copy rather than pretending a regeneration is an edit.
+
+M11 prioritizes **quality evaluation, provider capabilities, multi-turn editing, and reference
+identity** before adding more themes, locales, or general-purpose providers.
+
 ---
 
 ## 3. Success metrics (KPIs)
@@ -112,6 +139,21 @@ User registration, login, paid subscription, credit system, database, avatar his
 | Reach       | GitHub stars                                          | ≥ 100                            |
 | Reach       | Successful external self-hosts (issues/feedback)      | ≥ 5                              |
 | Quality     | Critical-path unit coverage (prompt/validation)       | ≥ 80%                            |
+
+### 3.1 M11 outcome metrics
+
+| Dimension | Metric | Initial target |
+| --------- | ------ | -------------- |
+| Selection | Sessions where the user selects at least one first-round candidate | ≥ 60% |
+| Efficiency | Median provider calls before a user downloads an avatar | ≤ 5 |
+| Identity | Photo-based results passing the documented likeness rubric | ≥ 80% |
+| Editing | Non-target regions preserved after a constrained edit | ≥ 85% |
+| Completion | Median time from workspace entry to first download | < 3 minutes, provider-dependent |
+| Reliability | Successful edit calls, excluding invalid keys/content rejection | ≥ 95% |
+| Language | EN and zh-CN briefs produce equivalent structured intent on the evaluation set | ≥ 90% |
+
+These metrics require an anonymized, consented, or synthetic evaluation fixture set. Real user
+photos and generated results must never be collected automatically for evaluation.
 
 ---
 
@@ -392,7 +434,9 @@ MiniMax operates two separate platforms with **different base URLs and separate 
 
 Shipped (M9): **fal.ai** (FLUX.1 [dev] text-to-image and image-to-image via the synchronous `fal.run` endpoint).
 
-Still planned: Replicate, Stability AI.
+Future providers are outcome-driven under M11: add one only when the evaluation suite demonstrates
+a material quality or capability gap in the current set. Replicate, Stability AI, and Gemini are
+candidates, not scheduled commitments.
 
 ### 8.4 Provider abstraction
 
@@ -737,10 +781,61 @@ README / deploy / providers / security docs complete and in English; MIT License
 ## 21. Roadmap
 
 - **M9 shipped**: fal.ai, Cats / Robots / Pixel Heroes themes, couple-text same-frame composite, copyable compiled prompt, local-only history, E2E smoke tests, release/observability docs.
-- **M10 scoped** (see [planning/plan.md](./planning/plan.md) and [planning/epics/](./planning/epics/)): 10.1 public-demo abuse protection (Turnstile), 10.2 cost & call transparency, 10.3 avatar-agent experience (deterministic brief→intent), 10.4 photo couple same-frame; plus a cross-cutting provider model/capability drift guard.
-- **Later candidates**: browser-direct zero-trust research, Replicate or Stability AI, one additional UI locale, optional release automation.
+- **M10 substantially shipped**: 10.1 public-demo abuse protection, 10.2 cost/call transparency, and 10.3 deterministic brief mapping are complete. The standalone 10.4 photo-couple composite is superseded by M11.4's multi-reference identity scope.
+- **M11 planned — Identity-Preserving Conversational Avatar Creation**: quality evaluation, provider capability v2, true multi-turn editing, multi-reference identity, a copilot workspace, optional intelligent intent understanding, and platform-ready exports.
+- **Later candidates**: browser-direct zero-trust research, additional providers after an M11 capability gap is demonstrated, one additional UI locale, optional release automation.
 - **V1.2+**: R2 temporary image hosting; share links; batch generation.
 - **V2**: optional login; optional D1; user history; team workspace; theme/template marketplace; hosted SaaS; private deployment.
+
+### 21.1 M11 functional requirements
+
+**Quality foundation**
+
+- Maintain a versioned evaluation fixture set using synthetic, consented, or redistributable inputs.
+- Score likeness, prompt adherence, edit preservation, small-size avatar usability, couple identity,
+  latency, cost/call count, and EN/zh-CN intent parity.
+- A provider/model or prompt-profile change must not ship when it materially regresses the agreed
+  critical metrics without an explicit documented trade-off.
+
+**Candidate and editing loop**
+
+- Generate 3–4 intentionally differentiated candidates when the provider/cost plan supports it;
+  disclose the exact call count before generation.
+- Let the user select a candidate and issue a constrained natural-language edit.
+- Before the call, summarize the edit as `change` and `preserve` constraints.
+- Use true provider conversation/edit context when supported. If unsupported, label the operation
+  as regeneration and explain that identity/composition may change.
+- Keep candidate branches, provider response/image IDs, and generated bytes in active-session
+  memory only. A reload may clear them.
+
+**Reference identity**
+
+- Accept 1–4 reference photos for a person when supported, with client-side checks for resolution,
+  face visibility, blur, exposure, occlusion, and unexpected multiple faces.
+- Tell the user why a reference is weak and how to replace it; never upload a rejected photo unless
+  the user explicitly continues.
+- Support two-person same-frame composition only for providers verified for multi-image character
+  preservation; otherwise retain the truthful A/B output.
+
+**Copilot workspace**
+
+- Default entry contains one brief, optional reference upload, purpose shortcuts, and one primary
+  action. Provider/model/size and advanced intent controls remain available but secondary.
+- Show visual style examples rather than text-only style names.
+- After generation, make candidate selection and conversational editing the dominant interaction.
+
+**Intent understanding**
+
+- Deterministic EN/zh-CN parsing remains the no-extra-call fallback.
+- Optional LLM-backed parsing uses a user-authorized BYOK model, structured output, confidence, and
+  at most the minimum clarifying questions needed to unblock a materially better result.
+- The user can inspect and edit the resulting `AvatarIntent` before incurring an image call.
+
+**Delivery**
+
+- Preview circular safe areas and legibility at common small avatar sizes.
+- Export platform-ready crops for LinkedIn, GitHub, Discord, WeChat, and a generic square master.
+- Export is client-side where possible and must not introduce image persistence.
 
 ---
 
@@ -757,6 +852,9 @@ README / deploy / providers / security docs complete and in English; MIT License
 | Confusing MiniMax M3 (text) with image models              | Wrong integration   | Docs pin image models `image-01`/`image-01-live` and region base URLs (§8.1–8.2) |
 | Provider API / size changes                                | Broken flow         | Provider abstraction; pin/validate model & size enums                            |
 | Hard-coded provider model IDs drift from upstream docs      | Broken/invalid calls | Verify model IDs each release via the drift guard in `provider-calibration.md`; surface display labels from the same source (M10.2) |
+| A claimed edit silently regenerates the whole avatar        | User trust / identity | Capability-gated edit semantics; explicit regeneration fallback copy (M11.2–11.3) |
+| Multiple references increase privacy and request size       | Privacy / reliability | Client checks/compression, session-memory-only lifecycle, strict request limits (M11.4) |
+| Quality improves for one provider but regresses elsewhere   | Inconsistent results | Versioned cross-provider evaluation gate and documented trade-offs (M11.1) |
 
 ### 22.2 Open questions
 
@@ -764,6 +862,7 @@ README / deploy / providers / security docs complete and in English; MIT License
 2. Public-demo Cloudflare edge rate-limit thresholds and app fallback thresholds (per-IP/min, concurrency cap)?
 3. Inline each provider's official pricing link for cost transparency? — **Resolved: yes** (M10.2, D18).
 4. Beyond EN + zh-CN, which language is next?
+5. Which BYOK text/multimodal models may power optional intent extraction without making one image provider mandatory?
 
 ---
 
@@ -790,3 +889,7 @@ README / deploy / providers / security docs complete and in English; MIT License
 | D17 | Avatar-agent brief uses deterministic intent mapping, not an LLM            | The three image providers share no chat model; deterministic free-text → `AvatarIntent` keeps BYOK-image-only / no-extra-provider / no-DB intact (M10.3, §7) |
 | D18 | Cost transparency shows provider/model/size/call-count + official pricing links, never hard-coded prices | Prices change and would go stale in code; users need call count and refinement re-call cost, not embedded numbers (M10.2, §6.2, resolves §22.2 Q3) |
 | D19 | Photo `couple` same-frame is gated on a verified multi-image capability bit  | Multi-image composition is provider-specific; advertise it only where real, with truthful A/B fallback elsewhere (M10.4, §8.4) |
+| D20 | M11 prioritizes outcome quality and identity-preserving iteration over more themes/providers | The core user need is a satisfactory, usable avatar, not a larger integration catalog (§2.5, §21.1) |
+| D21 | Deterministic brief parsing becomes a fallback; optional LLM parsing is allowed under BYOK | Keyword rules cannot reliably understand zh-CN, negation, priorities, or clarification needs; users retain control and no Simi key is introduced (§21.1) |
+| D22 | “Edit” means provider-supported continuation of a selected result; otherwise the UI says “regenerate” | Honest semantics protect trust and allow capability-aware degradation across providers (§21.1) |
+| D23 | Generation/edit session state is memory-only and disposable | Multi-turn creation needs short-lived context without weakening the no-database/no-image-history privacy boundary (§2.5, §21.1) |

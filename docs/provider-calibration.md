@@ -41,16 +41,19 @@ adapters hard-code these (e.g. `lib/providers/openai.ts` `gpt-image-2`, `lib/pro
 - [ ] Confirm each hard-coded model ID still exists in the provider's current docs (OpenAI image
       generation, MiniMax `image_generation`, fal FLUX). Update the ID and the cost-transparency
       display label (M10.2) together if it changed.
-- [ ] Confirm supported sizes in `lib/provider-capabilities.ts` still match each provider.
-- [ ] Confirm multi-image composition / edit support before exposing photo `couple` same-frame
-      (M10.4): OpenAI edits accept multiple inputs; MiniMax `image-01` supports subject reference;
-      FLUX image-to-image is single-image.
+- [ ] Confirm supported sizes and every M11 v2 capability in `lib/provider-capabilities.ts` still
+      match current documentation and the latest fixture smoke result.
+- [ ] Confirm multi-turn edit, image edit, reference count/person count, mask, transparent output,
+      and multi-image composition behavior before exposing the corresponding UI. Documentation
+      establishes endpoint support; Epic 11.1 fixtures establish whether identity quality is good
+      enough for the claim.
 - [ ] Confirm the official pricing-page URLs used by the cost surface still resolve.
 - [ ] If any upstream parameter (native negative prompt, reference strength) becomes stable, add it
       to the prompt profile **with** request-payload tests before sending it.
 
-Record outcomes in the PR description; do not paste keys, user prompts, generated images, or
-production logs into this file. Known model-ID risk is tracked in [prd.md](./prd.md) §22.1.
+Record outcomes in the PR description, including verification date and evaluation run ID; do not
+paste keys, user prompts, generated images, continuation IDs, or production logs into this file.
+Known model-ID risk is tracked in [prd.md](./prd.md) §22.1.
 
 ## Maintenance Rules
 

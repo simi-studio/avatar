@@ -5,7 +5,7 @@
 | Field | Value |
 | ----- | ----- |
 | Milestone | M10 |
-| Status | Planned |
+| Status | Superseded by Epic 11.4 |
 | Priority | P2 |
 | Depends on | Epic 9.2 (couple-text same-frame), M8 (provider-aware capabilities) |
 
@@ -16,6 +16,12 @@ composited into one frame. This requires **multi-image composition**, which is p
 not every provider that does text-to-image can place two reference faces in one image. Gate the
 feature on a real capability bit and show truthful fallback copy where it is unsupported — never
 advertise a capability a provider does not actually have.
+
+> **Planning update (2026-07-12):** Do not implement this epic independently. Its capability model,
+> reference intake, provider verification, same-frame path, and A/B fallback are now part of
+> [Epic 11.4 — Multi-Reference Identity](./epic-11.4-multi-reference-identity.md), gated by
+> [Epic 11.1](./epic-11.1-avatar-quality-evaluation.md) and
+> [Epic 11.2](./epic-11.2-provider-capability-v2.md). This file remains as historical context.
 
 ## Checklist
 

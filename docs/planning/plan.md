@@ -4,7 +4,7 @@
 
 | Field           | Value                                                            |
 | --------------- | ---------------------------------------------------------------- |
-| Status          | MVP complete; public demo deployed; M9 expansion shipped (1 item dropped); M10 in progress (10.1–10.3 done) |
+| Status          | MVP complete; M10.1–10.3 shipped; M11 planned (identity-preserving conversational creation) |
 | Scope           | MVP (M1–M5)                                                      |
 | Providers (MVP) | OpenAI + MiniMax                                                 |
 | Languages (MVP) | English (default) + Simplified Chinese                           |
@@ -27,14 +27,16 @@
 - **M4 — Experience & security**: error handling + codes; download/regenerate/Clear Key; mode×input validation; timeout + edge rate limiting guidance with app-level fallback; log redaction + CI guard; mobile + a11y; core unit tests ≥ 80%.
 - **M5 — Open source & deploy**: finalize English docs + legal pages; Wrangler config; GitHub Actions CI; deploy Cloudflare Workers + bind domain.
 
-## Current progress snapshot (2026-06-19)
+## Current progress snapshot (2026-07-08)
 
 - **M1–M5 are complete**: foundation, i18n, five generation modes, provider adapters, intent-first prompt compilation, security guards, open-source docs, CI, and Cloudflare deployment are implemented.
 - **M6–M8 are complete**: text-first sources, intent controls/refinement, provider-aware capabilities, quick/advanced form split, preview states, partial couple handling, and contextual team preset sharing are shipped.
 - **M9 is complete**: Cats / Robots / Pixel Heroes themes, fal.ai FLUX provider support, copyable compiled prompts, couple-text same-frame composite, client-only local history, E2E smoke coverage, ESLint CLI migration, release checklist, and production observability notes are shipped.
+- **M10.1–10.3 are complete**: optional Turnstile, cost/call transparency, and deterministic brief→intent/refinement are shipped. M10.4 is superseded by M11.4, which treats photo-couple composition as part of the broader multi-reference identity problem.
+- **M11 is planned**: outcome evaluation, provider capability v2, true conversational editing, multi-reference identity, a copilot workspace, optional LLM intent understanding, and platform-ready delivery.
 - **Public demo is live**: `https://avatar.simi.studio/zh-CN` returns `HTTP/2 200` on Cloudflare/OpenNext with the custom domain bound.
 - **GitHub repository metadata is set**: `simi-studio/avatar` is public, has a concise description, homepage URL, and topics configured.
-- **Last recorded full local gate passed on 2026-06-11**: `npm run guard:secrets`, `npm run lint`, `npm run typecheck`, `npm run test` (104 tests), and `npm run build`. M9 added more tests and Playwright smoke coverage after that snapshot.
+- **Last recorded full local gate passed on 2026-07-08**: `npm run guard:secrets`, `npm run lint`, `npm run typecheck`, `npm run test` (179 tests, 25 files), and `npm run build`.
 - A local gitignored `wrangler.prod.jsonc` exists for `avatar.simi.studio`; the open-source deliverable remains `wrangler.prod.jsonc.example`.
 - **Screenshots are intentionally deferred** while the product is changing quickly; keeping screenshots current would create avoidable maintenance churn.
 
@@ -141,33 +143,95 @@ lines and the same lint/typecheck/test/build/`guard:secrets` gate.
 | [Epic 10.1 — Public Demo Abuse Protection](./epics/epic-10.1-public-demo-abuse-protection.md) | Optional, default-off Turnstile verified server-side; in-memory limiter is only a per-isolate fallback | P0 |
 | [Epic 10.2 — Cost & Call Transparency](./epics/epic-10.2-cost-and-call-transparency.md) | Show provider/model/size/call-count + official pricing links; warn that refinement re-calls the provider | P1 |
 | [Epic 10.3 — Avatar Agent Experience](./epics/epic-10.3-avatar-agent-experience.md) | Free-text brief → `AvatarIntent` (deterministic), plan preview, natural-language refinement | P1 |
-| [Epic 10.4 — Photo Couple Same-Frame Composite](./epics/epic-10.4-photo-couple-same-frame.md) | Extend same-frame to photo `couple`, gated on a real multi-image capability bit | P2 |
+| [Epic 10.4 — Photo Couple Same-Frame Composite](./epics/epic-10.4-photo-couple-same-frame.md) | Superseded by M11.4 multi-reference identity; retained as historical planning context | Superseded |
 
 ### M10 progress
 
 - [x] 10.1 — App-level Turnstile (optional, default-off, server `siteverify`)
 - [x] 10.2 — Cost & call transparency (provider/model/size/count, refinement re-call notice, pricing links)
 - [x] 10.3 — Avatar agent experience (deterministic brief→intent, plan preview, NL refinement)
-- [ ] 10.4 — Photo couple same-frame composite (capability-gated)
+- [ ] 10.4 — **SUPERSEDED by 11.4**; do not implement as a standalone path
 
 ### Cross-cutting maintenance (tracked in docs, not a standalone epic)
 
 - [ ] **Provider model/capability drift guard**: verify hard-coded model IDs (e.g.
       `lib/providers/openai.ts` `gpt-image-2`) against current provider docs each release; checklist
       and cadence live in [provider-calibration.md](../provider-calibration.md). This feeds 10.2's
-      model labels and 10.4's capability bit.
+      model labels and M11.2's complete capability registry.
 
 ## Later candidates (not yet scheduled)
 
-Preserve the same BYOK / no-login / no-database constraints; pull into a future milestone when M10
-lands.
+Preserve the same BYOK / no-login / no-database constraints; pull these into a future milestone
+only after the M11 core slices land.
 
 - [ ] **Browser-direct zero-trust mode research spike**: evaluate whether each supported provider
       can be called directly from the browser without CORS or secret-handling regressions; document
       the result before implementing a toggle.
-- [ ] **Next provider epic**: add either Replicate or Stability AI behind `ImageProvider`, with the
-      same mocked-fetch, fixed-host, no-secret-logging, and capability tests used for fal.ai.
+- [ ] **Next provider epic**: add a provider only when M11 evaluation demonstrates a material
+      quality/capability gap; use the same mocked-fetch, fixed-host, no-secret-logging, and
+      capability tests used for fal.ai.
 - [ ] **Additional locale**: add one new UI locale after choosing target language, with i18n parity
       tests and no repository-doc translation requirement.
 - [ ] **Release automation follow-up**: CI already runs on `main`; consider optional auto-deploy
       on default-branch merges using Wrangler secrets, keeping manual rollback documented.
+
+## M11 — Identity-Preserving Conversational Avatar Creation
+
+M11 changes the optimization target from “successfully call an image API” to “help a user obtain a
+usable, identity-consistent avatar with few paid calls.” It preserves BYOK, no login, no database,
+no server-side image history, and no long-term hosting.
+
+| Epic | Goal | Priority | Depends on |
+| ---- | ---- | -------- | ---------- |
+| [11.1 — Avatar Quality Evaluation](./epics/epic-11.1-avatar-quality-evaluation.md) | Establish fixtures, rubrics, and a provider/prompt regression gate | P0 | M10 |
+| [11.2 — Provider Capability v2](./epics/epic-11.2-provider-capability-v2.md) | Model and verify generation, editing, reference, composite, and fallback truth | P0 | 11.1 |
+| [11.3 — Conversational Image Editing](./epics/epic-11.3-conversational-image-editing.md) | Select a result and continue editing it with explicit change/preserve semantics | P0 | 11.1, 11.2 |
+| [11.4 — Multi-Reference Identity](./epics/epic-11.4-multi-reference-identity.md) | Use stronger reference sets and support verified two-person composition | P1 | 11.1, 11.2 |
+| [11.5 — Avatar Copilot Workspace](./epics/epic-11.5-avatar-copilot-workspace.md) | Make brief → candidates → selection → editing the dominant flow | P1 | 11.3, 11.4 |
+| [11.6 — Intelligent Intent Understanding](./epics/epic-11.6-intelligent-intent-understanding.md) | Add optional BYOK structured extraction and minimal clarification | P2 | 11.1, 11.5 |
+| [11.7 — Avatar Delivery Pack](./epics/epic-11.7-avatar-delivery-pack.md) | Preview and export platform-ready crops entirely client-side | P2 | 11.5 |
+
+### Dependency sequence
+
+```mermaid
+flowchart LR
+  E111["11.1 Quality evaluation"] --> E112["11.2 Capability v2"]
+  E112 --> E113["11.3 Conversational editing"]
+  E112 --> E114["11.4 Multi-reference identity"]
+  E113 --> E115["11.5 Copilot workspace"]
+  E114 --> E115
+  E115 --> E116["11.6 Intelligent intent"]
+  E115 --> E117["11.7 Delivery pack"]
+```
+
+### M11 release slices
+
+1. **Foundation slice** — 11.1 + 11.2. No major UI promise ships before capability truth and
+   quality baselines exist.
+2. **Core value slice** — 11.3 + 11.4. Ship real selected-result editing and stronger identity
+   references behind verified provider gates.
+3. **Experience slice** — 11.5. Replace the parameter-first default with the copilot loop while
+   retaining advanced controls.
+4. **Intelligence and delivery slice** — 11.6 + 11.7. Add optional model-based understanding and
+   useful final asset exports after the core loop is reliable.
+
+### M11 global acceptance
+
+- First-round candidate selection, calls-to-download, likeness, edit-preservation, latency, and
+  EN/zh-CN parity can be measured on a versioned non-user fixture set.
+- “Edit” is shown only for a provider path that carries the selected visual result or continuation
+  context; text-only retries are labeled “regenerate.”
+- Reference photos, generated images, candidate branches, and provider continuation IDs remain
+  session-memory-only and are absent from local history, URLs, logs, analytics, and error payloads.
+- Every capability is documentation-verified, fixture-smoke-tested where quality-sensitive, and
+  timestamped for drift review.
+- Full gate remains green: `guard:secrets`, `lint`, `typecheck`, `test`, and `build`; provider
+  evaluation runs separately because it requires user-owned keys and may incur cost.
+
+### Explicitly paused during M11 core work
+
+- More decorative themes or variants.
+- A provider added only to increase the integration count.
+- A third UI locale.
+- Accounts, cloud history, database persistence, or server-side team workspaces.
+- Standalone implementation of Epic 10.4 outside the M11.4 capability and evaluation model.

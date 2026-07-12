@@ -27,6 +27,19 @@ Simi Avatar uses **Scheme B (Worker/Route Handler proxy)**: requests pass throug
 - Oversized images are downscaled/compressed client-side.
 - UI note: `Your image and API key are only used for this generation request. Simi Avatar does not store your API key or images.`
 
+### M11 session image and continuation privacy
+
+- Multi-reference photos, generated candidates, edit-parent images, masks, and crops follow the
+  same image rules above and exist only for the active browser/request lifetime.
+- Provider response IDs, image IDs, or other continuation handles are treated as sensitive session
+  metadata. They must never enter local history, URLs, preset links, analytics, logs, or errors.
+- Candidate branches are an in-memory UI structure, not image history. Reloading or closing the
+  page may intentionally destroy them.
+- Client-side reference-quality checks must not create or persist face embeddings, biometric
+  templates, or identity profiles.
+- Optional LLM intent extraction receives photos only when the selected path requires visual input
+  and the user has explicitly authorized sending those photos to that provider.
+
 ## Team preset security
 
 - The team preset code carries **only non-sensitive generation params** (`theme`, optional `styleId`, quality prompt, `size`).
@@ -78,3 +91,5 @@ Self-hosters using their own key bear abuse cost, but basic protections remain o
 - [ ] MiniMax region routed explicitly; mismatch → `INVALID_REGION`.
 - [ ] Rate limiting + timeout active on the public demo.
 - [ ] Content rejections messaged clearly.
+- [ ] Candidate images, multi-reference uploads, masks, and continuation IDs are session-only.
+- [ ] No face embedding, biometric template, or continuation ID enters local history or telemetry.

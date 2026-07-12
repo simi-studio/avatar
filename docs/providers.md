@@ -171,6 +171,70 @@ OpenAI receives richer natural-language prompts; MiniMax receives concise comma-
 | `RATE_LIMITED`          | Throttled                                      |
 | `UNKNOWN_ERROR`         | Unmapped failure                               |
 
-## Planned providers (V1.1)
+## Provider capabilities v2 (M11)
 
-Replicate, Stability AI — each behind the same interface, with security requirements identical to the above (no key persistence, no key logging). **fal.ai is now shipped** (see above).
+Provider selection must be based on verified operations, not on a flat list of names. M11 extends
+the current size/model metadata with the following shape:
+
+```ts
+type EditStrategy = "conversation" | "image-edit" | "regenerate";
+
+type ProviderCapabilitiesV2 = {
+  sizes: readonly ImageSize[];
+  aspectRatios: readonly string[];
+  maxCandidatesPerCall: number;
+  maxReferenceImages: number;
+  maxReferencePeople: number;
+  supportsImageEdit: boolean;
+  supportsMultiTurnEdit: boolean;
+  supportsMasks: boolean;
+  supportsMultiImageComposite: boolean;
+  supportsTransparentBackground: boolean;
+  supportsSeed: boolean;
+  identityPreservation: "none" | "single-reference" | "multi-reference";
+  editStrategy: EditStrategy;
+  modelLabel: string;
+  modelVersion?: string;
+  pricingUrl: string;
+  verifiedAt: string;
+};
+```
+
+Capability values require both current official documentation and a fixture-based smoke check where
+the behavior is quality-sensitive. A documented endpoint is not sufficient evidence that it
+preserves a person's identity well enough for the product to advertise that outcome.
+
+### Truthful degradation
+
+| Requested operation | Capability present | Capability absent |
+| ------------------- | ------------------ | ----------------- |
+| Continue editing selected result | Multi-turn edit | Use image edit; otherwise label “regenerate” |
+| Keep face, change background | Image edit / mask | Regenerate with an identity-change warning |
+| Use several photos of one person | Multi-reference identity | Accept only the supported reference count |
+| Put two referenced people in one frame | Multi-image composite + verified people count ≥ 2 | Generate style-matched A/B avatars |
+| Produce several candidates | Batch/multi-output | Make disclosed parallel calls within limits |
+
+The UI must never call a result an edit merely because it reused the accumulated text prompt.
+
+### Initial M11 verification targets
+
+- **OpenAI**: verify GPT Image multi-image input and high-fidelity edit behavior; evaluate the
+  Responses API continuation path separately from the Image API.
+- **MiniMax**: verify the real reference count, whether two identities can be preserved in one
+  frame, and whether follow-up edits preserve the selected result.
+- **fal.ai / FLUX.1 [dev]**: retain single-image generation/edit support until a different fal model
+  is deliberately selected and calibrated for multi-reference identity.
+- **Gemini candidate**: evaluate only if it materially closes M11 gaps in multi-reference character
+  consistency or conversational editing. Adding it is an outcome-driven decision, not a provider
+  count goal.
+
+See [provider-calibration.md](./provider-calibration.md) for the release drift guard and
+[planning/epics/epic-11.1-avatar-quality-evaluation.md](./planning/epics/epic-11.1-avatar-quality-evaluation.md)
+for the evaluation gate.
+
+## Planned providers
+
+Do not schedule Replicate, Stability AI, Gemini, or another provider solely to expand the catalog.
+Add one only when the M11 evaluation identifies a user-critical capability or quality gap that the
+current providers cannot satisfy. Security requirements remain identical: no key persistence, no
+key logging, fixed upstream hosts, normalized errors, and mocked-fetch coverage.
