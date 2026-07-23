@@ -68,10 +68,10 @@ PRD §12.4.
 | Concern          | Note                                                                                                                            |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | Request body     | Compress/downscale images client-side; the route pre-rejects oversized `Content-Length` and stream-counts requests without `Content-Length` before parsing, returning `IMAGE_TOO_LARGE`. base64 inflates ~33%. |
-| CPU / duration   | Image generation takes 10–30s. Use the synchronous request→wait→response model with a ~60s client timeout (`PROVIDER_TIMEOUT`). |
+| CPU / duration   | Image generation can take up to ~120s for quality models. Use the synchronous request→wait→response model with a client timeout slightly above provider adapter timeouts (`PROVIDER_TIMEOUT`). |
 | Plan differences | Cloudflare **Free** has tighter CPU-time and subrequest limits than **Paid**; heavy/public demos should use a Paid plan.        |
 | Concurrency      | No server queue in MVP; throttle the public demo with Cloudflare WAF / Rate Limiting and optional Turnstile. The app's `RATE_LIMIT_PER_MINUTE` guard is instance-local fallback protection, not the primary multi-instance public-demo control. |
-| Outbound         | Only fixed provider hosts are called (OpenAI, MiniMax global/china, fal.run + fal.media for image download).                    |
+| Outbound         | Only fixed provider hosts are called (OpenAI, MiniMax global/china, fal.run + fal.media for image download, `api.x.ai` + xAI-controlled temporary image hosts when base64 is not returned).        |
 
 ## Custom domain (optional)
 

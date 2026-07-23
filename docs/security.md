@@ -70,7 +70,7 @@ Self-hosters using their own key bear abuse cost, but basic protections remain o
 
 ## OWASP notes
 
-- **Injection / SSRF**: provider base URLs are from a fixed allowlist (OpenAI, MiniMax global/china); user input never sets the request host.
+- **Injection / SSRF**: provider base URLs are from a fixed allowlist (OpenAI, MiniMax global/china, fal.run + fal-controlled download hosts, `api.x.ai`); user input never sets the request host. xAI responses request base64 first; if xAI returns only a temporary result URL, the adapter downloads it only from xAI-controlled HTTPS hosts with redirects disabled.
 - **Sensitive data exposure**: see key/image constraints above.
 - **Security logging**: logs must exclude keys, images, and full prompts that could contain personal data.
 - **Dependencies**: keep adapters minimal; pin and audit.

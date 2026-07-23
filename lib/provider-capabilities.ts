@@ -36,6 +36,13 @@ export const PROVIDER_CAPABILITIES: Record<ProviderId, ProviderCapabilities> = {
     modelLabel: "FLUX.1 [dev]",
     pricingUrl: "https://fal.ai/pricing",
   },
+  xai: {
+    // Grok Imagine resolves square avatars at 1k (≈1024); 2k is not exposed yet.
+    sizes: ["1024x1024"],
+    defaultSize: "1024x1024",
+    modelLabel: "grok-imagine-image-quality",
+    pricingUrl: "https://docs.x.ai/developers/models",
+  },
 };
 
 export function sizesForProvider(provider: ProviderId): readonly ImageSize[] {

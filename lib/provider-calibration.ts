@@ -55,6 +55,17 @@ export const PROVIDER_PROMPT_PROFILES: Record<
     supportsReferenceStrength: true,
     negativePromptStrategy: "soft-prompt",
   },
+  xai: {
+    // Grok Imagine responds well to rich natural-language style direction.
+    provider: "xai",
+    promptStyle: "natural-language",
+    preferredLanguage: "en",
+    qualityFragment:
+      "clean centered avatar portrait, high-quality details, sharp focus, intentional lighting",
+    supportsNativeNegativePrompt: false,
+    supportsReferenceStrength: false,
+    negativePromptStrategy: "soft-prompt",
+  },
 };
 
 export const STYLE_CALIBRATION_MATRIX = {
@@ -306,6 +317,89 @@ export const STYLE_CALIBRATION_MATRIX = {
       promptFragment:
         "a sleek science-fiction avatar with subtle holographic accents, clean futuristic materials, and portrait-first framing",
       knownBias: "May add helmets that hide the face.",
+      recoveryHint: "Add no helmet, visible face to the avoid list.",
+    },
+  },
+  xai: {
+    anime: {
+      provider: "xai",
+      styleId: "anime",
+      promptFragment:
+        "a polished anime avatar illustration with expressive eyes, clean line work, and controlled color harmony",
+      knownBias:
+        "May push toward semi-realistic anime hybrids when the prompt is sparse.",
+      recoveryHint: "Emphasize cel shading, clean line art, and flat color blocks.",
+    },
+    "pixar-3d": {
+      provider: "xai",
+      styleId: "pixar-3d",
+      promptFragment:
+        "a friendly 3D animated character render with rounded features, soft global illumination, and tactile materials",
+      knownBias: "Can become overly cinematic rather than toy-like 3D.",
+      recoveryHint: "Ask for soft matte materials and rounded, family-friendly proportions.",
+    },
+    cyberpunk: {
+      provider: "xai",
+      styleId: "cyberpunk",
+      promptFragment:
+        "a cinematic cyberpunk avatar with neon edge lighting, readable facial silhouette, and restrained futuristic details",
+      knownBias: "May invent dense neon city backgrounds.",
+      recoveryHint: "Request a plain or studio background and a single key light.",
+    },
+    "professional-headshot": {
+      provider: "xai",
+      styleId: "professional-headshot",
+      promptFragment:
+        "a realistic professional headshot with natural skin texture, soft studio light, and a clean business-ready background",
+      knownBias: "May over-beautify skin for stylized polish.",
+      recoveryHint: "Ask for natural skin texture and low creativity.",
+    },
+    linkedin: {
+      provider: "xai",
+      styleId: "linkedin",
+      promptFragment:
+        "a polished LinkedIn-style portrait with approachable expression, soft office depth, and credible professional lighting",
+      knownBias: "May invent branded clothing or busy office props.",
+      recoveryHint: "Set background to plain or studio and add logos to the avoid list.",
+    },
+    "fantasy-hero": {
+      provider: "xai",
+      styleId: "fantasy-hero",
+      promptFragment:
+        "an epic fantasy character avatar with cinematic light, readable costume detail, and heroic but portrait-focused framing",
+      knownBias: "Tends to expand into full scenic compositions.",
+      recoveryHint: "Keep framing tight and request a simple background.",
+    },
+    "comic-book": {
+      provider: "xai",
+      styleId: "comic-book",
+      promptFragment:
+        "a bold comic-book avatar with clean ink shapes, controlled halftone shading, and strong graphic color blocks",
+      knownBias: "Can add lettering, captions, or panel borders.",
+      recoveryHint: "Add text, logo, watermark, panels to the avoid list.",
+    },
+    watercolor: {
+      provider: "xai",
+      styleId: "watercolor",
+      promptFragment:
+        "a delicate watercolor portrait avatar with soft edges, paper texture, and gentle transparent washes",
+      knownBias: "May wash out fine facial detail.",
+      recoveryHint: "Increase likeness and request sharp eyes.",
+    },
+    "retro-game": {
+      provider: "xai",
+      styleId: "retro-game",
+      promptFragment:
+        "a crisp retro pixel-art avatar with readable 16-bit shapes, limited palette, and clean square composition",
+      knownBias: "Can blend smooth shading into the pixel grid.",
+      recoveryHint: "Repeat crisp pixel edges and avoid painterly blur.",
+    },
+    "sci-fi": {
+      provider: "xai",
+      styleId: "sci-fi",
+      promptFragment:
+        "a sleek science-fiction avatar with subtle holographic accents, clean futuristic materials, and portrait-first framing",
+      knownBias: "May add helmets or visors that hide the face.",
       recoveryHint: "Add no helmet, visible face to the avoid list.",
     },
   },

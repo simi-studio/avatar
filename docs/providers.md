@@ -1,6 +1,6 @@
 # Providers
 
-> The `ImageProvider` interface, the MVP providers (OpenAI, MiniMax), how to add a new one, and the normalized error model. See [architecture.md](./architecture.md) and [prd.md](./prd.md) §8.
+> The `ImageProvider` interface, supported providers (OpenAI, MiniMax, fal.ai, xAI), how to add a new one, and the normalized error model. See [architecture.md](./architecture.md) and [prd.md](./prd.md) §8.
 
 ## Interface
 
@@ -15,7 +15,7 @@ type GeneratedImage = {
 };
 
 interface ImageProvider {
-  id: string; // "openai" | "minimax"
+  id: string; // "openai" | "minimax" | "fal" | "xai"
   name: string;
   supportedModes: GenerationMode[];
   /** Region-specific base URL (e.g. MiniMax global vs china). */
@@ -135,6 +135,31 @@ async function minimaxGenerate(
 - **Response handling**: fal returns image **URLs**, not base64. The adapter downloads each result and base64-encodes it, but **only from fal-controlled hosts** (`fal.media`, `*.fal.media`, `*.fal.run`, `*.fal.ai`) to prevent SSRF via a tampered response.
 - For `couple` / `couple-text`, call twice with the same style and label the results `A` / `B`.
 
+### xAI (Grok Imagine)
+
+| Mode                        | Endpoint                                 | Model                          |
+| --------------------------- | ---------------------------------------- | ------------------------------ |
+| text / couple-text / themed | `POST /v1/images/generations`            | `grok-imagine-image-quality`   |
+| single / couple             | `POST /v1/images/edits` (JSON body)      | `grok-imagine-image-quality`   |
+
+- Base URL: `https://api.x.ai` (fixed allowlist; user input never sets the host).
+- Auth: `Authorization: Bearer <apiKey>` — keys come from [console.x.ai](https://console.x.ai/), **not** from an X Premium+ subscription.
+- Request defaults: `aspect_ratio: "1:1"`, `resolution: "1k"`, `n: 1`, `response_format: "b64_json"`.
+- **Edits are JSON, not multipart.** Unlike OpenAI's form-data edits, xAI expects
+  `{ image: { url: "data:image/...;base64,..." } }` in an `application/json`
+  body. Do not use the OpenAI SDK `images.edit()` multipart path.
+- **Response handling**: request `b64_json` first. Prefer `data[].b64_json` and
+  honor `data[].mime_type` (with magic-byte sniffing fallback). If only a
+  temporary `url` is returned, download it **only** from xAI-controlled hosts
+  (`*.x.ai`, including `imgen.x.ai`) with redirects disabled to prevent SSRF.
+- App size mapping: supported UI size is `1024x1024` → Grok Imagine `1k`. Higher
+  `2k` output is not exposed until the app gains a larger avatar size option.
+- Client fetch timeout is slightly above the **120s** provider adapter timeout so
+  quality generation can return a normalized provider timeout/error from the route
+  instead of being aborted in the browser first.
+- For `couple` / `couple-text` (A/B pair), call twice with the same style and label
+  the results `A` / `B`. `sameFrame` couple-text uses a single text-to-image call.
+
 ## Prompt compilation and calibration
 
 The UI captures a provider-neutral `AvatarIntent` instead of treating the visible text box as the final provider prompt. The server compiles that intent through:
@@ -143,7 +168,7 @@ The UI captures a provider-neutral `AvatarIntent` instead of treating the visibl
 - `lib/prompt-compiler.ts` for provider-specific prompt wording and safe request options.
 - `lib/provider-calibration.ts` for per-provider/per-style fragments, known bias, and recovery hints.
 
-OpenAI receives richer natural-language prompts; MiniMax receives concise comma-separated descriptors. Current providers use soft avoid-list text rather than speculative native negative-prompt parameters. See [provider-calibration.md](./provider-calibration.md).
+OpenAI, fal.ai, and xAI receive richer natural-language prompts; MiniMax receives concise comma-separated descriptors. Current providers use soft avoid-list text rather than speculative native negative-prompt parameters. See [provider-calibration.md](./provider-calibration.md).
 
 ## Adding a new provider
 
@@ -224,6 +249,9 @@ The UI must never call a result an edit merely because it reused the accumulated
   frame, and whether follow-up edits preserve the selected result.
 - **fal.ai / FLUX.1 [dev]**: retain single-image generation/edit support until a different fal model
   is deliberately selected and calibrated for multi-reference identity.
+- **xAI / Grok Imagine**: verify identity preservation on photo modes and multi-image edit (up to 3
+  references) before advertising multi-person same-frame composition. Text/themed paths are
+  available; photo identity quality is evaluation-gated under Epic 11.1.
 - **Gemini candidate**: evaluate only if it materially closes M11 gaps in multi-reference character
   consistency or conversational editing. Adding it is an outcome-driven decision, not a provider
   count goal.

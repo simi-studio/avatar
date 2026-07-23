@@ -18,6 +18,13 @@ import {
   mapFalSize,
   mapFalStrength,
 } from "@/lib/providers/fal";
+import {
+  isAllowedXaiImageHost,
+  mapXaiError,
+  mapXaiResolution,
+  resolveXaiMime,
+  xaiProvider,
+} from "@/lib/providers/xai";
 import type { ProviderGenerateInput } from "@/lib/types";
 
 function jsonResponse(body: unknown, status = 200): Response {
@@ -664,5 +671,346 @@ describe("fal adapter", () => {
       String(call[0]).startsWith("https://fal.run/"),
     );
     expect(falCalls).toHaveLength(1);
+  });
+});
+
+describe("xai adapter", () => {
+  it("maps supported app sizes to Grok Imagine 1k resolution", () => {
+    expect(mapXaiResolution("1024x1024")).toBe("1k");
+    expect(() => mapXaiResolution("512x512")).toThrow(ProviderError);
+  });
+
+  it("maps errors to normalized codes", () => {
+    expect(mapXaiError(401, {})).toBe("INVALID_API_KEY");
+    expect(mapXaiError(403, {})).toBe("INVALID_API_KEY");
+    expect(
+      mapXaiError(400, { error: { message: "insufficient quota" } }),
+    ).toBe("INSUFFICIENT_CREDITS");
+    expect(mapXaiError(402, {})).toBe("INSUFFICIENT_CREDITS");
+    expect(mapXaiError(429, {})).toBe("RATE_LIMITED");
+    expect(
+      mapXaiError(400, { error: { code: "moderation_blocked" } }),
+    ).toBe("CONTENT_REJECTED");
+    expect(
+      mapXaiError(403, { error: { message: "content policy violation" } }),
+    ).toBe("CONTENT_REJECTED");
+    expect(mapXaiError(504, {})).toBe("PROVIDER_TIMEOUT");
+    expect(mapXaiError(400, { error: { message: "bad image file" } })).toBe(
+      "INVALID_IMAGE",
+    );
+    // Generic 400s must not pretend every failure is an invalid upload.
+    expect(mapXaiError(400, {})).toBe("INVALID_MODE_INPUT");
+  });
+
+  it("resolves mime types from API fields and magic bytes", () => {
+    expect(resolveXaiMime("image/png")).toBe("image/png");
+    expect(resolveXaiMime("image/jpg")).toBe("image/jpeg");
+    expect(resolveXaiMime("image/jpeg; charset=utf-8")).toBe("image/jpeg");
+    // JPEG SOI marker
+    const jpegB64 = Buffer.from([0xff, 0xd8, 0xff, 0xe0]).toString("base64");
+    expect(resolveXaiMime(undefined, jpegB64)).toBe("image/jpeg");
+  });
+
+  it("only downloads images from xAI-controlled hosts", () => {
+    expect(isAllowedXaiImageHost("https://imgen.x.ai/out.png")).toBe(true);
+    expect(isAllowedXaiImageHost("https://cdn.x.ai/out.png")).toBe(true);
+    expect(isAllowedXaiImageHost("http://x.ai/out.png")).toBe(false);
+    expect(isAllowedXaiImageHost("https://evil.example.com/a.png")).toBe(
+      false,
+    );
+  });
+
+  it("handles non-object xAI error bodies defensively", () => {
+    expect(mapXaiError(429, null)).toBe("RATE_LIMITED");
+    expect(mapXaiError(401, "unauthorized")).toBe("INVALID_API_KEY");
+  });
+
+  it("calls the generations endpoint for text mode with avatar defaults", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(jsonResponse({ data: [{ b64_json: "XXXX" }] }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const images = await xaiProvider.generateAvatar({
+      apiKey: "xai-test",
+      mode: "text",
+      prompt: "a friendly avatar",
+      size: "1024x1024",
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      "https://api.x.ai/v1/images/generations",
+    );
+    const request = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    expect((request.headers as Record<string, string>).Authorization).toBe(
+      "Bearer xai-test",
+    );
+    expect(JSON.parse(String(request.body))).toMatchObject({
+      model: "grok-imagine-image-quality",
+      prompt: "a friendly avatar",
+      n: 1,
+      aspect_ratio: "1:1",
+      resolution: "1k",
+      response_format: "b64_json",
+    });
+    expect(images).toEqual([
+      { base64: "XXXX", mimeType: "image/jpeg" },
+    ]);
+  });
+
+  it("uses API mime_type when present on b64 responses", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse({
+        data: [{ b64_json: "PNGDATA", mime_type: "image/png" }],
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const images = await xaiProvider.generateAvatar({
+      apiKey: "xai-test",
+      mode: "text",
+      prompt: "x",
+      size: "1024x1024",
+    });
+
+    expect(images).toEqual([{ base64: "PNGDATA", mimeType: "image/png" }]);
+  });
+
+  it("calls the JSON edits endpoint for single mode with a data URI", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(jsonResponse({ data: [{ b64_json: "EDIT" }] }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await xaiProvider.generateAvatar({
+      apiKey: "xai-test",
+      mode: "single",
+      images: [pngFile()],
+      prompt: "stylize me",
+      size: "1024x1024",
+    });
+
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      "https://api.x.ai/v1/images/edits",
+    );
+    const request = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    expect((request.headers as Record<string, string>)["Content-Type"]).toBe(
+      "application/json",
+    );
+    const body = JSON.parse(String(request.body));
+    expect(body.model).toBe("grok-imagine-image-quality");
+    expect(body.image.url).toMatch(/^data:image\/png;base64,/);
+    // TanStack/community adapters send `{ url }` only; do not require type.
+    expect(body.image.type).toBeUndefined();
+    expect(body.response_format).toBe("b64_json");
+    // Must not be multipart form data (OpenAI-style).
+    expect(request.body instanceof FormData).toBe(false);
+  });
+
+  it("generates a labeled A/B pair for couple-text mode", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(() =>
+        Promise.resolve(jsonResponse({ data: [{ b64_json: "PAIR" }] })),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const images = await xaiProvider.generateAvatar({
+      apiKey: "xai-test",
+      mode: "couple-text",
+      prompt: "a matching couple avatar set",
+      size: "1024x1024",
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(images).toEqual([
+      { base64: "PAIR", mimeType: "image/jpeg", label: "A" },
+      { base64: "PAIR", mimeType: "image/jpeg", label: "B" },
+    ]);
+  });
+
+  it("makes a single unlabeled call for couple-text same-frame", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(jsonResponse({ data: [{ b64_json: "ONE" }] }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const images = await xaiProvider.generateAvatar({
+      apiKey: "xai-test",
+      mode: "couple-text",
+      sameFrame: true,
+      prompt: "both partners in one frame",
+      size: "1024x1024",
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(images).toEqual([{ base64: "ONE", mimeType: "image/jpeg" }]);
+  });
+
+  it("adds distinct partner guidance to xAI couple-text prompts", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(() =>
+        Promise.resolve(jsonResponse({ data: [{ b64_json: "PAIR" }] })),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await xaiProvider.generateAvatar({
+      apiKey: "xai-test",
+      mode: "couple-text",
+      prompt: "matching retro couple avatars",
+      size: "1024x1024",
+    });
+
+    const firstRequest = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    const secondRequest = fetchMock.mock.calls[1]?.[1] as RequestInit;
+    expect(JSON.parse(String(firstRequest.body)).prompt).toContain("Partner A");
+    expect(JSON.parse(String(secondRequest.body)).prompt).toContain(
+      "Partner B",
+    );
+  });
+
+  it("returns successful couple images when one xAI call fails", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse({ data: [{ b64_json: "A-OK" }] }))
+      .mockResolvedValueOnce(jsonResponse({ error: { code: "bad" } }, 500));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const images = await xaiProvider.generateAvatar({
+      apiKey: "xai-test",
+      mode: "couple",
+      images: [pngFile("a.png"), pngFile("b.png")],
+      prompt: "matching pair",
+      size: "1024x1024",
+    });
+
+    expect(images).toEqual([
+      { base64: "A-OK", mimeType: "image/jpeg", label: "A" },
+    ]);
+  });
+
+  it("throws a normalized error on auth failure", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(jsonResponse({ error: { code: "invalid_api_key" } }, 401));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      xaiProvider.generateAvatar({
+        apiKey: "bad",
+        mode: "themed",
+        prompt: "x",
+        size: "1024x1024",
+      }),
+    ).rejects.toMatchObject({ code: "INVALID_API_KEY" });
+  });
+
+  it("never embeds the API key in the request URL", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(jsonResponse({ data: [{ b64_json: "AAAA" }] }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await xaiProvider.generateAvatar({
+      apiKey: "xai-super-secret",
+      mode: "themed",
+      prompt: "x",
+      size: "1024x1024",
+    });
+
+    expect(String(fetchMock.mock.calls[0]?.[0])).not.toContain(
+      "xai-super-secret",
+    );
+  });
+
+  it("rejects URL-only responses from non-xAI hosts", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse({
+        data: [{ url: "https://evil.example.com/out.png" }],
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      xaiProvider.generateAvatar({
+        apiKey: "xai-test",
+        mode: "text",
+        prompt: "x",
+        size: "1024x1024",
+      }),
+    ).rejects.toMatchObject({ code: "UNKNOWN_ERROR" });
+    // Only the generation call — no follow-up download.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("downloads URL-only responses from xAI hosts when b64 is absent", async () => {
+    const fetchMock = vi.fn<typeof fetch>((input) => {
+      const url = String(input);
+      if (url.startsWith("https://api.x.ai/")) {
+        return Promise.resolve(
+          jsonResponse({
+            data: [{ url: "https://imgen.x.ai/files/out.jpg" }],
+          }),
+        );
+      }
+      return Promise.resolve(
+        new Response(new Uint8Array([0xff, 0xd8, 0xff, 0xe0]), {
+          status: 200,
+          headers: { "Content-Type": "image/jpeg" },
+        }),
+      );
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const images = await xaiProvider.generateAvatar({
+      apiKey: "xai-test",
+      mode: "text",
+      prompt: "x",
+      size: "1024x1024",
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(images).toHaveLength(1);
+    expect(images[0]?.mimeType).toBe("image/jpeg");
+    expect(images[0]?.base64?.length ?? 0).toBeGreaterThan(0);
+    expect((fetchMock.mock.calls[1]?.[1] as RequestInit).redirect).toBe(
+      "manual",
+    );
+  });
+
+  it("does not follow xAI image URL redirects", async () => {
+    const fetchMock = vi.fn<typeof fetch>((input) => {
+      const url = String(input);
+      if (url.startsWith("https://api.x.ai/")) {
+        return Promise.resolve(
+          jsonResponse({
+            data: [{ url: "https://imgen.x.ai/files/out.jpg" }],
+          }),
+        );
+      }
+      return Promise.resolve(
+        new Response(null, {
+          status: 302,
+          headers: { Location: "https://evil.example.com/out.jpg" },
+        }),
+      );
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      xaiProvider.generateAvatar({
+        apiKey: "xai-test",
+        mode: "text",
+        prompt: "x",
+        size: "1024x1024",
+      }),
+    ).rejects.toMatchObject({ code: "UNKNOWN_ERROR" });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect((fetchMock.mock.calls[1]?.[1] as RequestInit).redirect).toBe(
+      "manual",
+    );
   });
 });

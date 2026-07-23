@@ -90,6 +90,7 @@
     "openai": "OpenAI",
     "minimax": "MiniMax",
     "fal": "fal.ai",
+    "xai": "xAI（Grok Imagine）",
     "region": "区域",
     "regionGlobal": "全球",
     "regionChina": "中国",

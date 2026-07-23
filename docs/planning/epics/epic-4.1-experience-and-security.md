@@ -25,7 +25,7 @@ Harden error handling, interaction, security guards, and the test baseline to re
 - [x] Normalized error mapping (incl. `INVALID_MODE_INPUT`, `INVALID_REGION`, `RATE_LIMITED`, `PROVIDER_TIMEOUT`)
 - [x] Mode×input validation (single 1 / couple 2 / themed 0 + theme+variant)
 - [x] MiniMax region validation
-- [x] Client timeout (~60s) with friendly message
+- [x] Client timeout with friendly `PROVIDER_TIMEOUT` message
 
 ### Security
 - [x] Log redaction: errors never contain the full key

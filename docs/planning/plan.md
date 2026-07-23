@@ -4,7 +4,7 @@
 
 | Field           | Value                                                            |
 | --------------- | ---------------------------------------------------------------- |
-| Status          | MVP complete; M10.1–10.3 shipped; M11 planned (identity-preserving conversational creation) |
+| Status          | MVP complete; M10.1–10.3 shipped; M11 in progress (11.1 harness landed) |
 | Scope           | MVP (M1–M5)                                                      |
 | Providers (MVP) | OpenAI + MiniMax                                                 |
 | Languages (MVP) | English (default) + Simplified Chinese                           |
@@ -33,7 +33,7 @@
 - **M6–M8 are complete**: text-first sources, intent controls/refinement, provider-aware capabilities, quick/advanced form split, preview states, partial couple handling, and contextual team preset sharing are shipped.
 - **M9 is complete**: Cats / Robots / Pixel Heroes themes, fal.ai FLUX provider support, copyable compiled prompts, couple-text same-frame composite, client-only local history, E2E smoke coverage, ESLint CLI migration, release checklist, and production observability notes are shipped.
 - **M10.1–10.3 are complete**: optional Turnstile, cost/call transparency, and deterministic brief→intent/refinement are shipped. M10.4 is superseded by M11.4, which treats photo-couple composition as part of the broader multi-reference identity problem.
-- **M11 is planned**: outcome evaluation, provider capability v2, true conversational editing, multi-reference identity, a copilot workspace, optional LLM intent understanding, and platform-ready delivery.
+- **M11 is in progress**: the 11.1 evaluation harness, rubric, and regression gate are landed, but its reference assets are outstanding, so identity/edit dimensions cannot be scored live yet. Provider capability v2, true conversational editing, multi-reference identity, a copilot workspace, optional LLM intent understanding, and platform-ready delivery remain planned.
 - **Public demo is live**: `https://avatar.simi.studio/zh-CN` returns `HTTP/2 200` on Cloudflare/OpenNext with the custom domain bound.
 - **GitHub repository metadata is set**: `simi-studio/avatar` is public, has a concise description, homepage URL, and topics configured.
 - **Last recorded full local gate passed on 2026-07-08**: `npm run guard:secrets`, `npm run lint`, `npm run typecheck`, `npm run test` (179 tests, 25 files), and `npm run build`.
@@ -167,9 +167,12 @@ only after the M11 core slices land.
 - [ ] **Browser-direct zero-trust mode research spike**: evaluate whether each supported provider
       can be called directly from the browser without CORS or secret-handling regressions; document
       the result before implementing a toggle.
-- [ ] **Next provider epic**: add a provider only when M11 evaluation demonstrates a material
-      quality/capability gap; use the same mocked-fetch, fixed-host, no-secret-logging, and
-      capability tests used for fal.ai.
+- [x] **xAI (Grok Imagine) provider**: shipped via `lib/providers/xai.ts` (`api.x.ai`,
+      `grok-imagine-image-quality`, JSON edits, base64-first responses with xAI-host-only URL fallback). Photo identity quality
+      remains evaluation-gated under Epic 11.1 before multi-image composition claims.
+- [ ] **Next provider epic**: add a further provider only when M11 evaluation demonstrates a
+      material quality/capability gap; use the same mocked-fetch, fixed-host, no-secret-logging,
+      and capability tests used for fal.ai / xAI.
 - [ ] **Additional locale**: add one new UI locale after choosing target language, with i18n parity
       tests and no repository-doc translation requirement.
 - [ ] **Release automation follow-up**: CI already runs on `main`; consider optional auto-deploy
@@ -214,6 +217,18 @@ flowchart LR
    retaining advanced controls.
 4. **Intelligence and delivery slice** — 11.6 + 11.7. Add optional model-based understanding and
    useful final asset exports after the core loop is reliable.
+
+### M11 progress
+
+- [ ] 11.1 — Avatar quality evaluation. Harness landed: 24 versioned scenarios, rubric,
+      offline/live commands, privacy-safe reports, regression gate. Blocked on committed reference
+      assets before `likeness`/`editPreservation` can be scored.
+- [ ] 11.2 — Provider capability v2
+- [ ] 11.3 — Conversational image editing
+- [ ] 11.4 — Multi-reference identity
+- [ ] 11.5 — Avatar copilot workspace
+- [ ] 11.6 — Intelligent intent understanding
+- [ ] 11.7 — Avatar delivery pack
 
 ### M11 global acceptance
 

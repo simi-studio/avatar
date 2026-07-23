@@ -49,7 +49,7 @@ export function isCoupleMode(mode: GenerationMode): boolean {
   return mode === "couple" || mode === "couple-text";
 }
 
-export const PROVIDERS = ["openai", "minimax", "fal"] as const;
+export const PROVIDERS = ["openai", "minimax", "fal", "xai"] as const;
 export type ProviderId = (typeof PROVIDERS)[number];
 
 export const MINIMAX_REGIONS = ["global", "china"] as const;
@@ -73,8 +73,13 @@ export const MAX_GENERATE_REQUEST_BYTES = 25 * 1024 * 1024; // 25MB
 export const MIN_IMAGE_DIMENSION = 256;
 export const RECOMMENDED_IMAGE_DIMENSION = 1024;
 
-/** Client-side request timeout for generation (ms). */
-export const CLIENT_TIMEOUT_MS = 60_000;
+/**
+ * Client-side request timeout for generation (ms).
+ * Must be > provider adapter timeouts so slow quality models (e.g. xAI Grok
+ * Imagine) can surface the provider's normalized timeout/error from the route
+ * instead of being aborted in the browser first.
+ */
+export const CLIENT_TIMEOUT_MS = 125_000;
 
 /** Number of input images required per mode. */
 export const REQUIRED_IMAGE_COUNT: Record<GenerationMode, number> = {

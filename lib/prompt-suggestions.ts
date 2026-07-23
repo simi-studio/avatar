@@ -1,6 +1,9 @@
 import type { GenerationMode, ProviderId } from "@/lib/constants";
 import type { AvatarGoal } from "@/lib/avatar-intent";
-import { getStyleCalibration } from "@/lib/provider-calibration";
+import {
+  getProviderPromptProfile,
+  getStyleCalibration,
+} from "@/lib/provider-calibration";
 
 /**
  * A best-practice example prompt for text-to-avatar generation. The `text` is
@@ -23,30 +26,34 @@ export type PromptSuggestionInput = {
 };
 
 /**
- * Provider-tuned starter prompts. OpenAI GPT Image responds best to rich,
- * natural-language scene descriptions; MiniMax image-01 favours concise,
- * comma-separated descriptors. These give users a high-quality starting point
- * they can insert and refine instead of facing an empty box.
+ * Provider-tuned starter prompts. Natural-language providers (OpenAI, fal,
+ * xAI) respond best to rich scene descriptions; MiniMax image-01 favours
+ * concise, comma-separated descriptors. These give users a high-quality
+ * starting point they can insert and refine instead of facing an empty box.
  */
+const NATURAL_LANGUAGE_STARTERS: PromptSuggestion[] = [
+  {
+    id: "friendly-professional",
+    text: "A friendly professional headshot of a person with a warm, confident smile, soft studio lighting, clean neutral background, looking directly at the camera",
+  },
+  {
+    id: "creative-portrait",
+    text: "A creative portrait of a young artist with expressive eyes, colorful soft-focus background, gentle rim lighting, shallow depth of field",
+  },
+  {
+    id: "outdoor-natural",
+    text: "A natural outdoor portrait at golden hour, warm sunlight, soft bokeh of green foliage behind, relaxed and approachable expression",
+  },
+  {
+    id: "bold-editorial",
+    text: "A bold editorial fashion portrait with dramatic side lighting, deep shadows, minimal dark background, strong confident gaze",
+  },
+];
+
 export const PROMPT_SUGGESTIONS: Record<ProviderId, PromptSuggestion[]> = {
-  openai: [
-    {
-      id: "friendly-professional",
-      text: "A friendly professional headshot of a person with a warm, confident smile, soft studio lighting, clean neutral background, looking directly at the camera",
-    },
-    {
-      id: "creative-portrait",
-      text: "A creative portrait of a young artist with expressive eyes, colorful soft-focus background, gentle rim lighting, shallow depth of field",
-    },
-    {
-      id: "outdoor-natural",
-      text: "A natural outdoor portrait at golden hour, warm sunlight, soft bokeh of green foliage behind, relaxed and approachable expression",
-    },
-    {
-      id: "bold-editorial",
-      text: "A bold editorial fashion portrait with dramatic side lighting, deep shadows, minimal dark background, strong confident gaze",
-    },
-  ],
+  openai: NATURAL_LANGUAGE_STARTERS,
+  fal: NATURAL_LANGUAGE_STARTERS,
+  xai: NATURAL_LANGUAGE_STARTERS,
   minimax: [
     {
       id: "clean-headshot",
@@ -63,24 +70,6 @@ export const PROMPT_SUGGESTIONS: Record<ProviderId, PromptSuggestion[]> = {
     {
       id: "pastel-soft",
       text: "soft pastel portrait, gentle lighting, dreamy bokeh, delicate colors, friendly expression",
-    },
-  ],
-  fal: [
-    {
-      id: "friendly-professional",
-      text: "A friendly professional headshot of a person with a warm, confident smile, soft studio lighting, clean neutral background, looking directly at the camera",
-    },
-    {
-      id: "creative-portrait",
-      text: "A creative portrait of a young artist with expressive eyes, colorful soft-focus background, gentle rim lighting, shallow depth of field",
-    },
-    {
-      id: "outdoor-natural",
-      text: "A natural outdoor portrait at golden hour, warm sunlight, soft bokeh of green foliage behind, relaxed and approachable expression",
-    },
-    {
-      id: "bold-editorial",
-      text: "A bold editorial fashion portrait with dramatic side lighting, deep shadows, minimal dark background, strong confident gaze",
     },
   ],
 };
@@ -155,6 +144,28 @@ const GOAL_PROMPT_SUGGESTIONS: Record<
       text: "A distinctive character avatar with cinematic mood, one signature accessory, readable silhouette, expressive face, high-quality portrait detail",
     },
   },
+  xai: {
+    "professional-profile": {
+      id: "goal-professional-profile",
+      labelKey: "goal-professional-profile",
+      text: "A polished professional profile avatar with a confident warm expression, realistic studio lighting, clean background, trustworthy and approachable",
+    },
+    "social-avatar": {
+      id: "goal-social-avatar",
+      labelKey: "goal-social-avatar",
+      text: "A memorable social avatar with a friendly expression, bright balanced colors, simple background, expressive but natural portrait composition",
+    },
+    "team-character": {
+      id: "goal-team-character",
+      labelKey: "goal-team-character",
+      text: "A cohesive team character avatar with a warm expression, clean shared visual style, simple background, playful but professional energy",
+    },
+    character: {
+      id: "goal-character",
+      labelKey: "goal-character",
+      text: "A distinctive character avatar with cinematic mood, one signature accessory, readable silhouette, expressive face, high-quality portrait detail",
+    },
+  },
 };
 
 /** Return the starter prompts tuned for the given provider. */
@@ -170,12 +181,13 @@ export function getPromptSuggestions(
     ? GOAL_PROMPT_SUGGESTIONS[provider][goal]
     : undefined;
   const calibration = getStyleCalibration(provider, styleId);
+  const promptStyle = getProviderPromptProfile(provider).promptStyle;
   const styleSuggestion = calibration
     ? {
         id: `style-${calibration.styleId}`,
         labelKey: "selected-style",
         text:
-          provider === "openai"
+          promptStyle === "natural-language"
             ? `Use this calibrated style direction: ${calibration.promptFragment}. ${calibration.recoveryHint}`
             : `${calibration.promptFragment}, ${calibration.recoveryHint}`,
       }

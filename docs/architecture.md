@@ -21,9 +21,13 @@ flowchart TD
   PROV -->|OpenAI| OAI[gpt-image-2]
   PROV -->|MiniMax Global| MMG[api.minimax.io image-01]
   PROV -->|MiniMax China| MMC[api.minimaxi.com image-01]
+  PROV -->|fal.ai| FAL[fal.run FLUX.1 dev]
+  PROV -->|xAI| XAI[api.x.ai grok-imagine-image-quality]
   OAI --> API
   MMG --> API
   MMC --> API
+  FAL --> API
+  XAI --> API
   API -->|images| FE
   FE -->|download| U
 ```
@@ -51,7 +55,7 @@ All modes share one provider abstraction, intent model, prompt compiler, and `/a
 | `lib/avatar-intent.ts`        | Canonical intent, goal presets, refinement actions         | Know provider HTTP details |
 | `lib/prompt-compiler.ts`      | Compile one intent into provider-specific prompt payloads  | Touch API keys/images      |
 | `lib/provider-calibration.ts` | Provider/style prompt profiles, known bias, recovery hints | Contain user data/secrets  |
-| `lib/providers/*`             | Provider adapters (OpenAI, MiniMax, fal.ai)                 | Hold global state          |
+| `lib/providers/*`             | Provider adapters (OpenAI, MiniMax, fal.ai, xAI)            | Hold global state          |
 | `lib/prompt-builder.ts`       | Backward-compatible prompt-builder wrapper                 | Know about HTTP            |
 | `lib/preset.ts`               | Encode/decode team preset (URL-safe)                       | Ever include an API key    |
 | `lib/image-utils.ts`          | EXIF strip, downscale/compress                             | —                          |
@@ -64,7 +68,7 @@ All modes share one provider abstraction, intent model, prompt compiler, and `/a
 type GenerationMode = "text" | "couple-text" | "single" | "couple" | "themed";
 
 interface ImageProvider {
-  id: string; // "openai" | "minimax"
+  id: string; // "openai" | "minimax" | "fal" | "xai"
   name: string;
   supportedModes: GenerationMode[];
   resolveBaseUrl?(region?: string): string; // MiniMax: global | china

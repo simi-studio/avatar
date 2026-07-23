@@ -10,7 +10,7 @@
 
 ## Project overview
 
-Simi Avatar is an open-source BYOK AI avatar generator. It supports five generation modes (`text`, `couple-text`, `single`, `couple`, `themed`), three providers (OpenAI, MiniMax, and fal.ai — the MVP shipped with OpenAI and MiniMax; fal.ai was added in M9), English + Simplified Chinese UI, and English-only repository documentation.
+Simi Avatar is an open-source BYOK AI avatar generator. It supports five generation modes (`text`, `couple-text`, `single`, `couple`, `themed`), four providers (OpenAI, MiniMax, fal.ai, and xAI — the MVP shipped with OpenAI and MiniMax; fal.ai was added in M9; xAI Grok Imagine was added later), English + Simplified Chinese UI, and English-only repository documentation.
 
 The project is currently docs-first. Before implementation, read:
 
@@ -26,7 +26,7 @@ The project is currently docs-first. Before implementation, read:
 - BYOK only: users enter their own provider API key in the UI.
 - Do not add login, subscriptions, credits, database persistence, or image history to the MVP.
 - Cloudflare Workers is the reference deployment target, not a product-level architectural principle.
-- Supported providers are **OpenAI**, **MiniMax**, and **fal.ai**. The MVP shipped with OpenAI and MiniMax; fal.ai was added in M9.
+- Supported providers are **OpenAI**, **MiniMax**, **fal.ai**, and **xAI** (Grok Imagine). The MVP shipped with OpenAI and MiniMax; fal.ai was added in M9; xAI uses `api.x.ai` keys from console.x.ai (not X Premium+).
 - MiniMax **M3 is a text/coding model**, not an avatar image model. Product image generation uses MiniMax `image-01` / `image-01-live` via `/v1/image_generation`.
 - MiniMax must be region-aware: Global `https://api.minimax.io`, China `https://api.minimaxi.com`; keys are not interchangeable.
 - UI languages: English and Simplified Chinese. Default is English. Auto-detect initial locale from the user's source/locale and keep a manual switcher.
@@ -66,7 +66,7 @@ npm run build
 
 If dependencies are missing, run `npm install` first. If the repo has not been scaffolded yet, implement Epic 1.1 before expecting these commands to exist.
 
-For provider changes, add mocked-fetch tests for OpenAI and MiniMax, including MiniMax Global/China region URL selection.
+For provider changes, add mocked-fetch tests for each adapter (OpenAI, MiniMax, fal.ai, xAI), including MiniMax Global/China region URL selection and fixed-host / base64-first response handling where applicable.
 
 For security-sensitive changes, verify no key or image can be logged, persisted, or embedded in errors/preset URLs.
 

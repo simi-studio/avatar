@@ -4,7 +4,7 @@
 
 | Field        | Value                                               |
 | ------------ | --------------------------------------------------- |
-| Status       | Implemented through M10.3; M11 requirements proposed |
+| Status       | Implemented through M10.3; M11 in progress (11.1 harness landed) |
 | Version      | v0.5                                                |
 | Last updated | 2026-07-12                                          |
 | GitHub       | https://github.com/simi-studio/avatar               |
@@ -231,7 +231,7 @@ Users can click **Clear Key** at any time to remove the locally stored API key.
 
 #### Provider
 
-MVP supports **OpenAI** and **MiniMax** (see §8). M9 adds **fal.ai** as a third provider. The provider selector also exposes a region switch for MiniMax (Global vs China). Replicate / Stability AI remain later candidates.
+MVP supports **OpenAI** and **MiniMax** (see §8). M9 adds **fal.ai**; **xAI (Grok Imagine)** is also shipped as a BYOK provider. The provider selector also exposes a region switch for MiniMax (Global vs China). Replicate / Stability AI remain later candidates.
 
 #### API Key
 
@@ -434,6 +434,12 @@ MiniMax operates two separate platforms with **different base URLs and separate 
 
 Shipped (M9): **fal.ai** (FLUX.1 [dev] text-to-image and image-to-image via the synchronous `fal.run` endpoint).
 
+Shipped: **xAI** (`grok-imagine-image-quality` via `api.x.ai` — text-to-image on
+`/v1/images/generations`, image edit on `/v1/images/edits` with a JSON body and data URI;
+base64 responses are preferred, and URL-only fallbacks are limited to xAI-controlled HTTPS
+hosts with redirects disabled; keys from [console.x.ai](https://console.x.ai/), independent
+of X Premium+).
+
 Future providers are outcome-driven under M11: add one only when the evaluation suite demonstrates
 a material quality or capability gap in the current set. Replicate, Stability AI, and Gemini are
 candidates, not scheduled commitments.
@@ -444,7 +450,7 @@ candidates, not scheduled commitments.
 type GenerationMode = "text" | "couple-text" | "single" | "couple" | "themed";
 
 interface ImageProvider {
-  id: string; // "openai" | "minimax"
+  id: string; // "openai" | "minimax" | "fal" | "xai"
   name: string;
   /** Some providers may support only a subset of modes */
   supportedModes: GenerationMode[];
@@ -522,7 +528,7 @@ type GeneratedImage = {
 > Image generation often takes 10–30s and base64 inflates the body (a 10MB image → ~13MB). Platform limits must be handled explicitly.
 
 - **Body size**: compress/downscale on the client before upload; the server pre-rejects oversized `Content-Length` and stream-counts requests without `Content-Length` before parsing, returning `IMAGE_TOO_LARGE`.
-- **Duration / CPU**: confirm typical provider response time fits within the host's limits. MVP uses a synchronous "request → wait → single response" model with a sensible client timeout (~60s) and a `PROVIDER_TIMEOUT` error.
+- **Duration / CPU**: confirm typical provider response time fits within the host's limits. MVP uses a synchronous "request → wait → single response" model with a client timeout slightly above the 120s provider adapter timeout and a `PROVIDER_TIMEOUT` error.
 - **Plan differences**: document CPU-time and subrequest differences (e.g. Cloudflare Free vs Paid) and give self-host guidance.
 - **Concurrency**: no server-side queue in MVP; the public demo throttles at the edge via Cloudflare WAF / Rate Limiting and optional Turnstile, with the app's instance-local rate limiter as fallback (§12.4).
 
@@ -540,7 +546,7 @@ Body is `multipart/form-data` (with images) or `application/json` (themed, no im
 type GenerationMode = "text" | "couple-text" | "single" | "couple" | "themed";
 
 type GenerateRequest = {
-  provider: "openai" | "minimax" | "fal";
+  provider: "openai" | "minimax" | "fal" | "xai";
   region?: "global" | "china"; // MiniMax only
   apiKey: string;
   mode: GenerationMode;
@@ -633,7 +639,7 @@ avatar/
     api/generate/route.ts
   components/
     api-key-input.tsx
-    provider-selector.tsx       # OpenAI / MiniMax + MiniMax region switch
+    provider-selector.tsx       # OpenAI / MiniMax / fal / xAI + MiniMax region switch
     mode-selector.tsx           # Single / Couple / Themed
     image-uploader.tsx          # single/double image (couple)
     style-picker.tsx
@@ -645,6 +651,8 @@ avatar/
   lib/
     providers/openai.ts
     providers/minimax.ts        # region-aware base URL (global/china)
+    providers/fal.ts            # fal.run FLUX; host-allowlisted downloads
+    providers/xai.ts            # Grok Imagine; JSON edits; base64-first with guarded URL fallback
     prompt-builder.ts           # mode-aware assembly
     image-utils.ts              # EXIF strip / compress
     preset.ts                   # team preset encode/decode (URL-safe)
@@ -688,7 +696,7 @@ avatar/
 
 - URL: https://github.com/simi-studio/avatar
 - Description: `Open-source AI avatar generator powered by your own API key.`
-- Topics: `ai` `avatar` `openai` `minimax` `byok` `nextjs` `typescript` `image-generation` `open-source`
+- Topics: `ai` `avatar` `openai` `minimax` `fal` `xai` `grok` `byok` `nextjs` `typescript` `image-generation` `open-source`
 
 ### 16.2 README
 
@@ -884,9 +892,10 @@ README / deploy / providers / security docs complete and in English; MIT License
 | D12 | Docs in English; app i18n EN + zh-CN, default English, locale auto-detected | Open-source audience is global; deployed app adapts to user origin (§13)                              |
 | D13 | Provider-neutral `AvatarIntent` compiles to provider-specific prompts       | Users express intent once; OpenAI and MiniMax receive wording tuned to their behavior (§7)            |
 | D14 | fal.ai added as a third provider (M9), FLUX via the synchronous `fal.run`    | Validates the abstraction beyond two providers; fal results are URLs, downloaded only from fal hosts (SSRF guard) |
+| D24 | xAI (Grok Imagine) added as a BYOK provider via `api.x.ai`                   | OpenAI-compatible image API with fixed host, JSON edits, base64-first responses, and xAI-host-only URL fallback with redirects disabled; expands creative/stylized options without X Premium+ coupling |
 | D15 | Provider side-by-side comparison dropped (won't do)                          | One-time selection is served by switching the provider dropdown; a true compare needs two keys at once, breaking single-key BYOK and adding lasting complexity for niche value (M9) |
 | D16 | App-level Turnstile is optional and default-off; the in-memory rate limiter is only a per-isolate fallback | On Workers the limiter's `Map` is per isolate, so WAF / Rate Limiting + optional Turnstile are the real controls; self-hosters need no extra config (M10.1, §12.4) |
-| D17 | Avatar-agent brief uses deterministic intent mapping, not an LLM            | The three image providers share no chat model; deterministic free-text → `AvatarIntent` keeps BYOK-image-only / no-extra-provider / no-DB intact (M10.3, §7) |
+| D17 | Avatar-agent brief uses deterministic intent mapping, not an LLM            | Image providers share no chat model; deterministic free-text → `AvatarIntent` keeps BYOK-image-only / no-extra-provider / no-DB intact (M10.3, §7) |
 | D18 | Cost transparency shows provider/model/size/call-count + official pricing links, never hard-coded prices | Prices change and would go stale in code; users need call count and refinement re-call cost, not embedded numbers (M10.2, §6.2, resolves §22.2 Q3) |
 | D19 | Photo `couple` same-frame is gated on a verified multi-image capability bit  | Multi-image composition is provider-specific; advertise it only where real, with truthful A/B fallback elsewhere (M10.4, §8.4) |
 | D20 | M11 prioritizes outcome quality and identity-preserving iteration over more themes/providers | The core user need is a satisfactory, usable avatar, not a larger integration catalog (§2.5, §21.1) |
