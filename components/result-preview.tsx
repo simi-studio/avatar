@@ -6,6 +6,7 @@ import { AlertCircle, Download, ImageIcon, Loader2, Wand2 } from "lucide-react";
 
 import type { ErrorCode, GeneratedImage } from "@/lib/types";
 import { REFINEMENT_ACTIONS, type RefinementAction } from "@/lib/avatar-intent";
+import type { EditStrategy } from "@/lib/provider-capabilities";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -44,6 +45,7 @@ export function ResultPreview({
   onRefine,
   onRefineText,
   refinementDisabled = false,
+  refinementStrategy = "regenerate",
 }: {
   status: GenerationStatus;
   images: GeneratedImage[];
@@ -54,6 +56,7 @@ export function ResultPreview({
   onRefine?: (action: RefinementAction) => void;
   onRefineText?: (text: string) => void;
   refinementDisabled?: boolean;
+  refinementStrategy?: EditStrategy;
 }) {
   const tc = useTranslations("Common");
   const t = useTranslations("Generate");
@@ -62,6 +65,18 @@ export function ResultPreview({
   const tRefine = useTranslations("Refinement");
   const tAgent = useTranslations("Agent");
   const [refineText, setRefineText] = useState("");
+  const refinementLabel =
+    refinementStrategy === "conversation"
+      ? tRefine("conversationLabel")
+      : refinementStrategy === "image-edit"
+        ? tRefine("imageEditLabel")
+        : tRefine("regenerateLabel");
+  const refinementNote =
+    refinementStrategy === "conversation"
+      ? tRefine("conversationNote")
+      : refinementStrategy === "image-edit"
+        ? tRefine("imageEditNote")
+        : tRefine("regenerateNote");
 
   function download(image: GeneratedImage, index: number) {
     const link = document.createElement("a");
@@ -167,7 +182,7 @@ export function ResultPreview({
         {onRefine && (
           <div className="flex flex-col gap-2 border-t pt-4">
             <span className="text-xs font-medium text-muted-foreground">
-              {tRefine("label")}
+              {refinementLabel}
             </span>
             <div className="flex flex-wrap gap-2">
               {REFINEMENT_ACTIONS.map((action) => (
@@ -206,10 +221,15 @@ export function ResultPreview({
                   size="sm"
                   disabled={refinementDisabled || !refineText.trim()}
                 >
-                  {tAgent("refineApply")}
+                  {refinementStrategy === "regenerate"
+                    ? tRefine("applyRegenerate")
+                    : tAgent("refineApply")}
                 </Button>
               </form>
             )}
+            <p className="text-xs text-muted-foreground">
+              {refinementNote}
+            </p>
             <p className="text-xs text-muted-foreground">
               {tRefine("costNote")}
             </p>

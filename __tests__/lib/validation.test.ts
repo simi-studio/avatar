@@ -9,6 +9,7 @@ import {
   validateImageFile,
   validateModeInput,
   validateProviderRegion,
+  validateProviderSize,
 } from "@/lib/validation";
 import { MAX_IMAGE_BYTES } from "@/lib/constants";
 
@@ -135,6 +136,19 @@ describe("validateProviderRegion", () => {
 
   it("rejects unknown providers", () => {
     expect(validateProviderRegion("dalle", undefined)).toBe(
+      "INVALID_MODE_INPUT",
+    );
+  });
+});
+
+describe("validateProviderSize", () => {
+  it("uses the shared capability registry for server-side size validation", () => {
+    expect(validateProviderSize("openai", "1024x1024")).toBeNull();
+    expect(validateProviderSize("openai", "512x512")).toBe(
+      "INVALID_MODE_INPUT",
+    );
+    expect(validateProviderSize("minimax", "512x512")).toBeNull();
+    expect(validateProviderSize("unknown", "1024x1024")).toBe(
       "INVALID_MODE_INPUT",
     );
   });

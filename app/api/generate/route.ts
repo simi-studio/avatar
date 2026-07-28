@@ -31,6 +31,7 @@ import {
   validateImageFileContent,
   validateModeInput,
   validateProviderRegion,
+  validateProviderSize,
 } from "@/lib/validation";
 import { stripImageMetadata } from "@/lib/server-image-safety";
 import { isTurnstileEnabled, verifyTurnstileToken } from "@/lib/turnstile";
@@ -288,6 +289,8 @@ export async function POST(
   if (!parsed.apiKey) return errorResponse("MISSING_API_KEY");
 
   if (!isValidSize(parsed.size)) return errorResponse("INVALID_MODE_INPUT");
+  const sizeError = validateProviderSize(parsed.provider, parsed.size);
+  if (sizeError) return errorResponse(sizeError);
 
   const safeImages: File[] = [];
   for (const image of parsed.images) {

@@ -11,6 +11,7 @@ Run the full quality gate and stop on the first failure:
 
 ```bash
 make check     # guard:secrets + lint + typecheck + test + build
+npm run eval:avatar -- validate
 ```
 
 `make check` is the same gate CI runs. Do not tag or deploy on a red gate.
@@ -28,7 +29,12 @@ make e2e        # or: npm run test:e2e
 | Lint           | `npm run lint`        | no errors (ESLint CLI, flat config) |
 | Types          | `npm run typecheck`   | no errors                          |
 | Unit tests     | `npm run test`        | all green                          |
+| Eval fixtures  | `npm run eval:avatar -- validate` | valid set; no unreachable rubric dimensions |
 | Build          | `npm run build`       | OpenNext build succeeds            |
+
+The provider-capability tests also fail when a registry entry is older than 90 days. Reconcile
+model IDs, limits, operations, and official documentation before refreshing `verifiedAt`; never
+advance the date without performing the review.
 
 ## 2. Deploy
 

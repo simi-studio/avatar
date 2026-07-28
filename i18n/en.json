@@ -250,6 +250,13 @@
   },
   "Refinement": {
     "label": "Refine",
+    "conversationLabel": "Continue editing",
+    "conversationNote": "The provider continues from the selected result and its active-session context.",
+    "imageEditLabel": "Edit the selected result",
+    "imageEditNote": "The selected result is sent back for this edit and is not persisted.",
+    "regenerateLabel": "Regenerate with changes",
+    "regenerateNote": "This is a new generation from the accumulated intent. The displayed result is not sent back, so identity or composition may change.",
+    "applyRegenerate": "Regenerate",
     "closer-likeness": "Closer likeness",
     "more-realistic": "More realistic",
     "more-cute": "Cuter",

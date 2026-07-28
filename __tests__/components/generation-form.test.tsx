@@ -465,11 +465,16 @@ describe("GenerationForm", () => {
       expect(screen.getByAltText(en.Result.altSingle)).toBeInTheDocument(),
     );
     expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByText(en.Refinement.regenerateNote),
+    ).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText(en.Agent.refineLabel), {
       target: { value: "more realistic" },
     });
-    fireEvent.click(screen.getByRole("button", { name: en.Agent.refineApply }));
+    fireEvent.click(
+      screen.getByRole("button", { name: en.Refinement.applyRegenerate }),
+    );
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
     const secondForm = (fetchMock.mock.calls[1]?.[1] as RequestInit)

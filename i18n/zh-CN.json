@@ -250,6 +250,13 @@
   },
   "Refinement": {
     "label": "继续调整",
+    "conversationLabel": "继续编辑",
+    "conversationNote": "服务商会基于当前选中的结果和仅限本次会话的上下文继续编辑。",
+    "imageEditLabel": "编辑选中的结果",
+    "imageEditNote": "选中的结果会在本次编辑中回传给服务商，但不会被持久化保存。",
+    "regenerateLabel": "按修改重新生成",
+    "regenerateNote": "这是根据累计意图发起的新生成，不会把当前结果回传给服务商，因此人物身份或构图可能变化。",
+    "applyRegenerate": "重新生成",
     "closer-likeness": "更像本人",
     "more-realistic": "更写实",
     "more-cute": "更可爱",

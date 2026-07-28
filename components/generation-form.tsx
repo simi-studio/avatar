@@ -28,6 +28,7 @@ import {
   defaultSizeForProvider,
   modelLabelForProvider,
   pricingUrlForProvider,
+  resolveEditStrategy,
   sizesForProvider,
 } from "@/lib/provider-capabilities";
 import {
@@ -720,6 +721,12 @@ export function GenerationForm() {
             onRefine={onRefine}
             onRefineText={onRefineText}
             refinementDisabled={!canGenerate || status === "generating"}
+            refinementStrategy={resolveEditStrategy(provider, {
+              // M10 refinement recompiles intent and does not yet send the
+              // displayed result or a continuation handle back upstream.
+              hasSelectedImageInput: false,
+              hasContinuation: false,
+            })}
           />
         </CardContent>
       </Card>

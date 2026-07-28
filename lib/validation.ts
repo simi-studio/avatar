@@ -12,6 +12,7 @@ import {
   type MiniMaxRegion,
   type ProviderId,
 } from "@/lib/constants";
+import { sizesForProvider } from "@/lib/provider-capabilities";
 
 /** Returns true when the MIME type is an accepted upload type. */
 export function isAcceptedImageType(type: string): boolean {
@@ -160,4 +161,17 @@ export function validateProviderRegion(
     }
   }
   return null;
+}
+
+/** Validate the provider-specific size exposed by the shared capability registry. */
+export function validateProviderSize(
+  provider: string,
+  size: string,
+): ErrorCode | null {
+  if (!isValidProvider(provider) || !isValidSize(size)) {
+    return "INVALID_MODE_INPUT";
+  }
+  return sizesForProvider(provider).includes(size)
+    ? null
+    : "INVALID_MODE_INPUT";
 }

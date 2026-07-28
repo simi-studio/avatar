@@ -260,6 +260,24 @@ See [provider-calibration.md](./provider-calibration.md) for the release drift g
 [planning/epics/epic-11.1-avatar-quality-evaluation.md](./planning/epics/epic-11.1-avatar-quality-evaluation.md)
 for the evaluation gate.
 
+### Registry baseline (2026-07-27)
+
+The first v2 registry is intentionally conservative: all current adapters have a documented and
+mock-tested single-image edit path, so they resolve to `image-edit`. Multi-turn editing,
+multi-reference identity, masks, transparent output, seeds, and multi-image composition remain
+disabled until the app executes them and quality-sensitive claims pass the 11.1 fixtures.
+
+Official documentation reviewed for this baseline:
+
+- [OpenAI GPT Image 2](https://developers.openai.com/api/docs/models/gpt-image-2)
+- [MiniMax image-to-image](https://platform.minimax.io/docs/api-reference/image-generation-i2i)
+- [fal.ai FLUX.1 dev image-to-image](https://fal.ai/models/fal-ai/flux/dev/image-to-image/api)
+- [xAI image edit API](https://docs.x.ai/developers/rest-api-reference/inference/images)
+- [xAI multi-image editing](https://docs.x.ai/developers/model-capabilities/images/multi-image-editing)
+
+The last link documents up to three xAI inputs, but the product capability remains disabled because
+the current adapter accepts one and no identity/composite fixture smoke has been scored.
+
 ## Planned providers
 
 Do not schedule Replicate, Stability AI, Gemini, or another provider solely to expand the catalog.
