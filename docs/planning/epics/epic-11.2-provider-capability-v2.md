@@ -21,10 +21,10 @@ copy, cost plans, and graceful fallback for generation and editing.
       edit strategy, exact model version, and verification date.
 - [ ] Populate every current provider from official documentation and focused fixture smoke tests.
       The documentation baseline is recorded; quality-sensitive flags remain off until live runs.
-- [ ] Make server validation and UI controls derive from the same capability source. Provider size
-      validation and existing size/model/pricing UI now share the registry; new M11 controls remain.
+- [x] Make server validation and UI controls derive from the same capability source. Provider size,
+      model, pricing, and selected-result edit strategy now share the registry.
 - [x] Add explicit execution resolution: `conversation` → `image-edit` → `regenerate`.
-- [ ] Ensure unsupported controls are hidden or disabled with truthful fallback copy in EN/zh-CN.
+- [x] Ensure unsupported controls are hidden or disabled with truthful fallback copy in EN/zh-CN.
 - [x] Add model/version drift tests and a release checklist failure for stale critical verification.
 - [ ] Evaluate Gemini only if 11.1 shows a material conversational or multi-reference gap.
 
@@ -33,8 +33,8 @@ copy, cost plans, and graceful fallback for generation and editing.
 - [ ] No provider is advertised for multi-turn, multi-reference, masks, or composite without
       documented and smoke-tested support.
 - [ ] Call count, accepted inputs, UI controls, and adapter behavior agree for every provider.
-- [ ] A text-only retry is represented as `regenerate`, never `edit`.
-- [ ] Mocked-fetch tests cover each supported operation and fallback path.
+- [x] A text-only retry is represented as `regenerate`, never `edit`.
+- [x] Mocked-fetch tests cover current adapter edit operations and resolver fallback paths.
 
 ## Migration
 
@@ -49,5 +49,7 @@ incrementally and remove compatibility code only after all current providers are
   that the app does not execute and fixture-test remain disabled.
 - `/api/generate` rejects a size that is globally valid but unsupported by the selected provider,
   using the same registry as the form.
+- The result UI asks the registry whether selected-result image editing is executable and otherwise
+  labels the operation as regeneration in EN/zh-CN.
 - Current adapters resolve to `image-edit`; multi-turn, multi-reference identity, masks,
   transparency, seed, and composite claims remain disabled.

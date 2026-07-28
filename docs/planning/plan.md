@@ -4,7 +4,7 @@
 
 | Field           | Value                                                            |
 | --------------- | ---------------------------------------------------------------- |
-| Status          | MVP complete; M10.1–10.3 shipped; M11 in progress (11.1 harness landed) |
+| Status          | MVP complete; M10.1–10.3 shipped; M11 in progress (11.1 baseline pending; 11.2 implemented; 11.3 vertical slice landed) |
 | Scope           | MVP (M1–M5)                                                      |
 | Providers (MVP) | OpenAI + MiniMax                                                 |
 | Languages (MVP) | English (default) + Simplified Chinese                           |
@@ -27,16 +27,23 @@
 - **M4 — Experience & security**: error handling + codes; download/regenerate/Clear Key; mode×input validation; timeout + edge rate limiting guidance with app-level fallback; log redaction + CI guard; mobile + a11y; core unit tests ≥ 80%.
 - **M5 — Open source & deploy**: finalize English docs + legal pages; Wrangler config; GitHub Actions CI; deploy Cloudflare Workers + bind domain.
 
-## Current progress snapshot (2026-07-08)
+## Current progress snapshot (2026-07-27)
 
 - **M1–M5 are complete**: foundation, i18n, five generation modes, provider adapters, intent-first prompt compilation, security guards, open-source docs, CI, and Cloudflare deployment are implemented.
 - **M6–M8 are complete**: text-first sources, intent controls/refinement, provider-aware capabilities, quick/advanced form split, preview states, partial couple handling, and contextual team preset sharing are shipped.
 - **M9 is complete**: Cats / Robots / Pixel Heroes themes, fal.ai FLUX provider support, copyable compiled prompts, couple-text same-frame composite, client-only local history, E2E smoke coverage, ESLint CLI migration, release checklist, and production observability notes are shipped.
 - **M10.1–10.3 are complete**: optional Turnstile, cost/call transparency, and deterministic brief→intent/refinement are shipped. M10.4 is superseded by M11.4, which treats photo-couple composition as part of the broader multi-reference identity problem.
-- **M11 is in progress**: the 11.1 evaluation harness, rubric, and regression gate are landed, but its reference assets are outstanding, so identity/edit dimensions cannot be scored live yet. Provider capability v2, true conversational editing, multi-reference identity, a copilot workspace, optional LLM intent understanding, and platform-ready delivery remain planned.
-- **Public demo is live**: `https://avatar.simi.studio/zh-CN` returns `HTTP/2 200` on Cloudflare/OpenNext with the custom domain bound.
+- **M11 is in progress**: the 11.1 harness now includes four reviewed synthetic references and has
+  live-eligible coverage for every rubric dimension. A paid, human-scored provider baseline is
+  still required before 11.1 is Done. An exploratory built-in OpenAI baseline completed five core
+  outcome scenarios with strong qualitative scores, but did not exercise the BYOK adapter. The
+  11.2 typed capability registry, conservative edit resolver, provider-specific server size
+  validation, UI gating/fallback copy, and staleness guard are implemented; live capability
+  verification remains. The first 11.3 vertical slice now edits a selected in-memory result,
+  preserves the parent on failure, and supports restoring the prior candidate.
+- **Public demo is live**: `https://avatar.simi.studio/zh-CN` returned HTTP 200 on 2026-07-27.
 - **GitHub repository metadata is set**: `simi-studio/avatar` is public, has a concise description, homepage URL, and topics configured.
-- **Last recorded full local gate passed on 2026-07-08**: `npm run guard:secrets`, `npm run lint`, `npm run typecheck`, `npm run test` (179 tests, 25 files), and `npm run build`.
+- **Latest full local gate passed on 2026-07-27**: `npm run eval:avatar -- validate`, `npm run guard:secrets`, `npm run lint`, `npm run typecheck`, `npm run test` (231 tests, 29 files), and `npm run build`.
 - A local gitignored `wrangler.prod.jsonc` exists for `avatar.simi.studio`; the open-source deliverable remains `wrangler.prod.jsonc.example`.
 - **Screenshots are intentionally deferred** while the product is changing quickly; keeping screenshots current would create avoidable maintenance churn.
 
@@ -220,15 +227,47 @@ flowchart LR
 
 ### M11 progress
 
-- [ ] 11.1 — Avatar quality evaluation. Harness landed: 24 versioned scenarios, rubric,
-      offline/live commands, privacy-safe reports, regression gate. Blocked on committed reference
-      assets before `likeness`/`editPreservation` can be scored.
-- [ ] 11.2 — Provider capability v2
-- [ ] 11.3 — Conversational image editing
+- [ ] 11.1 — Avatar quality evaluation. Harness and reference coverage implemented: 25 versioned
+      scenarios, a same-task reference-count comparison, four reviewed synthetic references,
+      256/48/32 px local review sheet, rubric, offline/live commands, privacy-safe reports, and
+      regression gate. Remaining: paid baseline plus blinded human scoring.
+- [ ] 11.2 — Provider capability v2. Typed registry, conservative operation resolver,
+      provider-specific size validation, UI gating/fallback copy, invariants, and
+      stale-verification guard implemented. Remaining: live capability smoke tests.
+- [ ] 11.3 — Conversational image editing. First vertical slice implemented: in-memory candidate
+      graph, selected-result image editing, normalized change/preserve instructions, regeneration
+      fallback, parent preservation on failure, and previous-version restore. Remaining: editable
+      pre-call plan, broader candidate selection/branch UI, live quality gate, and expanded edge
+      tests.
 - [ ] 11.4 — Multi-reference identity
 - [ ] 11.5 — Avatar copilot workspace
 - [ ] 11.6 — Intelligent intent understanding
 - [ ] 11.7 — Avatar delivery pack
+
+### Recommended next implementation queue (2026-07-27)
+
+No identity/edit quality capability should be advertised until the 11.1 live evidence exists.
+
+1. **P0 — Run and score the 11.1 provider baseline**
+   - Use user-owned provider keys on the now-complete reference coverage.
+   - Keep generated images gitignored and record only approved aggregate evidence.
+   - Use at least two blinded reviewers for identity/edit scores.
+2. **P0 — Verify current providers and enable only evidenced operations**
+   - Review current official documentation for OpenAI, MiniMax, fal.ai, and xAI.
+   - Smoke-test quality-sensitive reference/edit/composite behavior against the 11.1 fixtures.
+   - Timestamp each capability; default uncertain values to unsupported.
+3. **P0 — Finish the 11.3 editing experience**
+   - Show normalized `change[]` and `preserve[]` before the paid call and let the user correct them.
+   - Add explicit candidate selection/branch UI and cover stale context, abort, and redaction paths.
+   - Run the edit-preservation fixtures and meet the initial quality threshold.
+4. **P1 — Implement multi-reference intake and truthful couple fallback**
+   - Add client-side quality checks, per-person reference roles, total request budgeting, and
+     server-side magic-byte validation.
+   - Enable same-frame photo couples only for a verified provider; retain the two-call A/B path
+     elsewhere.
+
+After these items, proceed to 11.5 Copilot Workspace. Keep 11.6 intent-model calls and 11.7 export
+packs behind the completed core editing/identity loop.
 
 ### M11 global acceptance
 

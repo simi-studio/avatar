@@ -4,9 +4,9 @@
 
 | Field        | Value                                               |
 | ------------ | --------------------------------------------------- |
-| Status       | Implemented through M10.3; M11 in progress (11.1 harness landed) |
+| Status       | Implemented through M10.3; M11 in progress (11.1 baseline pending; 11.2 implemented; 11.3 vertical slice landed) |
 | Version      | v0.5                                                |
-| Last updated | 2026-07-12                                          |
+| Last updated | 2026-07-27                                          |
 | GitHub       | https://github.com/simi-studio/avatar               |
 | Positioning  | Open Source / No signup / Non-commercial / BYOK     |
 | App stack    | Next.js + TypeScript + Tailwind CSS + Shadcn UI     |

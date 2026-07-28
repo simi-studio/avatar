@@ -71,8 +71,11 @@ M11 capability claims and quality-sensitive changes.
 
 ## Implementation
 
-- `lib/avatar-evaluation/fixtures.ts` — fixture version `1.0.0`, 24 scenario specifications,
-  bilingual pairs, provenance metadata, and live-eligibility gates.
+- `lib/avatar-evaluation/fixtures.ts` — fixture version `1.1.0`, 25 scenario specifications,
+  bilingual pairs, a same-task reference-count comparison, provenance metadata, and
+  live-eligibility gates.
+- `lib/avatar-evaluation/review-sheet.ts` — local-only 256/48/32 px review sheet generation for
+  every live run.
 - `lib/avatar-evaluation/harness.ts` — validation, templates, aggregation, regression comparison,
   recursive privacy scanning, coverage reporting, and Markdown reporting. The gate fails on a mean
   regression, a single-fixture collapse of 2+ points, or any unscored dimension, and refuses to
