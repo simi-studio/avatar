@@ -489,9 +489,11 @@ describe("GenerationForm", () => {
     expect(JSON.parse(String(secondForm.get("editIntent")))).toMatchObject({
       change: ["more realistic"],
     });
-    expect(
-      screen.getByRole("button", { name: en.Result.restorePrevious }),
-    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: en.Result.restorePrevious }),
+      ).toBeInTheDocument(),
+    );
   });
 
   it("keeps the previous result visible when a selected-result edit fails", async () => {
