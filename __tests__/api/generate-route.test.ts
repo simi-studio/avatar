@@ -209,4 +209,83 @@ describe("/api/generate", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0]?.[0]).toContain("siteverify");
   });
+
+  it("edits one selected result with explicit change and preserve constraints", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(JSON.stringify({ data: [{ b64_json: "edited" }] }), {
+          status: 200,
+        }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+    const form = new FormData();
+    form.append("provider", "openai");
+    form.append("apiKey", "sk-test");
+    form.append("mode", "text");
+    form.append("operation", "edit");
+    form.append("styleId", "anime");
+    form.append("size", "1024x1024");
+    form.append(
+      "intent",
+      JSON.stringify(
+        createAvatarIntentForRouteTest({
+          mode: "text",
+          styleId: "anime",
+        }),
+      ),
+    );
+    form.append(
+      "editIntent",
+      JSON.stringify({
+        change: ["add warmer light"],
+        preserve: ["identity", "framing"],
+      }),
+    );
+    form.append(
+      "images",
+      new File(
+        [new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a])],
+        "selected.png",
+        { type: "image/png" },
+      ),
+    );
+
+    const res = await POST(
+      new Request("https://avatar.test/api/generate", {
+        method: "POST",
+        headers: {
+          origin: "https://avatar.test",
+          host: "avatar.test",
+        },
+        body: form,
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      "https://api.openai.com/v1/images/edits",
+    );
+    const upstream = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    const upstreamForm = upstream.body as FormData;
+    expect(String(upstreamForm.get("prompt"))).toContain("add warmer light");
+    expect(String(upstreamForm.get("prompt"))).toContain("identity");
+    expect(upstreamForm.get("image")).toBeInstanceOf(File);
+  });
 });
+
+function createAvatarIntentForRouteTest(input: {
+  mode: "text";
+  styleId: string;
+}) {
+  return {
+    ...input,
+    goal: "professional-profile",
+    likeness: "medium",
+    creativity: "medium",
+    composition: "headshot",
+    background: "studio",
+    size: "1024x1024",
+  };
+}

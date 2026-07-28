@@ -312,7 +312,9 @@
     "empty": "生成的头像将显示在这里。",
     "emptyHint": "最快路径是从文字开始；需要保留相似度时再切换到照片。",
     "generatingHint": "提供方响应时间会随模型和图片尺寸变化。",
-    "emptySuccess": "提供方没有返回图片，请重试。"
+    "emptySuccess": "提供方没有返回图片，请重试。",
+    "editFailedPreserved": "本次编辑失败，已为你保留并继续显示上一版结果。",
+    "restorePrevious": "恢复上一版本"
   },
   "Errors": {
     "INVALID_API_KEY": "API Key 无效或被提供方拒绝。",

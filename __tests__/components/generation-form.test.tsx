@@ -466,14 +466,14 @@ describe("GenerationForm", () => {
     );
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(
-      screen.getByText(en.Refinement.regenerateNote),
+      screen.getByText(en.Refinement.imageEditNote),
     ).toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText(en.Agent.refineLabel), {
       target: { value: "more realistic" },
     });
     fireEvent.click(
-      screen.getByRole("button", { name: en.Refinement.applyRegenerate }),
+      screen.getByRole("button", { name: en.Agent.refineApply }),
     );
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
@@ -484,6 +484,58 @@ describe("GenerationForm", () => {
       unknown
     >;
     expect(intent.styleId).toBe("professional-headshot");
+    expect(secondForm.get("operation")).toBe("edit");
+    expect(secondForm.get("images")).toBeInstanceOf(File);
+    expect(JSON.parse(String(secondForm.get("editIntent")))).toMatchObject({
+      change: ["more realistic"],
+    });
+    expect(
+      screen.getByRole("button", { name: en.Result.restorePrevious }),
+    ).toBeInTheDocument();
+  });
+
+  it("keeps the previous result visible when a selected-result edit fails", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        json: async () => ({
+          success: true,
+          images: [{ base64: "AAAA", mimeType: "image/png" }],
+        }),
+      })
+      .mockResolvedValueOnce({
+        json: async () => ({
+          success: false,
+          error: { code: "CONTENT_REJECTED", message: "rejected" },
+        }),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+    renderForm();
+
+    fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
+      target: { value: "sk-test-key" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: en.Style.anime }));
+    const generate = screen.getByRole("button", { name: en.Generate.generate });
+    await waitFor(() => expect(generate).toBeEnabled());
+    fireEvent.click(generate);
+    await waitFor(() =>
+      expect(screen.getByAltText(en.Result.altSingle)).toBeInTheDocument(),
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: en.Refinement["cleaner-background"],
+      }),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        en.Result.editFailedPreserved,
+      ),
+    );
+    expect(screen.getByAltText(en.Result.altSingle)).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
   it("shows a truthful provider, model, and size call plan with a pricing link", () => {

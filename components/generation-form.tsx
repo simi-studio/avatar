@@ -19,6 +19,19 @@ import { useProviderSession } from "@/lib/use-provider-session";
 import { useGenerationHistory } from "@/lib/use-generation-history";
 import { useGenerationRequest } from "@/lib/use-generation-request";
 import {
+  addGenerationCandidates,
+  createGenerationSession,
+  parentGenerationCandidate,
+  selectGenerationCandidate,
+  selectedGenerationCandidate,
+} from "@/lib/generation-session";
+import {
+  editIntentForAction,
+  editIntentFromText,
+  type EditIntent,
+} from "@/lib/edit-intent";
+import { generatedImageToFile } from "@/lib/generated-image-file";
+import {
   formFromIntent,
   useAvatarIntentForm,
   type IntentForm,
@@ -94,8 +107,12 @@ export function GenerationForm() {
     hydrated,
   });
   const history = useGenerationHistory();
-  const { status, images, errorCode, lastIntent, run } = useGenerationRequest();
+  const { status, images, errorCode, lastIntent, run, restore } =
+    useGenerationRequest();
   const { form, patch } = useAvatarIntentForm();
+  const [generationSession, setGenerationSession] = useState(() =>
+    createGenerationSession(),
+  );
 
   // The intent form is the single source of truth; destructure for reads so the
   // markup stays declarative, and write through thin `patch` wrappers.
@@ -296,29 +313,116 @@ export function GenerationForm() {
     return formData;
   }
 
+  function buildEditForm(
+    requestIntent: AvatarIntent,
+    selectedImage: File,
+    editIntent: EditIntent,
+  ): FormData {
+    const formData = new FormData();
+    formData.append("provider", provider);
+    if (provider === "minimax") formData.append("region", region);
+    formData.append("apiKey", apiKey);
+    formData.append("mode", requestIntent.mode);
+    formData.append("operation", "edit");
+    formData.append("size", requestIntent.size);
+    formData.append("intent", JSON.stringify(requestIntent));
+    formData.append("editIntent", JSON.stringify(editIntent));
+    formData.append("images", selectedImage, selectedImage.name);
+    if (requestIntent.styleId) {
+      formData.append("styleId", requestIntent.styleId);
+    }
+    if (turnstileToken) formData.append("turnstileToken", turnstileToken);
+    return formData;
+  }
+
   async function onGenerate(intentOverride?: AvatarIntent) {
     await run({
       intent: intentOverride ?? buildIntent(),
       apiKey,
       buildForm: buildGenerateForm,
-      onSuccess: history.record,
+      onSuccess: (intent, nextImages) => {
+        history.record(intent);
+        setGenerationSession(
+          addGenerationCandidates(createGenerationSession(), {
+            intent,
+            images: nextImages,
+            operation: "generate",
+          }),
+        );
+      },
     });
     // Turnstile tokens are single-use; force a fresh challenge for the next run.
+    if (TURNSTILE_ENABLED) setTurnstileReset((value) => value + 1);
+  }
+
+  const selectedCandidate = selectedGenerationCandidate(generationSession);
+  const canEditSelectedResult =
+    images.length === 1 &&
+    Boolean(images[0]?.base64) &&
+    Boolean(selectedCandidate) &&
+    Boolean((lastIntent ?? buildIntent()).styleId);
+  const refinementStrategy = resolveEditStrategy(provider, {
+    hasSelectedImageInput: canEditSelectedResult,
+    hasContinuation: false,
+  });
+
+  async function runRefinement(
+    nextIntent: AvatarIntent,
+    editIntent: EditIntent,
+  ) {
+    const parentId = selectedCandidate?.id;
+    const selectedImage =
+      refinementStrategy === "image-edit" && images[0]
+        ? generatedImageToFile(images[0])
+        : null;
+    const operation = selectedImage ? "edit" : "regenerate";
+
+    await run({
+      intent: nextIntent,
+      apiKey,
+      preserveExistingImages: true,
+      buildForm: selectedImage
+        ? (intent) => buildEditForm(intent, selectedImage, editIntent)
+        : buildGenerateForm,
+      onSuccess: (intent, nextImages) => {
+        history.record(intent);
+        setGenerationSession((session) =>
+          addGenerationCandidates(session, {
+            intent,
+            images: nextImages,
+            operation,
+            parentId,
+          }),
+        );
+      },
+    });
     if (TURNSTILE_ENABLED) setTurnstileReset((value) => value + 1);
   }
 
   function onRefine(action: RefinementAction) {
     const nextIntent = applyRefinementAction(buildIntent(), action);
     syncIntent(nextIntent);
-    void onGenerate(nextIntent);
+    void runRefinement(nextIntent, editIntentForAction(action));
   }
 
   // Natural-language refinement: one intent transform + one provider call,
   // consistent with the Epic 10.2 re-call notice.
   function onRefineText(text: string) {
     const nextIntent = applyBriefRefinement(buildIntent(), text);
+    const editIntent = editIntentFromText(text);
+    if (!editIntent) return;
     syncIntent(nextIntent);
-    void onGenerate(nextIntent);
+    void runRefinement(nextIntent, editIntent);
+  }
+
+  function onRestorePrevious() {
+    const parent = parentGenerationCandidate(generationSession);
+    if (!parent) return;
+    setGenerationSession((session) =>
+      selectGenerationCandidate(session, parent.id),
+    );
+    restore([parent.image], parent.intent);
+    syncIntent(parent.intent);
   }
 
   // Clearing the key also offers to clear local history, since both are
@@ -720,13 +824,13 @@ export function GenerationForm() {
             onRetry={() => void onGenerate(lastIntent ?? buildIntent())}
             onRefine={onRefine}
             onRefineText={onRefineText}
+            onRestorePrevious={
+              parentGenerationCandidate(generationSession)
+                ? onRestorePrevious
+                : undefined
+            }
             refinementDisabled={!canGenerate || status === "generating"}
-            refinementStrategy={resolveEditStrategy(provider, {
-              // M10 refinement recompiles intent and does not yet send the
-              // displayed result or a continuation handle back upstream.
-              hasSelectedImageInput: false,
-              hasContinuation: false,
-            })}
+            refinementStrategy={refinementStrategy}
           />
         </CardContent>
       </Card>

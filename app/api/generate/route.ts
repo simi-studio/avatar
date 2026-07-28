@@ -15,7 +15,12 @@ import {
   normalizeAvatarIntent,
   parseAvatarIntentJson,
 } from "@/lib/avatar-intent";
+import {
+  compileEditInstruction,
+  normalizeEditIntent,
+} from "@/lib/edit-intent";
 import { compileAvatarPrompt } from "@/lib/prompt-compiler";
+import { capabilitiesForProvider } from "@/lib/provider-capabilities";
 import {
   checkRateLimit,
   clientIdentifier,
@@ -100,8 +105,17 @@ type ParsedRequest = {
   size: string;
   intentRaw?: unknown;
   intentJson?: string;
+  operation: "generate" | "edit" | "invalid";
+  editIntentRaw?: unknown;
+  editIntentJson?: string;
   turnstileToken?: string;
 };
+
+function parseOperation(value: unknown): ParsedRequest["operation"] {
+  if (value === undefined || value === null || value === "") return "generate";
+  if (value === "generate" || value === "edit") return value;
+  return "invalid";
+}
 
 async function parseRequest(
   req: Request,
@@ -123,6 +137,8 @@ async function parseRequest(
       pairedConsistency: body.pairedConsistency === true,
       size: String(body.size ?? DEFAULT_IMAGE_SIZE),
       intentRaw: body.intent,
+      operation: parseOperation(body.operation),
+      editIntentRaw: body.editIntent,
       turnstileToken: body.turnstileToken
         ? String(body.turnstileToken)
         : undefined,
@@ -151,6 +167,8 @@ async function parseRequest(
       pairedConsistency: get("pairedConsistency") === "true",
       size: get("size") ?? DEFAULT_IMAGE_SIZE,
       intentJson: get("intent"),
+      operation: parseOperation(get("operation")),
+      editIntentJson: get("editIntent"),
       turnstileToken: get("turnstileToken"),
     };
   }
@@ -282,6 +300,9 @@ export async function POST(
   }
 
   if (!isValidMode(parsed.mode)) return errorResponse("INVALID_MODE_INPUT");
+  if (parsed.operation === "invalid") {
+    return errorResponse("INVALID_MODE_INPUT");
+  }
 
   const regionError = validateProviderRegion(parsed.provider, parsed.region);
   if (regionError) return errorResponse(regionError);
@@ -314,27 +335,62 @@ export async function POST(
     ? normalizeAvatarIntent(parsed.intentRaw, fallbackIntent)
     : parseAvatarIntentJson(parsed.intentJson, fallbackIntent);
 
+  let executionIntent = intent;
+  if (parsed.operation === "edit") {
+    const providerCapabilities = capabilitiesForProvider(
+      parsed.provider as ProviderId,
+    );
+    const rawEditIntent = parsed.editIntentRaw
+      ? parsed.editIntentRaw
+      : (() => {
+          try {
+            return parsed.editIntentJson
+              ? (JSON.parse(parsed.editIntentJson) as unknown)
+              : undefined;
+          } catch {
+            return undefined;
+          }
+        })();
+    const editIntent = normalizeEditIntent(rawEditIntent);
+    if (
+      !providerCapabilities.supportsImageEdit ||
+      safeImages.length !== 1 ||
+      !editIntent
+    ) {
+      return errorResponse("INVALID_MODE_INPUT");
+    }
+    executionIntent = createAvatarIntent({
+      ...intent,
+      mode: "single",
+      likeness: "high",
+      subjectDescription: compileEditInstruction(editIntent),
+    });
+  }
+
   const modeError = validateModeInput({
-    mode: intent.mode,
+    mode: executionIntent.mode,
     imageCount: safeImages.length,
-    styleId: intent.styleId,
-    themeId: intent.themeId,
-    variantId: intent.variantId,
+    styleId: executionIntent.styleId,
+    themeId: executionIntent.themeId,
+    variantId: executionIntent.variantId,
   });
   if (modeError) return errorResponse(modeError);
 
   const provider = getProvider(parsed.provider as ProviderId);
-  const style = getStyleById(intent.styleId);
-  const theme = getThemeById(intent.themeId);
-  const variant = getVariant(intent.themeId, intent.variantId);
-  if (intent.mode === "themed") {
+  const style = getStyleById(executionIntent.styleId);
+  const theme = getThemeById(executionIntent.themeId);
+  const variant = getVariant(
+    executionIntent.themeId,
+    executionIntent.variantId,
+  );
+  if (executionIntent.mode === "themed") {
     if (!theme || !variant) return errorResponse("INVALID_MODE_INPUT");
   } else if (!style) {
     return errorResponse("INVALID_MODE_INPUT");
   }
   const compiled = compileAvatarPrompt({
     provider: parsed.provider as ProviderId,
-    intent,
+    intent: executionIntent,
     style,
     theme,
     variant,
@@ -344,16 +400,16 @@ export async function POST(
     const images = await provider.generateAvatar({
       apiKey: parsed.apiKey,
       region: parsed.region as MiniMaxRegion | undefined,
-      mode: intent.mode,
+      mode: executionIntent.mode,
       images: safeImages,
       prompt: compiled.prompt,
       negativePrompt: compiled.negativePrompt,
       referenceStrength: compiled.referenceStrength,
-      sameFrame: intent.sameFrame,
-      styleId: intent.styleId,
-      themeId: intent.themeId,
-      variantId: intent.variantId,
-      size: intent.size,
+      sameFrame: executionIntent.sameFrame,
+      styleId: executionIntent.styleId,
+      themeId: executionIntent.themeId,
+      variantId: executionIntent.variantId,
+      size: executionIntent.size,
     });
     return NextResponse.json({ success: true, images });
   } catch (error) {

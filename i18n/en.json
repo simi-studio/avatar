@@ -312,7 +312,9 @@
     "empty": "Your generated avatar will appear here.",
     "emptyHint": "Start with text for the fastest path, or switch to photo when likeness matters.",
     "generatingHint": "Provider response time varies by model and image size.",
-    "emptySuccess": "The provider returned no images. Please try again."
+    "emptySuccess": "The provider returned no images. Please try again.",
+    "editFailedPreserved": "The edit failed, so the previous result is still shown.",
+    "restorePrevious": "Restore previous version"
   },
   "Errors": {
     "INVALID_API_KEY": "The API key is invalid or was rejected by the provider.",

@@ -44,6 +44,7 @@ export function ResultPreview({
   onRetry,
   onRefine,
   onRefineText,
+  onRestorePrevious,
   refinementDisabled = false,
   refinementStrategy = "regenerate",
 }: {
@@ -55,6 +56,7 @@ export function ResultPreview({
   onRetry?: () => void;
   onRefine?: (action: RefinementAction) => void;
   onRefineText?: (text: string) => void;
+  onRestorePrevious?: () => void;
   refinementDisabled?: boolean;
   refinementStrategy?: EditStrategy;
 }) {
@@ -136,6 +138,14 @@ export function ResultPreview({
 
     return (
       <div className="flex flex-col gap-4">
+        {errorCode && (
+          <div
+            role="alert"
+            className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900"
+          >
+            {tr("editFailedPreserved")} {tErr(errorCode)}
+          </div>
+        )}
         {partialPair && (
           <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">
             {tr("partialPair")}
@@ -233,6 +243,17 @@ export function ResultPreview({
             <p className="text-xs text-muted-foreground">
               {tRefine("costNote")}
             </p>
+            {onRestorePrevious && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="self-start"
+                onClick={onRestorePrevious}
+              >
+                {tr("restorePrevious")}
+              </Button>
+            )}
           </div>
         )}
       </div>

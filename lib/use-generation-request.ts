@@ -12,8 +12,10 @@ export type RunGenerationOptions = {
   apiKey: string;
   /** Build the multipart request body for the given intent. */
   buildForm: (intent: AvatarIntent) => FormData;
-  /** Invoked once with the request intent after a successful generation. */
-  onSuccess?: (intent: AvatarIntent) => void;
+  /** Keep the displayed candidate visible if this follow-up request fails. */
+  preserveExistingImages?: boolean;
+  /** Invoked once with the request intent and images after a successful call. */
+  onSuccess?: (intent: AvatarIntent, images: GeneratedImage[]) => void;
 };
 
 export type GenerationRequest = {
@@ -22,6 +24,7 @@ export type GenerationRequest = {
   errorCode: ErrorCode | null;
   lastIntent: AvatarIntent | null;
   run: (options: RunGenerationOptions) => Promise<void>;
+  restore: (images: GeneratedImage[], intent: AvatarIntent) => void;
 };
 
 /**
@@ -36,16 +39,22 @@ export function useGenerationRequest(): GenerationRequest {
   const [lastIntent, setLastIntent] = useState<AvatarIntent | null>(null);
 
   const run = useCallback(
-    async ({ intent, apiKey, buildForm, onSuccess }: RunGenerationOptions) => {
+    async ({
+      intent,
+      apiKey,
+      buildForm,
+      preserveExistingImages = false,
+      onSuccess,
+    }: RunGenerationOptions) => {
       if (!apiKey) {
         setErrorCode("MISSING_API_KEY");
-        setStatus("error");
+        setStatus(preserveExistingImages && images.length > 0 ? "success" : "error");
         return;
       }
       setLastIntent(intent);
       setStatus("generating");
       setErrorCode(null);
-      setImages([]);
+      if (!preserveExistingImages) setImages([]);
 
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), CLIENT_TIMEOUT_MS);
@@ -59,10 +68,12 @@ export function useGenerationRequest(): GenerationRequest {
         if (data.success && data.images) {
           setImages(data.images);
           setStatus("success");
-          onSuccess?.(intent);
+          onSuccess?.(intent, data.images);
         } else {
           setErrorCode(data.error?.code ?? "UNKNOWN_ERROR");
-          setStatus("error");
+          setStatus(
+            preserveExistingImages && images.length > 0 ? "success" : "error",
+          );
         }
       } catch (error) {
         setErrorCode(
@@ -70,13 +81,25 @@ export function useGenerationRequest(): GenerationRequest {
             ? "PROVIDER_TIMEOUT"
             : "UNKNOWN_ERROR",
         );
-        setStatus("error");
+        setStatus(
+          preserveExistingImages && images.length > 0 ? "success" : "error",
+        );
       } finally {
         clearTimeout(timer);
       }
     },
+    [images],
+  );
+
+  const restore = useCallback(
+    (nextImages: GeneratedImage[], intent: AvatarIntent) => {
+      setImages(nextImages);
+      setLastIntent(intent);
+      setErrorCode(null);
+      setStatus("success");
+    },
     [],
   );
 
-  return { status, images, errorCode, lastIntent, run };
+  return { status, images, errorCode, lastIntent, run, restore };
 }
