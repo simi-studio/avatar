@@ -15,6 +15,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test",
+    "eval:avatar": "tsx scripts/avatar-eval.ts",
+    "eval:avatar:live": "tsx scripts/avatar-eval-live.ts",
     "guard:secrets": "node scripts/check-no-secret-logs.mjs",
     "cf:build": "opennextjs-cloudflare build",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
@@ -51,6 +53,7 @@
     "postcss": "^8.5.1",
     "tailwindcss": "^3.4.17",
     "tailwindcss-animate": "^1.0.7",
+    "tsx": "^4.23.0",
     "typescript": "^5.7.3",
     "vitest": "^2.1.8",
     "wrangler": "^4.95.0"

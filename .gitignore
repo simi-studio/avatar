@@ -20,6 +20,8 @@ wrangler.prod.jsonc
 coverage/
 playwright-report/
 test-results/
+# Opt-in avatar evaluation outputs may contain generated fixture images.
+avatar-eval-results/
 
 # Local environment files
 .env

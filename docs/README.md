@@ -19,6 +19,7 @@
 | [architecture.md](./architecture.md)                 | Architecture, data flow, module boundaries (HOW)                        |
 | [providers.md](./providers.md)                       | Provider interface, supported providers, how to add one                 |
 | [provider-calibration.md](./provider-calibration.md) | Provider/style prompt calibration and QA rules                          |
+| [avatar-evaluation.md](./avatar-evaluation.md)       | M11 privacy-safe quality rubric, harness, and release gate              |
 | [security.md](./security.md)                         | Security & privacy model, hard constraints, checklist                   |
 | [cloudflare-deploy.md](./cloudflare-deploy.md)       | Cloudflare Workers deployment guide                                     |
 | [release.md](./release.md)                           | Release runbook: gate, deploy, smoke, rollback, observability           |

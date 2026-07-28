@@ -38,6 +38,9 @@ jobs:
       - name: Test
         run: npm run test
 
+      - name: Avatar evaluation dry run (no key, no network)
+        run: npm run eval:avatar -- validate
+
       - name: Build
         run: npm run build
 
