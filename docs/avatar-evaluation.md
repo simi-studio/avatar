@@ -9,10 +9,12 @@ and a constrained-edit parent. Every rubric dimension has at least one `liveElig
 `likeness` has 6 and `editPreservation` has 3. `npm run eval:avatar -- validate` checks the fixture
 schema and reports per-dimension coverage without requiring a key or network call.
 
-The multi-reference single-person scenario and photo-couple same-frame scenario remain intentionally
-blocked until Provider Capabilities v2 verifies matching adapter paths. The fixture set is ready for
-a paid provider baseline, but no identity/edit quality claim should ship until user-owned keys are
-used for a controlled run and at least two reviewers score the applicable dimensions.
+Fixture version `1.1.0` adds a same-task reference-count comparison group. Its single-reference
+control is live-eligible; the multi-reference variant remains blocked so it cannot create a false
+claim before a provider adapter supports that input shape. The photo-couple same-frame scenario is
+also blocked until Provider Capabilities v2 verifies a matching adapter path. The fixture set is
+ready for a paid provider baseline, but no identity/edit quality claim should ship until user-owned
+keys are used for a controlled run and at least two reviewers score the applicable dimensions.
 
 ## Safety boundary
 
@@ -54,6 +56,10 @@ Record latency, call count, and estimated cost separately; do not turn faster/ch
 subjective quality score. The live command records `imageCount` and the real `upstreamRequestCount`
 separately, because a provider may poll or retry and the two are not the same number. Fill
 `estimatedCostUsd` from the provider's own pricing page; the harness does not infer it.
+
+Every live run also writes `review.html` beside its generated images. Open that local file to review
+each output at 256×256 for context and at the actual rubric sizes of 48×48 and 32×32. The page scales
+the original locally, makes no network requests, and remains inside the gitignored results folder.
 
 ## Commands
 

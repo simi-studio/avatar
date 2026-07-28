@@ -10,6 +10,7 @@ import { getProvider } from "../lib/providers";
 import { getStyleById } from "../styles/avatar-styles";
 import { getThemeById, getVariant } from "../styles/avatar-themes";
 import type { EvaluationReference } from "../lib/avatar-evaluation/types";
+import { renderSmallSizeReviewSheet } from "../lib/avatar-evaluation/review-sheet";
 import {
   PROVIDERS,
   type MiniMaxRegion,
@@ -208,8 +209,12 @@ async function main(): Promise<void> {
       2,
     )}\n`,
   );
+  await writeFile(
+    path.join(runDirectory, "review.html"),
+    renderSmallSizeReviewSheet(runId, manifest),
+  );
   process.stdout.write(
-    `Live outputs written to ${runDirectory}. Add rubric scores with npm run eval:avatar -- template/report; never commit this directory.\n`,
+    `Live outputs and review.html written to ${runDirectory}. Add rubric scores with npm run eval:avatar -- template/report; never commit this directory.\n`,
   );
 }
 

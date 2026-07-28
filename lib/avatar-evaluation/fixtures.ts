@@ -1,6 +1,6 @@
 import type { EvaluationScenario } from "@/lib/avatar-evaluation/types";
 
-export const AVATAR_EVALUATION_FIXTURE_VERSION = "1.0.0";
+export const AVATAR_EVALUATION_FIXTURE_VERSION = "1.1.0";
 
 const professionalDimensions = [
   "promptAdherence",
@@ -162,8 +162,15 @@ export const AVATAR_EVALUATION_SCENARIOS: readonly EvaluationScenario[] = [
     references: [syntheticFront("synthetic-person-a-front")], requiredDimensions: [...photoDimensions], liveEligible: true,
   },
   {
+    id: "photo-reference-count-control", comparisonGroup: "photo-reference-count", locale: "en", category: "realistic", mode: "single",
+    brief: "Preserve identity in a natural professional portrait",
+    expectedIntent: { goal: "professional-profile", styleId: "professional-headshot", composition: "headshot", background: "studio", likeness: "high", creativity: "low" },
+    references: [syntheticFront("synthetic-person-a-front")], requiredDimensions: [...photoDimensions], liveEligible: true,
+  },
+  {
     id: "photo-multi-reference", locale: "en", category: "realistic", mode: "single",
-    brief: "Use both references to preserve identity in a natural professional portrait",
+    comparisonGroup: "photo-reference-count",
+    brief: "Preserve identity in a natural professional portrait",
     expectedIntent: { goal: "professional-profile", styleId: "professional-headshot", composition: "headshot", background: "studio", likeness: "high", creativity: "low" },
     references: [syntheticFront("synthetic-person-a-front"), syntheticProfile("synthetic-person-a-profile")], requiredDimensions: [...photoDimensions], liveEligible: false,
   },

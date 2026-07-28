@@ -15,6 +15,10 @@ import {
   validateEvaluationRun,
   validateFixtureSet,
 } from "@/lib/avatar-evaluation/harness";
+import {
+  renderSmallSizeReviewSheet,
+  SMALL_SIZE_REVIEW_PIXELS,
+} from "@/lib/avatar-evaluation/review-sheet";
 import type {
   EvaluationRun,
   EvaluationScore,
@@ -47,8 +51,8 @@ function scoredRun(runId: string, score: EvaluationScore): EvaluationRun {
 describe("avatar evaluation fixtures", () => {
   it("contains a valid versioned 20–30 scenario matrix", () => {
     expect(validateFixtureSet()).toEqual([]);
-    expect(AVATAR_EVALUATION_SCENARIOS).toHaveLength(24);
-    expect(AVATAR_EVALUATION_FIXTURE_VERSION).toBe("1.0.0");
+    expect(AVATAR_EVALUATION_SCENARIOS).toHaveLength(25);
+    expect(AVATAR_EVALUATION_FIXTURE_VERSION).toBe("1.1.0");
   });
 
   it("covers the required modes, categories, languages, and reference shapes", () => {
@@ -87,6 +91,14 @@ describe("avatar evaluation fixtures", () => {
           (item.change?.length ?? 0) > 0 && (item.preserve?.length ?? 0) > 0,
       ),
     ).toBe(true);
+    const referenceCountGroup = AVATAR_EVALUATION_SCENARIOS.filter(
+      (item) => item.comparisonGroup === "photo-reference-count",
+    );
+    expect(referenceCountGroup).toHaveLength(2);
+    expect(new Set(referenceCountGroup.map((item) => item.brief)).size).toBe(1);
+    expect(referenceCountGroup.map((item) => item.references.length)).toEqual([
+      1, 2,
+    ]);
   });
 
   it("blocks specification-only references from live generation", () => {
@@ -104,6 +116,23 @@ describe("avatar evaluation fixtures", () => {
     expect(validateFixtureSet([invalid])).toEqual(
       expect.arrayContaining([
         expect.stringContaining("live fixture has a reference without a path"),
+      ]),
+    );
+  });
+
+  it("rejects comparison variants that change the task as well as the factor", () => {
+    const variants = AVATAR_EVALUATION_SCENARIOS.filter(
+      (scenario) => scenario.comparisonGroup === "photo-reference-count",
+    );
+    const changedTask = [
+      variants[0]!,
+      { ...variants[1]!, brief: "A different portrait task" },
+    ];
+    expect(validateFixtureSet(changedTask)).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining(
+          "variants must share locale, category, mode, brief, intent",
+        ),
       ]),
     );
   });
@@ -131,7 +160,7 @@ describe("avatar evaluation harness", () => {
       capabilityVerifiedAt: "2026-07-12",
       configurationLabel: "Configuration A",
     });
-    expect(run.results).toHaveLength(24);
+    expect(run.results).toHaveLength(25);
     expect(validateEvaluationRun(run)).toEqual([]);
     expect(JSON.stringify(run)).not.toContain("Approachable startup founder");
     expect(JSON.stringify(run)).not.toMatch(/apiKey|base64|continuation/i);
@@ -181,15 +210,15 @@ describe("avatar evaluation harness", () => {
     const run = scoredRun("partial", 5);
     run.results = run.results.slice(0, 1);
     expect(validateEvaluationRun(run)).toEqual(
-      expect.arrayContaining([expect.stringContaining("missing 23 fixture result(s)")]),
+      expect.arrayContaining([expect.stringContaining("missing 24 fixture result(s)")]),
     );
   });
 
   it("summarizes scored dimensions and operational metadata", () => {
     const summary = summarizeEvaluationRun(scoredRun("summary", 4));
-    expect(summary.fullyScoredCount).toBe(24);
-    expect(summary.totalCalls).toBe(24);
-    expect(summary.totalEstimatedCostUsd).toBe(0.24);
+    expect(summary.fullyScoredCount).toBe(25);
+    expect(summary.totalCalls).toBe(25);
+    expect(summary.totalEstimatedCostUsd).toBe(0.25);
     expect(
       summary.dimensions.find((item) => item.dimension === "promptAdherence")
         ?.mean,
@@ -263,7 +292,7 @@ describe("avatar evaluation harness", () => {
     expect(unreachableLiveDimensions()).toEqual([]);
     expect(
       describeFixtureCoverage().find((item) => item.dimension === "likeness"),
-    ).toEqual({ dimension: "likeness", fixtureCount: 8, liveEligibleFixtureCount: 6 });
+    ).toEqual({ dimension: "likeness", fixtureCount: 9, liveEligibleFixtureCount: 7 });
   });
 
   it("renders a concise Markdown report with the evidence limit", () => {
@@ -273,5 +302,16 @@ describe("avatar evaluation harness", () => {
     expect(markdown).toContain("| promptAdherence | 5 |");
     expect(markdown).toContain("does not prove universal demographic");
     expect(markdown).not.toContain("Approachable startup founder");
+  });
+
+  it("renders deterministic 48px and 32px review previews", () => {
+    const html = renderSmallSizeReviewSheet("test-run", [
+      { fixtureId: "professional-founder-en", outputs: ["avatar.png"] },
+    ]);
+    expect(SMALL_SIZE_REVIEW_PIXELS).toEqual([48, 32]);
+    expect(html).toContain('width="48" height="48"');
+    expect(html).toContain('width="32" height="32"');
+    expect(html).toContain('src="avatar.png"');
+    expect(html).not.toContain("http");
   });
 });

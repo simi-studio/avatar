@@ -154,6 +154,38 @@ export function validateFixtureSet(
     }
   }
 
+  const comparisonGroups = new Map<string, EvaluationScenario[]>();
+  for (const scenario of scenarios) {
+    if (!scenario.comparisonGroup) continue;
+    const group = comparisonGroups.get(scenario.comparisonGroup) ?? [];
+    group.push(scenario);
+    comparisonGroups.set(scenario.comparisonGroup, group);
+  }
+  for (const [groupId, group] of comparisonGroups) {
+    if (group.length < 2) {
+      errors.push(`${groupId}: comparison group must include at least two variants.`);
+      continue;
+    }
+    const [control] = group;
+    if (
+      group.some(
+        (scenario) =>
+          scenario.locale !== control!.locale ||
+          scenario.category !== control!.category ||
+          scenario.mode !== control!.mode ||
+          scenario.brief !== control!.brief ||
+          JSON.stringify(scenario.expectedIntent) !==
+            JSON.stringify(control!.expectedIntent) ||
+          JSON.stringify(scenario.requiredDimensions) !==
+            JSON.stringify(control!.requiredDimensions),
+      )
+    ) {
+      errors.push(
+        `${groupId}: variants must share locale, category, mode, brief, intent, and rubric dimensions.`,
+      );
+    }
+  }
+
   return errors;
 }
 

@@ -27,6 +27,8 @@ export type EvaluationReference = {
 
 export type EvaluationScenario = {
   id: string;
+  /** Same-task variants that differ by one declared experimental factor. */
+  comparisonGroup?: string;
   pairId?: string;
   locale: "en" | "zh-CN";
   category:
