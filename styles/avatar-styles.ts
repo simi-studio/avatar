@@ -86,3 +86,21 @@ export function getStyleById(id: string | undefined): AvatarStyle | undefined {
 }
 
 export const STYLE_IDS = AVATAR_STYLES.map((style) => style.id);
+
+/**
+ * Styles that often age-shift or caricature under high photo likeness
+ * (multimodal restyle probes). Shared by prompt compiler and plan risks.
+ */
+export const STYLIZED_AVATAR_STYLE_IDS = new Set([
+  "anime",
+  "pixar-3d",
+  "comic-book",
+  "retro-game",
+  "fantasy-hero",
+  "sci-fi",
+  "watercolor",
+]);
+
+export function isStylizedAvatarStyle(styleId?: string): boolean {
+  return Boolean(styleId && STYLIZED_AVATAR_STYLE_IDS.has(styleId));
+}

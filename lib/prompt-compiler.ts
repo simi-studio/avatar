@@ -10,6 +10,7 @@ import {
   getProviderPromptProfile,
   getStyleCalibration,
 } from "@/lib/provider-calibration";
+import { isStylizedAvatarStyle } from "@/styles/avatar-styles";
 
 export type CompiledProviderRequest = {
   provider: ProviderId;
@@ -132,23 +133,12 @@ function buildAvoidList(intent: AvatarIntent): string {
   return compact([intent.avoid, ...DEFAULT_AVOID]).join(", ");
 }
 
-/** Styles that often age-shift or caricature under high likeness (probe-backed). */
-const STYLIZED_PHOTO_STYLES = new Set([
-  "anime",
-  "pixar-3d",
-  "comic-book",
-  "retro-game",
-  "fantasy-hero",
-  "sci-fi",
-  "watercolor",
-]);
-
 function photoIdentityLines(
   intent: AvatarIntent,
   styleId?: string,
 ): string[] {
   const highLikeness = intent.likeness === "high";
-  const stylized = Boolean(styleId && STYLIZED_PHOTO_STYLES.has(styleId));
+  const stylized = isStylizedAvatarStyle(styleId);
   return compact([
     `Preserve the person's identity: ${LIKENESS_TEXT[intent.likeness]}`,
     highLikeness
@@ -228,11 +218,7 @@ function miniMaxPrompt(input: CompileAvatarPromptInput): string {
   const avoid = buildAvoidList(intent);
   const isPhotoInput = intent.mode === "single" || intent.mode === "couple";
   const highPhoto = isPhotoInput && intent.likeness === "high";
-  const stylized =
-    highPhoto &&
-    Boolean(
-      intent.styleId && STYLIZED_PHOTO_STYLES.has(intent.styleId),
-    );
+  const stylized = highPhoto && isStylizedAvatarStyle(intent.styleId);
 
   return compact([
     GOAL_TEXT[intent.goal],
