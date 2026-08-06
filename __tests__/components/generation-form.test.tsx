@@ -653,8 +653,12 @@ describe("GenerationForm", () => {
       screen.getByRole("button", { name: en.EditPlan.applyEdit }),
     );
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    // Wait for success UI, not only the network mock — CI runners can lag a
+    // frame behind the fetch resolution (same class of flake as PR #1).
+    await waitFor(() =>
+      expect(screen.getByLabelText(en.Candidates.title)).toBeInTheDocument(),
+    );
 
-    expect(screen.getByLabelText(en.Candidates.title)).toBeInTheDocument();
     const generateCandidate = screen.getByRole("button", {
       name: en.Candidates.selectLabel
         .replace("{index}", "1")
@@ -705,6 +709,13 @@ describe("GenerationForm", () => {
       screen.getByRole("button", { name: en.EditPlan.applyEdit }),
     );
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    // Refinement chips are hidden while status === "generating"; wait until
+    // the success panel is back before drafting the next plan.
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: en.Refinement["more-cute"] }),
+      ).toBeInTheDocument(),
+    );
 
     // Draft a plan against the current (edited) candidate.
     fireEvent.click(
