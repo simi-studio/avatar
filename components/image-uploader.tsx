@@ -13,6 +13,7 @@ import {
   readImageDimensions,
   stripExifAndCompress,
 } from "@/lib/image-utils";
+import { assessReferenceGeometry } from "@/lib/reference-intake";
 import { validateImageFile } from "@/lib/validation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -37,9 +38,11 @@ export function ImageUploader({
   const inputId = useId();
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<ErrorCode | null>(null);
+  const [softHint, setSoftHint] = useState<string | null>(null);
 
   async function handleFile(file: File) {
     setError(null);
+    setSoftHint(null);
     const typeOrSize = validateImageFile(file);
     if (typeOrSize) {
       setError(typeOrSize);
@@ -52,9 +55,20 @@ export function ImageUploader({
         setError("INVALID_IMAGE");
         return;
       }
+      const geometry = assessReferenceGeometry(width, height, file.size);
+      if (!geometry.acceptable) {
+        // Extreme aspect / invalid geometry: reject before EXIF strip work.
+        setError("INVALID_IMAGE");
+        return;
+      }
       const processed = await stripExifAndCompress(file);
       if (value?.previewUrl) URL.revokeObjectURL(value.previewUrl);
       onChange({ file: processed, previewUrl: URL.createObjectURL(processed) });
+      if (geometry.softIssues.includes("below-recommended-size")) {
+        setSoftHint(t("softHintSmall"));
+      } else if (geometry.softIssues.includes("very-wide-or-tall")) {
+        setSoftHint(t("softHintAspect"));
+      }
     } catch {
       setError("INVALID_IMAGE");
     } finally {
@@ -66,6 +80,7 @@ export function ImageUploader({
     if (value?.previewUrl) URL.revokeObjectURL(value.previewUrl);
     onChange(null);
     setError(null);
+    setSoftHint(null);
     if (inputRef.current) inputRef.current.value = "";
   }
 
@@ -114,6 +129,9 @@ export function ImageUploader({
       )}
 
       <p className="text-xs text-muted-foreground">{t("hint")}</p>
+      {softHint && !error && (
+        <p className="text-xs text-amber-700 dark:text-amber-400">{softHint}</p>
+      )}
       {error && (
         <p role="alert" className="text-sm text-destructive">
           {tErr(error)}

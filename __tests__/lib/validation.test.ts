@@ -85,9 +85,33 @@ describe("validateModeInput", () => {
     expect(
       validateModeInput({ mode: "single", imageCount: 0, styleId: "anime" }),
     ).toBe("INVALID_MODE_INPUT");
+    expect(
+      validateModeInput({ mode: "single", imageCount: 2, styleId: "anime" }),
+    ).toBe("INVALID_MODE_INPUT");
     expect(validateModeInput({ mode: "single", imageCount: 1 })).toBe(
       "INVALID_MODE_INPUT",
     );
+  });
+
+  it("allows 1..max images for single when multi-reference is enabled", () => {
+    expect(
+      validateModeInput({
+        mode: "single",
+        imageCount: 2,
+        styleId: "anime",
+        multiReferenceEnabled: true,
+        maxReferenceImages: 3,
+      }),
+    ).toBeNull();
+    expect(
+      validateModeInput({
+        mode: "single",
+        imageCount: 4,
+        styleId: "anime",
+        multiReferenceEnabled: true,
+        maxReferenceImages: 3,
+      }),
+    ).toBe("INVALID_MODE_INPUT");
   });
 
   it("requires exactly two images for couple", () => {

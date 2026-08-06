@@ -114,20 +114,42 @@ export type ModeInput = {
   styleId?: string;
   themeId?: string;
   variantId?: string;
+  /**
+   * When true (capability-backed multi-reference), `single` accepts
+   * 1..maxReferenceImages instead of exactly one image.
+   */
+  multiReferenceEnabled?: boolean;
+  maxReferenceImages?: number;
+  /**
+   * Photo couple same-frame composite: exactly 2 people/images in one frame.
+   * When true, couple still needs 2 images but call count is one (adapters).
+   */
+  sameFrameComposite?: boolean;
 };
 
 /**
  * Validate that the inputs match the selected mode (prd.md §11.1):
  * - `text` requires no image but a style (text-to-avatar, the default mode).
  * - `couple-text` requires no image but a style (text-to-couple pair).
- * - `single` requires exactly 1 image and a style.
+ * - `single` requires exactly 1 image and a style, or 1..max when multi-reference.
  * - `couple` requires exactly 2 images and a style.
  * - `themed` requires no image but a theme and variant.
  */
 export function validateModeInput(input: ModeInput): ErrorCode | null {
-  const required = REQUIRED_IMAGE_COUNT[input.mode];
-  if (input.imageCount !== required) {
-    return "INVALID_MODE_INPUT";
+  if (input.mode === "single") {
+    const multi =
+      input.multiReferenceEnabled === true &&
+      typeof input.maxReferenceImages === "number" &&
+      input.maxReferenceImages > 1;
+    const max = multi ? input.maxReferenceImages! : 1;
+    if (input.imageCount < 1 || input.imageCount > max) {
+      return "INVALID_MODE_INPUT";
+    }
+  } else {
+    const required = REQUIRED_IMAGE_COUNT[input.mode];
+    if (input.imageCount !== required) {
+      return "INVALID_MODE_INPUT";
+    }
   }
 
   if (input.mode === "themed") {
