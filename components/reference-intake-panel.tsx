@@ -74,6 +74,8 @@ export function ReferenceIntakePanel({
         <li>{t("quality.faceVisible")}</li>
         <li>{t("quality.evenLight")}</li>
         <li>{t("quality.headshotCrop")}</li>
+        <li>{t("quality.onePerson")}</li>
+        <li>{t("quality.preferFront")}</li>
       </ul>
 
       <ImageUploader

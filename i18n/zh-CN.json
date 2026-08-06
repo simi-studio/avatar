@@ -129,7 +129,9 @@
     "quality": {
       "faceVisible": "面部完整可见 — 避免墨镜、口罩或遮住眼睛与发际线的帽子",
       "evenLight": "光线均匀充足 — 过暗或重阴影的脸在风格化后相似度会明显下降",
-      "headshotCrop": "头肩特写，面部尽量占画面主体"
+      "headshotCrop": "头肩特写，面部尽量占画面主体",
+      "onePerson": "仅一位人物 — 画面中多人会干扰单人头像的身份匹配",
+      "preferFront": "优先正脸或轻微四分之三侧脸，避免纯侧面轮廓"
     },
     "roles": {
       "front": "正面参考",
@@ -347,7 +349,10 @@
       "creativity-vs-professional": "创意度过高可能削弱专业、干净的观感。",
       "transparent-approximate": "服务商只能近似生成镂空背景，无法保证真正透明。",
       "pair-consistency": "两次独立调用——成对结果可能不完全一致。",
-      "same-frame-blend": "两人共处一帧，五官可能相互融合。"
+      "same-frame-blend": "两人共处一帧，五官可能相互融合。",
+      "stylized-likeness-drift": "高相似度配合动漫、漫画等风格化样式时，容易变年轻或放大眼睛。可改用专业风格，或降低相似度。",
+      "single-subject-reference": "请只放一位清晰正脸人物。画面中多人，或纯侧面轮廓，都会让身份匹配变得不可靠。",
+      "full-body-face-size": "全身构图会让脸变小。需要高相似度时，优先选择头肩或半身。"
     }
   },
   "Appearance": {

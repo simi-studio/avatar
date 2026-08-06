@@ -129,7 +129,9 @@
     "quality": {
       "faceVisible": "Face fully visible — avoid sunglasses, masks, or hats covering eyes and hairline",
       "evenLight": "Even, adequate lighting — dark or harshly shaded faces lose likeness after restyle",
-      "headshotCrop": "Head-and-shoulders crop with the face filling most of the frame"
+      "headshotCrop": "Head-and-shoulders crop with the face filling most of the frame",
+      "onePerson": "One person only — extra faces in the frame confuse single-avatar identity",
+      "preferFront": "Prefer a front or slight three-quarter view over a full side profile"
     },
     "roles": {
       "front": "Front reference",
@@ -347,7 +349,10 @@
       "creativity-vs-professional": "High creativity can undercut a clean professional look.",
       "transparent-approximate": "Providers approximate cutout backgrounds; true transparency isn't guaranteed.",
       "pair-consistency": "Two separate calls — the pair may not match perfectly.",
-      "same-frame-blend": "Both partners share one frame; features can blend."
+      "same-frame-blend": "Both partners share one frame; features can blend.",
+      "stylized-likeness-drift": "High likeness with anime, comic, or other stylized looks can age-shift or enlarge eyes. Prefer a professional style, or lower likeness.",
+      "single-subject-reference": "Use one clear front-facing person only. Extra faces or full-side profiles make identity matching unreliable.",
+      "full-body-face-size": "Full-body framing shrinks the face. Prefer headshot or half-body when likeness matters."
     }
   },
   "Appearance": {

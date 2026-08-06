@@ -9,6 +9,7 @@ import {
 } from "@/lib/avatar-intent";
 import { isCoupleMode, isPhotoMode, type GenerationMode } from "@/lib/constants";
 import type { AvatarStyle, AvatarTheme, AvatarVariant } from "@/lib/types";
+import { isStylizedAvatarStyle } from "@/styles/avatar-styles";
 
 /**
  * Read-only "avatar plan" derived from the current intent (Epic 10.3). It is a
@@ -24,6 +25,12 @@ export const AVATAR_PLAN_RISKS = [
   "transparent-approximate",
   "pair-consistency",
   "same-frame-blend",
+  /** Photo + high likeness + stylized style tends to age-shift / caricature. */
+  "stylized-likeness-drift",
+  /** Single-photo modes need exactly one clear subject in the frame. */
+  "single-subject-reference",
+  /** Full-body crops shrink the face and hurt small-size likeness. */
+  "full-body-face-size",
 ] as const;
 export type AvatarPlanRisk = (typeof AVATAR_PLAN_RISKS)[number];
 
@@ -64,6 +71,25 @@ function deriveRisks(intent: AvatarIntent): AvatarPlanRisk[] {
   }
   if (isSameFrameCouple(intent)) {
     risks.push("same-frame-blend");
+  }
+  // Multimodal probes: anime/comic high-likeness restyles invent younger faces.
+  if (
+    isPhotoMode(intent.mode) &&
+    intent.likeness === "high" &&
+    isStylizedAvatarStyle(intent.styleId)
+  ) {
+    risks.push("stylized-likeness-drift");
+  }
+  // Multimodal probes: second person or full profile confuses single identity.
+  if (intent.mode === "single" && intent.likeness !== "low") {
+    risks.push("single-subject-reference");
+  }
+  if (
+    isPhotoMode(intent.mode) &&
+    intent.composition === "full-body" &&
+    intent.likeness === "high"
+  ) {
+    risks.push("full-body-face-size");
   }
   return risks;
 }

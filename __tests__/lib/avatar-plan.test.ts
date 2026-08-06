@@ -25,6 +25,31 @@ describe("deriveAvatarPlan", () => {
     expect(plan.risks).not.toContain("likeness-without-photo");
   });
 
+  it("flags stylized high-likeness photo restyle drift", () => {
+    const plan = deriveAvatarPlan(
+      createAvatarIntent({
+        mode: "single",
+        styleId: "anime",
+        likeness: "high",
+      }),
+    );
+    expect(plan.risks).toContain("stylized-likeness-drift");
+    expect(plan.risks).toContain("single-subject-reference");
+  });
+
+  it("flags full-body high-likeness photo crops for small face risk", () => {
+    const plan = deriveAvatarPlan(
+      createAvatarIntent({
+        mode: "single",
+        styleId: "professional-headshot",
+        likeness: "high",
+        composition: "full-body",
+      }),
+    );
+    expect(plan.risks).toContain("full-body-face-size");
+    expect(plan.risks).not.toContain("stylized-likeness-drift");
+  });
+
   it("counts a paired mode as two calls with a consistency risk", () => {
     const plan = deriveAvatarPlan(createAvatarIntent({ mode: "couple-text" }));
     expect(plan.generationCount).toBe(2);
