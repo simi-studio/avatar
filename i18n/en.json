@@ -108,11 +108,31 @@
     "label": "Upload image",
     "labelA": "Person A",
     "labelB": "Person B",
-    "hint": "JPG, PNG or WEBP. Up to 10MB, at least 256×256.",
+    "hint": "JPG, PNG or WEBP. Up to 10MB, at least 256×256. A clear front-facing portrait works best.",
     "choose": "Choose file",
     "replace": "Replace",
     "remove": "Remove",
-    "processing": "Processing…"
+    "processing": "Processing…",
+    "softHintSmall": "This photo is a bit small. A larger head-and-shoulders crop (about 512×512 or more) usually preserves likeness better.",
+    "softHintAspect": "This photo is quite wide or tall. A closer square head-and-shoulders crop usually works better for avatars."
+  },
+  "Reference": {
+    "title": "Reference photos",
+    "hint": "A clear front photo is required. Extra angles help likeness only when the provider supports multi-reference.",
+    "limitSingle": "1 photo for this provider",
+    "limitEnabled": "Up to {max} photos",
+    "unsupported": "{provider} currently accepts one reference photo. Multi-angle slots unlock only after this provider is verified for multi-reference identity.",
+    "frontOnlyHelp": "Use a sharp, well-lit front-facing head-and-shoulders crop for the best likeness today.",
+    "sameFrameUnsupported": "Same-frame photo couples need a verified multi-image composite path. {provider} still uses style-matched A/B generation (two calls).",
+    "roles": {
+      "front": "Front reference",
+      "profile": "Profile / three-quarter",
+      "expression": "Natural expression"
+    },
+    "roleHelp": {
+      "profile": "helps side structure and jawline",
+      "expression": "helps a natural smile or neutral look"
+    }
   },
   "Style": {
     "label": "Style",
@@ -262,7 +282,40 @@
     "more-cute": "Cuter",
     "cleaner-background": "Cleaner background",
     "variation": "Try variation",
-    "costNote": "Each refinement runs another provider generation and uses your API key's quota."
+    "costNote": "Each refinement runs another provider generation and uses your API key's quota.",
+    "reviewBeforeCall": "Review the change and preserve plan below before spending another provider call."
+  },
+  "EditPlan": {
+    "title": "Edit plan",
+    "hint": "Edit what should change and what must stay the same. Nothing is sent until you confirm.",
+    "changeLabel": "Change",
+    "changePlaceholder": "One requested change per line",
+    "preserveLabel": "Preserve",
+    "preservePlaceholder": "One preserve constraint per line",
+    "constrainedLabel": "Common constraints",
+    "applyEdit": "Apply edit",
+    "applyRegenerate": "Apply regenerate",
+    "costNote": "Confirming runs one more provider call with your API key.",
+    "stale": "This plan no longer matches the selected result. Cancel and draft a new plan from the current candidate.",
+    "actions": {
+      "background": "Background",
+      "clothing": "Clothing",
+      "expression": "Expression",
+      "framing": "Framing",
+      "realism": "Realism",
+      "keep-face": "Keep face unchanged"
+    }
+  },
+  "Candidates": {
+    "title": "Session candidates",
+    "hint": "Switch between results from this page session. Candidates are not saved after reload.",
+    "version": "v{index}",
+    "selectLabel": "Select candidate {index}, {operation}",
+    "operation": {
+      "generate": "Generate",
+      "edit": "Edit",
+      "regenerate": "Regenerate"
+    }
   },
   "Agent": {
     "briefLabel": "Describe your avatar in a sentence",
@@ -271,7 +324,8 @@
     "briefHint": "We map your words to the settings below — no AI call, nothing leaves your browser. Adjust anything after.",
     "refineLabel": "Refine in words",
     "refinePlaceholder": "e.g. more like me, make it work for LinkedIn",
-    "refineApply": "Refine"
+    "refineApply": "Refine",
+    "refineDraft": "Draft plan"
   },
   "Plan": {
     "title": "Avatar plan",

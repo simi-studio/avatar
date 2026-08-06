@@ -66,11 +66,32 @@ describe("GenerationForm", () => {
     expect(screen.getByText(en.Suggestions.label)).toBeInTheDocument();
     expect(screen.queryByText(en.Upload.label)).not.toBeInTheDocument();
 
-    // Switching to the photo source reveals the single-mode uploader.
+    // Switching to the photo source reveals single-mode reference intake.
     fireEvent.click(
       screen.getByRole("button", { name: new RegExp(en.Source.photo) }),
     );
-    expect(screen.getByText(en.Upload.label)).toBeInTheDocument();
+    expect(screen.getByText(en.Reference.roles.front)).toBeInTheDocument();
+    expect(
+      screen.getByText(en.Reference.unsupported.replace("{provider}", en.Provider.openai)),
+    ).toBeInTheDocument();
+  });
+
+  it("shows an honest photo same-frame gate under couple mode", () => {
+    renderForm();
+    fireEvent.click(
+      screen.getByRole("button", { name: new RegExp(en.Source.photo) }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: en.Mode.couple }));
+    const sameFrame = screen.getByLabelText(en.Form.sameFrame);
+    expect(sameFrame).toBeDisabled();
+    expect(
+      screen.getByText(
+        en.Reference.sameFrameUnsupported.replace(
+          "{provider}",
+          en.Provider.openai,
+        ),
+      ),
+    ).toBeInTheDocument();
   });
 
   it("runs the text-mode happy path without any upload", async () => {
@@ -446,7 +467,7 @@ describe("GenerationForm", () => {
     expect(intent.subjectDescription).toBe("anime social avatar");
   });
 
-  it("applies a natural-language refinement as exactly one more provider call", async () => {
+  it("drafts an editable change/preserve plan before the paid refinement call", async () => {
     const fetchMock = setFetch({
       success: true,
       images: [{ base64: "AAAA", mimeType: "image/png" }],
@@ -473,7 +494,27 @@ describe("GenerationForm", () => {
       target: { value: "more realistic" },
     });
     fireEvent.click(
-      screen.getByRole("button", { name: en.Agent.refineApply }),
+      screen.getByRole("button", { name: en.Agent.refineDraft }),
+    );
+
+    // Drafting must not spend a provider call.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(screen.getByLabelText(en.EditPlan.title)).toBeInTheDocument();
+    expect(screen.getByLabelText(en.EditPlan.changeLabel)).toHaveValue(
+      "more realistic",
+    );
+
+    // User can edit the plan before confirming.
+    fireEvent.change(screen.getByLabelText(en.EditPlan.changeLabel), {
+      target: { value: "more realistic\nwarm studio light" },
+    });
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: en.EditPlan.actions.background,
+      }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: en.EditPlan.applyEdit }),
     );
 
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
@@ -486,14 +527,47 @@ describe("GenerationForm", () => {
     expect(intent.styleId).toBe("professional-headshot");
     expect(secondForm.get("operation")).toBe("edit");
     expect(secondForm.get("images")).toBeInstanceOf(File);
-    expect(JSON.parse(String(secondForm.get("editIntent")))).toMatchObject({
-      change: ["more realistic"],
-    });
+    const editIntent = JSON.parse(
+      String(secondForm.get("editIntent")),
+    ) as { change: string[] };
+    expect(editIntent.change).toEqual(
+      expect.arrayContaining(["more realistic", "warm studio light"]),
+    );
+    expect(editIntent.change.some((item) => item.includes("background"))).toBe(
+      true,
+    );
     await waitFor(() =>
       expect(
         screen.getByRole("button", { name: en.Result.restorePrevious }),
       ).toBeInTheDocument(),
     );
+  });
+
+  it("lets the user cancel a drafted plan without calling the provider", async () => {
+    const fetchMock = setFetch({
+      success: true,
+      images: [{ base64: "AAAA", mimeType: "image/png" }],
+    });
+    renderForm();
+
+    fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
+      target: { value: "sk-test-key" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: en.Style.anime }));
+    fireEvent.click(screen.getByRole("button", { name: en.Generate.generate }));
+    await waitFor(() =>
+      expect(screen.getByAltText(en.Result.altSingle)).toBeInTheDocument(),
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: en.Refinement["cleaner-background"],
+      }),
+    );
+    expect(screen.getByLabelText(en.EditPlan.title)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: en.Common.cancel }));
+    expect(screen.queryByLabelText(en.EditPlan.title)).not.toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("keeps the previous result visible when a selected-result edit fails", async () => {
@@ -530,6 +604,9 @@ describe("GenerationForm", () => {
         name: en.Refinement["cleaner-background"],
       }),
     );
+    fireEvent.click(
+      screen.getByRole("button", { name: en.EditPlan.applyEdit }),
+    );
 
     await waitFor(() =>
       expect(screen.getByRole("alert")).toHaveTextContent(
@@ -537,6 +614,120 @@ describe("GenerationForm", () => {
       ),
     );
     expect(screen.getByAltText(en.Result.altSingle)).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("shows session candidates and restores a prior branch without a network call", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        json: async () => ({
+          success: true,
+          images: [{ base64: "AAAA", mimeType: "image/png" }],
+        }),
+      })
+      .mockResolvedValueOnce({
+        json: async () => ({
+          success: true,
+          images: [{ base64: "BBBB", mimeType: "image/png" }],
+        }),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+    renderForm();
+
+    fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
+      target: { value: "sk-test-key" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: en.Style.anime }));
+    fireEvent.click(screen.getByRole("button", { name: en.Generate.generate }));
+    await waitFor(() =>
+      expect(screen.getByAltText(en.Result.altSingle)).toBeInTheDocument(),
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: en.Refinement["cleaner-background"],
+      }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: en.EditPlan.applyEdit }),
+    );
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+
+    expect(screen.getByLabelText(en.Candidates.title)).toBeInTheDocument();
+    const generateCandidate = screen.getByRole("button", {
+      name: en.Candidates.selectLabel
+        .replace("{index}", "1")
+        .replace("{operation}", en.Candidates.operation.generate),
+    });
+    fireEvent.click(generateCandidate);
+
+    // Restoring a candidate is session-local only.
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const img = screen.getByAltText(en.Result.altSingle) as HTMLImageElement;
+    expect(img.src).toContain("AAAA");
+  });
+
+  it("marks a drafted plan stale when the selected candidate changes", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        json: async () => ({
+          success: true,
+          images: [{ base64: "AAAA", mimeType: "image/png" }],
+        }),
+      })
+      .mockResolvedValueOnce({
+        json: async () => ({
+          success: true,
+          images: [{ base64: "BBBB", mimeType: "image/png" }],
+        }),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+    renderForm();
+
+    fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
+      target: { value: "sk-test-key" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: en.Style.anime }));
+    fireEvent.click(screen.getByRole("button", { name: en.Generate.generate }));
+    await waitFor(() =>
+      expect(screen.getByAltText(en.Result.altSingle)).toBeInTheDocument(),
+    );
+
+    // Create a second candidate first.
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: en.Refinement.variation,
+      }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: en.EditPlan.applyEdit }),
+    );
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+
+    // Draft a plan against the current (edited) candidate.
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: en.Refinement["more-cute"],
+      }),
+    );
+    expect(screen.getByLabelText(en.EditPlan.title)).toBeInTheDocument();
+
+    // Switch back to the root candidate — plan should go stale and refuse apply.
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: en.Candidates.selectLabel
+          .replace("{index}", "1")
+          .replace("{operation}", en.Candidates.operation.generate),
+      }),
+    );
+    expect(screen.getByText(en.EditPlan.stale)).toBeInTheDocument();
+    const apply = screen.getByRole("button", {
+      name: en.EditPlan.applyEdit,
+    });
+    expect(apply).toBeDisabled();
+    fireEvent.click(apply);
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 

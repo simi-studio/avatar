@@ -21,13 +21,18 @@ import { useGenerationRequest } from "@/lib/use-generation-request";
 import {
   addGenerationCandidates,
   createGenerationSession,
+  hasGenerationCandidate,
   parentGenerationCandidate,
   selectGenerationCandidate,
   selectedGenerationCandidate,
 } from "@/lib/generation-session";
 import {
+  applyConstrainedEditAction,
   editIntentForAction,
+  editIntentForConstrainedAction,
   editIntentFromText,
+  isEditPlanReady,
+  type ConstrainedEditAction,
   type EditIntent,
 } from "@/lib/edit-intent";
 import { generatedImageToFile } from "@/lib/generated-image-file";
@@ -38,12 +43,18 @@ import {
 } from "@/lib/use-avatar-intent-form";
 import { decodePreset, type TeamPreset } from "@/lib/preset";
 import {
+  capabilitiesForProvider,
   defaultSizeForProvider,
   modelLabelForProvider,
   pricingUrlForProvider,
   resolveEditStrategy,
   sizesForProvider,
 } from "@/lib/provider-capabilities";
+import {
+  canAcceptMultiReference,
+  canAcceptSameFrameComposite,
+  maxReferencesForCapabilities,
+} from "@/lib/reference-intake";
 import {
   applyGoalPreset,
   applyRefinementAction,
@@ -78,6 +89,10 @@ import { PromptSuggestions } from "@/components/prompt-suggestions";
 import { TeamPresetShare } from "@/components/team-preset-share";
 import { ImageUploader, type UploadedImage } from "@/components/image-uploader";
 import {
+  ReferenceIntakePanel,
+  type ReferenceIntakeValue,
+} from "@/components/reference-intake-panel";
+import {
   TurnstileWidget,
   TURNSTILE_ENABLED,
 } from "@/components/turnstile-widget";
@@ -97,6 +112,7 @@ export function GenerationForm() {
   const tAgent = useTranslations("Agent");
   const tUpload = useTranslations("Upload");
   const tHistory = useTranslations("History");
+  const tRef = useTranslations("Reference");
 
   const searchParams = useSearchParams();
 
@@ -113,6 +129,12 @@ export function GenerationForm() {
   const [generationSession, setGenerationSession] = useState(() =>
     createGenerationSession(),
   );
+  /** Draft change/preserve plan reviewed before any paid refinement call. */
+  const [pendingEdit, setPendingEdit] = useState<{
+    plan: EditIntent;
+    candidateId: string;
+    intent: AvatarIntent;
+  } | null>(null);
 
   // The intent form is the single source of truth; destructure for reads so the
   // markup stays declarative, and write through thin `patch` wrappers.
@@ -150,6 +172,9 @@ export function GenerationForm() {
   const [brief, setBrief] = useState("");
   const [imageA, setImageA] = useState<UploadedImage | null>(null);
   const [imageB, setImageB] = useState<UploadedImage | null>(null);
+  const [imageProfile, setImageProfile] = useState<UploadedImage | null>(null);
+  const [imageExpression, setImageExpression] =
+    useState<UploadedImage | null>(null);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | undefined>(
     undefined,
@@ -158,12 +183,38 @@ export function GenerationForm() {
 
   const source: InputSource = sourceForMode(mode);
   const availableSizes = sizesForProvider(provider);
+  const providerCapabilities = capabilitiesForProvider(provider);
+  const multiReferenceEnabled = canAcceptMultiReference(providerCapabilities);
+  const sameFrameCompositeEnabled = canAcceptSameFrameComposite(
+    providerCapabilities,
+  );
+  const maxReferences = maxReferencesForCapabilities(providerCapabilities);
 
   useEffect(() => {
     if (!availableSizes.includes(size)) {
       patch({ size: defaultSizeForProvider(provider) });
     }
   }, [availableSizes, provider, size, patch]);
+
+  // Drop optional multi-ref images when the provider cannot accept them.
+  useEffect(() => {
+    if (multiReferenceEnabled) return;
+    if (imageProfile?.previewUrl) URL.revokeObjectURL(imageProfile.previewUrl);
+    if (imageExpression?.previewUrl) {
+      URL.revokeObjectURL(imageExpression.previewUrl);
+    }
+    setImageProfile(null);
+    setImageExpression(null);
+    // Only react to capability flips; avoid re-running on every image change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [multiReferenceEnabled, provider]);
+
+  // Photo couple same-frame is not executable without verified composite.
+  useEffect(() => {
+    if (mode === "couple" && sameFrame && !sameFrameCompositeEnabled) {
+      patch({ sameFrame: false });
+    }
+  }, [mode, sameFrame, sameFrameCompositeEnabled, patch]);
 
   function buildIntent(overrides: Partial<AvatarIntent> = {}): AvatarIntent {
     return createAvatarIntent({
@@ -268,45 +319,73 @@ export function GenerationForm() {
 
   function buildGenerateForm(requestIntent: AvatarIntent): FormData {
     const requestMode = requestIntent.mode;
+    // Never claim same-frame photo couple without a verified composite path.
+    const payloadIntent: AvatarIntent =
+      requestMode === "couple"
+        ? {
+            ...requestIntent,
+            sameFrame:
+              requestIntent.sameFrame === true && sameFrameCompositeEnabled,
+          }
+        : requestIntent;
     const formData = new FormData();
     formData.append("provider", provider);
     if (provider === "minimax") formData.append("region", region);
     formData.append("apiKey", apiKey);
     formData.append("mode", requestMode);
-    formData.append("size", requestIntent.size);
-    if (requestIntent.subjectDescription) {
-      formData.append("userPrompt", requestIntent.subjectDescription);
+    formData.append("size", payloadIntent.size);
+    if (payloadIntent.subjectDescription) {
+      formData.append("userPrompt", payloadIntent.subjectDescription);
     }
-    formData.append("intent", JSON.stringify(requestIntent));
+    formData.append("intent", JSON.stringify(payloadIntent));
     if (turnstileToken) formData.append("turnstileToken", turnstileToken);
 
     if (requestMode === "themed") {
-      if (requestIntent.themeId) {
-        formData.append("themeId", requestIntent.themeId);
+      if (payloadIntent.themeId) {
+        formData.append("themeId", payloadIntent.themeId);
       }
-      if (requestIntent.variantId) {
-        formData.append("variantId", requestIntent.variantId);
+      if (payloadIntent.variantId) {
+        formData.append("variantId", payloadIntent.variantId);
       }
     } else if (requestMode === "text" || requestMode === "couple-text") {
-      if (requestIntent.styleId) {
-        formData.append("styleId", requestIntent.styleId);
+      if (payloadIntent.styleId) {
+        formData.append("styleId", payloadIntent.styleId);
       }
       if (requestMode === "couple-text") {
         formData.append(
           "pairedConsistency",
-          String(requestIntent.pairedConsistency),
+          String(payloadIntent.pairedConsistency),
         );
       }
     } else {
-      if (requestIntent.styleId) {
-        formData.append("styleId", requestIntent.styleId);
+      if (payloadIntent.styleId) {
+        formData.append("styleId", payloadIntent.styleId);
       }
-      if (imageA) formData.append("images", imageA.file, imageA.file.name);
-      if (requestMode === "couple") {
+      if (requestMode === "single") {
+        if (imageA) formData.append("images", imageA.file, imageA.file.name);
+        // Only send extra angles when multi-reference is capability-true.
+        if (multiReferenceEnabled) {
+          if (imageProfile) {
+            formData.append(
+              "images",
+              imageProfile.file,
+              imageProfile.file.name,
+            );
+          }
+          if (imageExpression) {
+            formData.append(
+              "images",
+              imageExpression.file,
+              imageExpression.file.name,
+            );
+          }
+        }
+      } else if (requestMode === "couple") {
+        if (imageA) formData.append("images", imageA.file, imageA.file.name);
         if (imageB) formData.append("images", imageB.file, imageB.file.name);
         formData.append(
           "pairedConsistency",
-          String(requestIntent.pairedConsistency),
+          String(payloadIntent.pairedConsistency),
         );
       }
     }
@@ -336,6 +415,7 @@ export function GenerationForm() {
   }
 
   async function onGenerate(intentOverride?: AvatarIntent) {
+    setPendingEdit(null);
     await run({
       intent: intentOverride ?? buildIntent(),
       apiKey,
@@ -365,6 +445,17 @@ export function GenerationForm() {
     hasSelectedImageInput: canEditSelectedResult,
     hasContinuation: false,
   });
+  const pendingEditView = pendingEdit
+    ? {
+        plan: pendingEdit.plan,
+        // Stale when the draft's parent left the graph or is no longer selected.
+        stale:
+          !hasGenerationCandidate(
+            generationSession,
+            pendingEdit.candidateId,
+          ) || selectedCandidate?.id !== pendingEdit.candidateId,
+      }
+    : null;
 
   async function runRefinement(
     nextIntent: AvatarIntent,
@@ -392,6 +483,7 @@ export function GenerationForm() {
             images: nextImages,
             operation,
             parentId,
+            editIntent,
           }),
         );
       },
@@ -399,30 +491,88 @@ export function GenerationForm() {
     if (TURNSTILE_ENABLED) setTurnstileReset((value) => value + 1);
   }
 
-  function onRefine(action: RefinementAction) {
-    const nextIntent = applyRefinementAction(buildIntent(), action);
-    syncIntent(nextIntent);
-    void runRefinement(nextIntent, editIntentForAction(action));
+  /** Open the editable pre-call plan; the paid call waits for confirm. */
+  function openEditPlan(nextIntent: AvatarIntent, plan: EditIntent) {
+    const candidateId = selectedCandidate?.id;
+    if (!candidateId) return;
+    setPendingEdit({ plan, candidateId, intent: nextIntent });
   }
 
-  // Natural-language refinement: one intent transform + one provider call,
-  // consistent with the Epic 10.2 re-call notice.
+  function onRefine(action: RefinementAction) {
+    openEditPlan(
+      applyRefinementAction(buildIntent(), action),
+      editIntentForAction(action),
+    );
+  }
+
+  // Natural-language refinement drafts a plan; confirm triggers one provider call.
   function onRefineText(text: string) {
-    const nextIntent = applyBriefRefinement(buildIntent(), text);
-    const editIntent = editIntentFromText(text);
-    if (!editIntent) return;
-    syncIntent(nextIntent);
-    void runRefinement(nextIntent, editIntent);
+    const plan = editIntentFromText(text);
+    if (!plan) return;
+    openEditPlan(applyBriefRefinement(buildIntent(), text), plan);
+  }
+
+  function onEditPlanChange(plan: EditIntent) {
+    setPendingEdit((current) =>
+      current ? { ...current, plan } : current,
+    );
+  }
+
+  function onConstrainedAction(action: ConstrainedEditAction) {
+    setPendingEdit((current) => {
+      if (!current) {
+        const candidateId = selectedCandidate?.id;
+        if (!candidateId) return current;
+        return {
+          plan: editIntentForConstrainedAction(action),
+          candidateId,
+          intent: buildIntent(),
+        };
+      }
+      return {
+        ...current,
+        plan: applyConstrainedEditAction(current.plan, action),
+      };
+    });
+  }
+
+  function onCancelEditPlan() {
+    setPendingEdit(null);
+  }
+
+  function onConfirmEditPlan() {
+    if (!pendingEdit || !isEditPlanReady(pendingEdit.plan)) return;
+    // Stale context: refuse the paid call; the panel shows a stale notice.
+    if (
+      !hasGenerationCandidate(generationSession, pendingEdit.candidateId) ||
+      selectedCandidate?.id !== pendingEdit.candidateId
+    ) {
+      return;
+    }
+    const { intent, plan } = pendingEdit;
+    setPendingEdit(null);
+    syncIntent(intent);
+    void runRefinement(intent, plan);
+  }
+
+  function onSelectCandidate(candidateId: string) {
+    const candidate = generationSession.candidates.find(
+      (item) => item.id === candidateId,
+    );
+    if (!candidate) return;
+    setGenerationSession((session) =>
+      selectGenerationCandidate(session, candidateId),
+    );
+    restore([candidate.image], candidate.intent);
+    syncIntent(candidate.intent);
+    // Keep any open draft so the plan panel can show a stale notice when the
+    // selected candidate no longer matches the draft parent.
   }
 
   function onRestorePrevious() {
     const parent = parentGenerationCandidate(generationSession);
     if (!parent) return;
-    setGenerationSession((session) =>
-      selectGenerationCandidate(session, parent.id),
-    );
-    restore([parent.image], parent.intent);
-    syncIntent(parent.intent);
+    onSelectCandidate(parent.id);
   }
 
   // Clearing the key also offers to clear local history, since both are
@@ -570,10 +720,20 @@ export function GenerationForm() {
 
             {mode === "single" && (
               <>
-                <ImageUploader
-                  label={tUpload("label")}
-                  value={imageA}
-                  onChange={setImageA}
+                <ReferenceIntakePanel
+                  value={{
+                    front: imageA,
+                    profile: imageProfile,
+                    expression: imageExpression,
+                  } satisfies ReferenceIntakeValue}
+                  onChange={(next) => {
+                    setImageA(next.front);
+                    setImageProfile(next.profile);
+                    setImageExpression(next.expression);
+                  }}
+                  multiEnabled={multiReferenceEnabled}
+                  maxReferences={maxReferences}
+                  providerLabel={tp(provider)}
                 />
                 <StylePicker value={styleId} onChange={setStyleId} />
               </>
@@ -594,17 +754,51 @@ export function GenerationForm() {
                   />
                 </div>
                 <StylePicker value={styleId} onChange={setStyleId} />
-                <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                <label
+                  className={`flex items-center gap-2 text-sm ${
+                    sameFrameCompositeEnabled
+                      ? "text-muted-foreground"
+                      : "text-muted-foreground/80"
+                  }`}
+                >
                   <input
                     type="checkbox"
-                    checked={pairedConsistency}
-                    onChange={(event) =>
-                      setPairedConsistency(event.target.checked)
-                    }
+                    checked={sameFrame && sameFrameCompositeEnabled}
+                    disabled={!sameFrameCompositeEnabled}
+                    onChange={(event) => setSameFrame(event.target.checked)}
                     className="h-4 w-4 rounded border-input"
+                    aria-describedby={
+                      sameFrameCompositeEnabled
+                        ? undefined
+                        : "photo-same-frame-note"
+                    }
                   />
-                  {tf("pairedConsistency")}
+                  {tf("sameFrame")}
                 </label>
+                {!sameFrameCompositeEnabled && (
+                  <p
+                    id="photo-same-frame-note"
+                    className="text-xs text-muted-foreground"
+                    role="note"
+                  >
+                    {tRef("sameFrameUnsupported", {
+                      provider: tp(provider),
+                    })}
+                  </p>
+                )}
+                {(!sameFrame || !sameFrameCompositeEnabled) && (
+                  <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <input
+                      type="checkbox"
+                      checked={pairedConsistency}
+                      onChange={(event) =>
+                        setPairedConsistency(event.target.checked)
+                      }
+                      className="h-4 w-4 rounded border-input"
+                    />
+                    {tf("pairedConsistency")}
+                  </label>
+                )}
               </>
             )}
 
@@ -821,14 +1015,22 @@ export function GenerationForm() {
             expectedImageLabels={
               isCoupleMode(mode) && !coupleSameFrame ? ["A", "B"] : []
             }
+            candidates={generationSession.candidates}
+            selectedCandidateId={generationSession.selectedCandidateId}
+            pendingEdit={pendingEditView}
             onRetry={() => void onGenerate(lastIntent ?? buildIntent())}
             onRefine={onRefine}
             onRefineText={onRefineText}
+            onSelectCandidate={onSelectCandidate}
             onRestorePrevious={
               parentGenerationCandidate(generationSession)
                 ? onRestorePrevious
                 : undefined
             }
+            onEditPlanChange={onEditPlanChange}
+            onConfirmEditPlan={onConfirmEditPlan}
+            onCancelEditPlan={onCancelEditPlan}
+            onConstrainedAction={onConstrainedAction}
             refinementDisabled={!canGenerate || status === "generating"}
             refinementStrategy={refinementStrategy}
           />

@@ -108,11 +108,31 @@
     "label": "上传图片",
     "labelA": "人物 A",
     "labelB": "人物 B",
-    "hint": "支持 JPG、PNG 或 WEBP。最大 10MB，至少 256×256。",
+    "hint": "支持 JPG、PNG 或 WEBP。最大 10MB，至少 256×256。正脸头肩特写效果最好。",
     "choose": "选择文件",
     "replace": "替换",
     "remove": "移除",
-    "processing": "处理中…"
+    "processing": "处理中…",
+    "softHintSmall": "这张照片偏小。更大的头肩特写（约 512×512 或以上）通常更能保留相似度。",
+    "softHintAspect": "这张照片过宽或过高。更接近正方形的头肩裁切通常更适合头像。"
+  },
+  "Reference": {
+    "title": "参考照片",
+    "hint": "需要一张清晰正脸。仅当服务商支持多参考身份时，额外角度才会提升相似度。",
+    "limitSingle": "当前服务商限 1 张照片",
+    "limitEnabled": "最多 {max} 张照片",
+    "unsupported": "{provider} 目前只接受一张参考照片。多角度槽位会在该服务商完成多参考身份验证后开放。",
+    "frontOnlyHelp": "今天请使用光线充足、清晰的正脸头肩特写，以获得最佳相似度。",
+    "sameFrameUnsupported": "写真同框需要已验证的多图合成能力。{provider} 仍使用风格匹配的 A/B 双次生成。",
+    "roles": {
+      "front": "正面参考",
+      "profile": "侧面 / 四分之三侧",
+      "expression": "自然表情"
+    },
+    "roleHelp": {
+      "profile": "有助于侧脸结构与下颌线",
+      "expression": "有助于自然微笑或中性表情"
+    }
   },
   "Style": {
     "label": "风格",
@@ -262,7 +282,40 @@
     "more-cute": "更可爱",
     "cleaner-background": "背景更干净",
     "variation": "再来一版",
-    "costNote": "每次调整都会再向服务商发起一次生成，并消耗你 API Key 的额度。"
+    "costNote": "每次调整都会再向服务商发起一次生成，并消耗你 API Key 的额度。",
+    "reviewBeforeCall": "请先核对下方的修改与保留计划，再消耗另一次服务商调用。"
+  },
+  "EditPlan": {
+    "title": "编辑计划",
+    "hint": "编辑要改动与必须保留的内容。确认前不会发送任何请求。",
+    "changeLabel": "修改",
+    "changePlaceholder": "每行一条修改说明",
+    "preserveLabel": "保留",
+    "preservePlaceholder": "每行一条保留约束",
+    "constrainedLabel": "常用约束",
+    "applyEdit": "应用编辑",
+    "applyRegenerate": "应用重新生成",
+    "costNote": "确认后会使用你的 API Key 再调用一次服务商。",
+    "stale": "该计划已与当前选中结果不匹配。请取消后，基于当前候选重新起草计划。",
+    "actions": {
+      "background": "背景",
+      "clothing": "服装",
+      "expression": "表情",
+      "framing": "取景",
+      "realism": "写实",
+      "keep-face": "面部保持不变"
+    }
+  },
+  "Candidates": {
+    "title": "会话候选",
+    "hint": "在本页会话的结果之间切换。刷新页面后候选不会保留。",
+    "version": "v{index}",
+    "selectLabel": "选择候选 {index}，{operation}",
+    "operation": {
+      "generate": "生成",
+      "edit": "编辑",
+      "regenerate": "重新生成"
+    }
   },
   "Agent": {
     "briefLabel": "用一句话描述你想要的头像",
@@ -271,7 +324,8 @@
     "briefHint": "我们会把你的描述映射到下方设置——不调用 AI，也不上传任何内容。之后可自由调整。",
     "refineLabel": "用文字微调",
     "refinePlaceholder": "例如：更像我、适合用于 LinkedIn",
-    "refineApply": "微调"
+    "refineApply": "微调",
+    "refineDraft": "生成计划"
   },
   "Plan": {
     "title": "头像方案",
