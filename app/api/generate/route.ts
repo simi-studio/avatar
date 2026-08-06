@@ -15,12 +15,18 @@ import {
   normalizeAvatarIntent,
   parseAvatarIntentJson,
 } from "@/lib/avatar-intent";
+import { normalizeEditIntent } from "@/lib/edit-intent";
 import {
-  compileEditInstruction,
-  normalizeEditIntent,
-} from "@/lib/edit-intent";
-import { compileAvatarPrompt } from "@/lib/prompt-compiler";
+  compileAvatarPrompt,
+  compileEditPrompt,
+} from "@/lib/prompt-compiler";
 import { capabilitiesForProvider } from "@/lib/provider-capabilities";
+import {
+  canAcceptMultiReference,
+  canAcceptSameFrameComposite,
+  compileReferenceRoleGuidance,
+  defaultSinglePersonReferenceRoles,
+} from "@/lib/reference-intake";
 import {
   checkRateLimit,
   clientIdentifier,
@@ -335,11 +341,38 @@ export async function POST(
     ? normalizeAvatarIntent(parsed.intentRaw, fallbackIntent)
     : parseAvatarIntentJson(parsed.intentJson, fallbackIntent);
 
+  const providerCapabilities = capabilitiesForProvider(
+    parsed.provider as ProviderId,
+  );
+  const multiReferenceEnabled = canAcceptMultiReference(providerCapabilities);
+  const sameFrameCompositeEnabled = canAcceptSameFrameComposite(
+    providerCapabilities,
+  );
+
+  // Refuse multi-image single requests until multi-reference is capability-true.
+  if (
+    parsed.mode === "single" &&
+    safeImages.length > 1 &&
+    !multiReferenceEnabled
+  ) {
+    return errorResponse("INVALID_MODE_INPUT");
+  }
+
   let executionIntent = intent;
+  // Photo couple same-frame falls back to A/B until composite is verified.
+  if (
+    executionIntent.mode === "couple" &&
+    executionIntent.sameFrame &&
+    !sameFrameCompositeEnabled
+  ) {
+    executionIntent = createAvatarIntent({
+      ...executionIntent,
+      sameFrame: false,
+    });
+  }
+
+  let editIntentForCompile: ReturnType<typeof normalizeEditIntent> = null;
   if (parsed.operation === "edit") {
-    const providerCapabilities = capabilitiesForProvider(
-      parsed.provider as ProviderId,
-    );
     const rawEditIntent = parsed.editIntentRaw
       ? parsed.editIntentRaw
       : (() => {
@@ -351,19 +384,21 @@ export async function POST(
             return undefined;
           }
         })();
-    const editIntent = normalizeEditIntent(rawEditIntent);
+    editIntentForCompile = normalizeEditIntent(rawEditIntent);
     if (
       !providerCapabilities.supportsImageEdit ||
       safeImages.length !== 1 ||
-      !editIntent
+      !editIntentForCompile
     ) {
       return errorResponse("INVALID_MODE_INPUT");
     }
+    // Keep mode/style metadata for validation and adapters, but compile a
+    // dedicated edit prompt (not a full generate-style redesign prompt).
     executionIntent = createAvatarIntent({
       ...intent,
       mode: "single",
       likeness: "high",
-      subjectDescription: compileEditInstruction(editIntent),
+      creativity: "low",
     });
   }
 
@@ -373,6 +408,9 @@ export async function POST(
     styleId: executionIntent.styleId,
     themeId: executionIntent.themeId,
     variantId: executionIntent.variantId,
+    multiReferenceEnabled,
+    maxReferenceImages: providerCapabilities.maxReferenceImages,
+    sameFrameComposite: sameFrameCompositeEnabled,
   });
   if (modeError) return errorResponse(modeError);
 
@@ -388,13 +426,31 @@ export async function POST(
   } else if (!style) {
     return errorResponse("INVALID_MODE_INPUT");
   }
-  const compiled = compileAvatarPrompt({
-    provider: parsed.provider as ProviderId,
-    intent: executionIntent,
-    style,
-    theme,
-    variant,
-  });
+
+  const referenceGuidance =
+    parsed.operation !== "edit" &&
+    executionIntent.mode === "single" &&
+    multiReferenceEnabled &&
+    safeImages.length > 1
+      ? compileReferenceRoleGuidance(
+          defaultSinglePersonReferenceRoles(safeImages.length),
+        )
+      : undefined;
+
+  const compiled =
+    parsed.operation === "edit" && editIntentForCompile
+      ? compileEditPrompt({
+          provider: parsed.provider as ProviderId,
+          editIntent: editIntentForCompile,
+        })
+      : compileAvatarPrompt({
+          provider: parsed.provider as ProviderId,
+          intent: executionIntent,
+          style,
+          theme,
+          variant,
+          referenceGuidance,
+        });
 
   try {
     const images = await provider.generateAvatar({
