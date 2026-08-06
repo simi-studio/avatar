@@ -36,13 +36,20 @@ export type ReferenceHardIssue =
 export type ReferenceSoftIssue =
   | "below-recommended-size"
   | "very-wide-or-tall"
-  | "approaching-budget";
+  | "approaching-budget"
+  | "underexposed"
+  | "overexposed";
 
 export type ReferenceGeometryAssessment = {
   hardIssues: ReferenceHardIssue[];
   softIssues: ReferenceSoftIssue[];
   acceptable: boolean;
 };
+
+/** Mean luma below this (0–255) is soft-flagged as too dark for identity. */
+export const SOFT_UNDEREXPOSED_LUMA = 48;
+/** Mean luma above this is soft-flagged as blown-out / low-detail. */
+export const SOFT_OVEREXPOSED_LUMA = 225;
 
 /** Leave headroom under the generate request ceiling for keys + form fields. */
 export const MAX_TOTAL_REFERENCE_BYTES = Math.floor(
@@ -73,6 +80,7 @@ export function assessReferenceGeometry(
   width: number,
   height: number,
   byteLength = 0,
+  meanLuma?: number,
 ): ReferenceGeometryAssessment {
   const hardIssues: ReferenceHardIssue[] = [];
   const softIssues: ReferenceSoftIssue[] = [];
@@ -104,12 +112,37 @@ export function assessReferenceGeometry(
   } else if (byteLength > MAX_IMAGE_BYTES * 0.85) {
     softIssues.push("approaching-budget");
   }
+  if (typeof meanLuma === "number" && Number.isFinite(meanLuma)) {
+    if (meanLuma < SOFT_UNDEREXPOSED_LUMA) {
+      softIssues.push("underexposed");
+    } else if (meanLuma > SOFT_OVEREXPOSED_LUMA) {
+      softIssues.push("overexposed");
+    }
+  }
 
   return {
     hardIssues,
     softIssues,
     acceptable: hardIssues.length === 0,
   };
+}
+
+/**
+ * Prefer the most actionable soft issue for a single uploader hint.
+ * Underexposure beats size/aspect because dark refs lose likeness hardest
+ * under style restyle (multimodal probe 2026-08).
+ */
+export function primarySoftIssue(
+  softIssues: readonly ReferenceSoftIssue[],
+): ReferenceSoftIssue | undefined {
+  const priority: ReferenceSoftIssue[] = [
+    "underexposed",
+    "overexposed",
+    "below-recommended-size",
+    "very-wide-or-tall",
+    "approaching-budget",
+  ];
+  return priority.find((issue) => softIssues.includes(issue));
 }
 
 export function totalReferenceBytes(sizes: readonly number[]): number {

@@ -11,9 +11,13 @@ import {
 } from "@/lib/constants";
 import {
   readImageDimensions,
+  sampleImageLuminance,
   stripExifAndCompress,
 } from "@/lib/image-utils";
-import { assessReferenceGeometry } from "@/lib/reference-intake";
+import {
+  assessReferenceGeometry,
+  primarySoftIssue,
+} from "@/lib/reference-intake";
 import { validateImageFile } from "@/lib/validation";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -55,7 +59,18 @@ export function ImageUploader({
         setError("INVALID_IMAGE");
         return;
       }
-      const geometry = assessReferenceGeometry(width, height, file.size);
+      let meanLuma: number | undefined;
+      try {
+        meanLuma = await sampleImageLuminance(file);
+      } catch {
+        meanLuma = undefined;
+      }
+      const geometry = assessReferenceGeometry(
+        width,
+        height,
+        file.size,
+        meanLuma,
+      );
       if (!geometry.acceptable) {
         // Extreme aspect / invalid geometry: reject before EXIF strip work.
         setError("INVALID_IMAGE");
@@ -64,11 +79,11 @@ export function ImageUploader({
       const processed = await stripExifAndCompress(file);
       if (value?.previewUrl) URL.revokeObjectURL(value.previewUrl);
       onChange({ file: processed, previewUrl: URL.createObjectURL(processed) });
-      if (geometry.softIssues.includes("below-recommended-size")) {
-        setSoftHint(t("softHintSmall"));
-      } else if (geometry.softIssues.includes("very-wide-or-tall")) {
-        setSoftHint(t("softHintAspect"));
-      }
+      const soft = primarySoftIssue(geometry.softIssues);
+      if (soft === "underexposed") setSoftHint(t("softHintDark"));
+      else if (soft === "overexposed") setSoftHint(t("softHintBright"));
+      else if (soft === "below-recommended-size") setSoftHint(t("softHintSmall"));
+      else if (soft === "very-wide-or-tall") setSoftHint(t("softHintAspect"));
     } catch {
       setError("INVALID_IMAGE");
     } finally {

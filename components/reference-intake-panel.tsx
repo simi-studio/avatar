@@ -70,6 +70,11 @@ export function ReferenceIntakePanel({
         </span>
       </div>
       <p className="text-xs text-muted-foreground">{t("hint")}</p>
+      <ul className="list-inside list-disc space-y-0.5 text-xs text-muted-foreground">
+        <li>{t("quality.faceVisible")}</li>
+        <li>{t("quality.evenLight")}</li>
+        <li>{t("quality.headshotCrop")}</li>
+      </ul>
 
       <ImageUploader
         label={t("roles.front")}

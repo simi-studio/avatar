@@ -11,6 +11,7 @@ import {
   MAX_REFERENCE_ASPECT_RATIO,
   MAX_TOTAL_REFERENCE_BYTES,
   normalizeReferenceRole,
+  primarySoftIssue,
 } from "@/lib/reference-intake";
 import type { ProviderCapabilitiesV2 } from "@/lib/provider-capabilities";
 
@@ -46,6 +47,18 @@ describe("reference intake", () => {
     const soft = assessReferenceGeometry(400, 400);
     expect(soft.acceptable).toBe(true);
     expect(soft.softIssues).toContain("below-recommended-size");
+  });
+
+  it("soft-flags underexposure and prioritizes it over size hints", () => {
+    const dark = assessReferenceGeometry(1024, 1024, 100_000, 20);
+    expect(dark.acceptable).toBe(true);
+    expect(dark.softIssues).toContain("underexposed");
+    expect(primarySoftIssue(dark.softIssues)).toBe("underexposed");
+
+    const bright = assessReferenceGeometry(400, 400, 50_000, 240);
+    expect(bright.softIssues).toContain("overexposed");
+    expect(bright.softIssues).toContain("below-recommended-size");
+    expect(primarySoftIssue(bright.softIssues)).toBe("overexposed");
   });
 
   it("enforces a total reference byte budget under the generate ceiling", () => {

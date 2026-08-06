@@ -114,7 +114,9 @@
     "remove": "Remove",
     "processing": "Processing…",
     "softHintSmall": "This photo is a bit small. A larger head-and-shoulders crop (about 512×512 or more) usually preserves likeness better.",
-    "softHintAspect": "This photo is quite wide or tall. A closer square head-and-shoulders crop usually works better for avatars."
+    "softHintAspect": "This photo is quite wide or tall. A closer square head-and-shoulders crop usually works better for avatars.",
+    "softHintDark": "This photo looks underexposed. A brighter, even-lit face usually preserves likeness much better under style restyle.",
+    "softHintBright": "This photo looks very bright or blown out. Even lighting with visible facial detail usually works better."
   },
   "Reference": {
     "title": "Reference photos",
@@ -124,6 +126,11 @@
     "unsupported": "{provider} currently accepts one reference photo. Multi-angle slots unlock only after this provider is verified for multi-reference identity.",
     "frontOnlyHelp": "Use a sharp, well-lit front-facing head-and-shoulders crop for the best likeness today.",
     "sameFrameUnsupported": "Same-frame photo couples need a verified multi-image composite path. {provider} still uses style-matched A/B generation (two calls).",
+    "quality": {
+      "faceVisible": "Face fully visible — avoid sunglasses, masks, or hats covering eyes and hairline",
+      "evenLight": "Even, adequate lighting — dark or harshly shaded faces lose likeness after restyle",
+      "headshotCrop": "Head-and-shoulders crop with the face filling most of the frame"
+    },
     "roles": {
       "front": "Front reference",
       "profile": "Profile / three-quarter",
