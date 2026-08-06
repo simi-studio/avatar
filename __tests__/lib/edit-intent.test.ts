@@ -51,15 +51,23 @@ describe("edit intent", () => {
     expect(editIntentForConstrainedAction("clothing").change[0]).toContain(
       "clothing",
     );
-    expect(editIntentForConstrainedAction("expression").change[0]).toContain(
-      "expression",
+    expect(editIntentForConstrainedAction("expression").change[0]).toMatch(
+      /subtle|smile/i,
     );
-    expect(editIntentForConstrainedAction("framing").change[0]).toContain(
-      "framing",
+    expect(editIntentForConstrainedAction("framing").change[0]).toMatch(
+      /crop|framing/i,
     );
     expect(editIntentForConstrainedAction("realism").change[0]).toContain(
       "realism",
     );
+  });
+
+  it("adds a minimal-expression guard when the change mentions a smile", () => {
+    const compiled = compileEditInstruction({
+      change: ["expression: slightly warmer smile"],
+      preserve: ["identity", "framing"],
+    });
+    expect(compiled).toMatch(/minimal|wide open-mouth/i);
   });
 
   it("strengthens face preservation for keep-face without dropping prior changes", () => {

@@ -132,8 +132,23 @@ function buildAvoidList(intent: AvatarIntent): string {
   return compact([intent.avoid, ...DEFAULT_AVOID]).join(", ");
 }
 
-function photoIdentityLines(intent: AvatarIntent): string[] {
+/** Styles that often age-shift or caricature under high likeness (probe-backed). */
+const STYLIZED_PHOTO_STYLES = new Set([
+  "anime",
+  "pixar-3d",
+  "comic-book",
+  "retro-game",
+  "fantasy-hero",
+  "sci-fi",
+  "watercolor",
+]);
+
+function photoIdentityLines(
+  intent: AvatarIntent,
+  styleId?: string,
+): string[] {
   const highLikeness = intent.likeness === "high";
+  const stylized = Boolean(styleId && STYLIZED_PHOTO_STYLES.has(styleId));
   return compact([
     `Preserve the person's identity: ${LIKENESS_TEXT[intent.likeness]}`,
     highLikeness
@@ -142,6 +157,10 @@ function photoIdentityLines(intent: AvatarIntent): string[] {
     highLikeness
       ? "Change only rendering style, lighting treatment, and background as requested; keep clothing geometry unless the style truly requires otherwise"
       : undefined,
+    highLikeness && stylized
+      ? "Stylize rendering only: do not age-shift, beautify into a different person, or enlarge eyes beyond the reference proportions"
+      : undefined,
+    "Keep the face large enough to remain readable at small avatar sizes (about 48×48)",
   ]);
 }
 
@@ -182,7 +201,11 @@ function openAIPrompt(input: CompileAvatarPromptInput): string {
     intent.palette ? `Use this color palette: ${intent.palette}` : undefined,
     intent.mood ? `The mood should feel ${intent.mood}` : undefined,
     intent.accessories ? `Include ${intent.accessories}` : undefined,
-    ...(isPhotoInput ? photoIdentityLines(intent) : []),
+    ...(isPhotoInput
+      ? photoIdentityLines(intent, intent.styleId ?? style?.id)
+      : [
+          "Keep the face large enough to remain readable at small avatar sizes (about 48×48)",
+        ]),
     creativityLine(intent, isPhotoInput),
     coupleSeparationLine(intent),
     intent.variation
@@ -205,6 +228,11 @@ function miniMaxPrompt(input: CompileAvatarPromptInput): string {
   const avoid = buildAvoidList(intent);
   const isPhotoInput = intent.mode === "single" || intent.mode === "couple";
   const highPhoto = isPhotoInput && intent.likeness === "high";
+  const stylized =
+    highPhoto &&
+    Boolean(
+      intent.styleId && STYLIZED_PHOTO_STYLES.has(intent.styleId),
+    );
 
   return compact([
     GOAL_TEXT[intent.goal],
@@ -223,6 +251,10 @@ function miniMaxPrompt(input: CompileAvatarPromptInput): string {
     highPhoto
       ? "restrained treatment, identity first"
       : CREATIVITY_TEXT[intent.creativity],
+    stylized
+      ? "stylize rendering only, no age-shift, no enlarged eyes beyond reference"
+      : undefined,
+    "face large enough for 48px avatar readability",
     intent.sameFrame
       ? "two distinct people, no identity blend, equal visual weight, correct clothing colors"
       : isCoupleMode(intent.mode) && intent.pairedConsistency

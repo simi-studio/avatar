@@ -48,11 +48,11 @@ const CHANGE_BY_CONSTRAINED: Record<
   clothing:
     "change the clothing to a different color or outfit the user will specify, while keeping face, hair, expression, and identity intact",
   expression:
-    "adjust the facial expression slightly while keeping identity and framing",
+    "make a very subtle warmer closed-mouth smile only; do not open the mouth or create a wide grin",
   framing:
-    "adjust the framing and crop while keeping the same recognizable person",
+    "tighten the head-and-shoulders crop slightly while keeping the same recognizable person and face size priority",
   realism:
-    "increase photographic realism and natural skin, hair, and lighting detail",
+    "increase photographic realism and natural skin, hair, and lighting detail without changing identity",
 };
 
 const KEEP_FACE_PRESERVE =
@@ -238,13 +238,20 @@ export function compileEditInstruction(intent: EditIntent): string {
       ? intent.preserve
       : Array.from(DEFAULT_EDIT_PRESERVE),
   );
+  const changeText = intent.change.join("; ");
+  const expressionChange = /expression|smile|grin/i.test(changeText);
   return [
     "You are editing an existing avatar image. Apply only the requested changes.",
-    `Requested changes: ${intent.change.join("; ")}.`,
+    `Requested changes: ${changeText}.`,
     `Must preserve unchanged: ${preserve.join("; ")}.`,
     "Use the supplied image as the sole source of truth for identity and every non-requested attribute.",
     "Do not redesign, re-style, re-light, re-crop, beautify, or invent new accessories.",
     "Keep the same head position, shoulder position, camera distance, and clothing geometry unless a requested change requires otherwise.",
+    expressionChange
+      ? "If changing expression, keep the adjustment minimal and natural; avoid a wide open-mouth smile unless explicitly requested."
+      : undefined,
     "Change only what is listed under requested changes.",
-  ].join(" ");
+  ]
+    .filter(Boolean)
+    .join(" ");
 }

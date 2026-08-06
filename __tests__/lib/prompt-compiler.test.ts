@@ -200,4 +200,20 @@ describe("compileAvatarPrompt", () => {
     expect(minimax.prompt).not.toContain("professional profile avatar");
     expect(minimax.referenceStrength).toBe(0.95);
   });
+
+  it("guards stylized photo restyles against age-shift and eye caricature", () => {
+    const intent = createAvatarIntent({
+      mode: "single",
+      styleId: "anime",
+      likeness: "high",
+      goal: "social-avatar",
+    });
+    const compiled = compileAvatarPrompt({
+      provider: "openai",
+      intent,
+      style: getStyleById("anime"),
+    });
+    expect(compiled.prompt).toMatch(/age-shift|enlarge eyes/i);
+    expect(compiled.prompt).toContain("48");
+  });
 });
