@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import { createAvatarIntent } from "@/lib/avatar-intent";
-import { compileAvatarPrompt } from "@/lib/prompt-compiler";
+import {
+  compileAvatarPrompt,
+  compileEditPrompt,
+} from "@/lib/prompt-compiler";
 import { getStyleById } from "@/styles/avatar-styles";
 import { getThemeById, getVariant } from "@/styles/avatar-themes";
 
@@ -134,7 +137,67 @@ describe("compileAvatarPrompt", () => {
     expect(compiled.prompt).toContain("Keep the subject centered");
     expect(compiled.prompt).toContain("Preserve the person's identity");
     expect(compiled.prompt).toContain("face shape");
-    expect(compiled.prompt).toContain("expression");
+    expect(compiled.prompt).toContain("Do not invent a different person");
+    expect(compiled.prompt).toContain("restrained");
+    expect(compiled.prompt).not.toMatch(/imaginative avatar treatment/i);
     expect(compiled.prompt).toContain("Do not add text, logos, or watermarks");
+  });
+
+  it("requires unblended identities for same-frame couple outputs", () => {
+    const intent = createAvatarIntent({
+      mode: "couple-text",
+      styleId: "pixar-3d",
+      sameFrame: true,
+      subjectDescription: "two founders",
+    });
+    const openai = compileAvatarPrompt({ provider: "openai", intent });
+    const minimax = compileAvatarPrompt({ provider: "minimax", intent });
+    expect(openai.prompt).toContain("distinct");
+    expect(openai.prompt).toContain("unblended");
+    expect(minimax.prompt).toContain("no identity blend");
+  });
+
+  it("injects multi-reference role guidance when provided", () => {
+    const intent = createAvatarIntent({
+      mode: "single",
+      styleId: "professional-headshot",
+      likeness: "high",
+    });
+    const compiled = compileAvatarPrompt({
+      provider: "openai",
+      intent,
+      referenceGuidance:
+        "Image 1 is the frontal identity reference for the subject. Image 2 is the three-quarter or profile identity reference for the subject.",
+    });
+    expect(compiled.prompt).toContain("frontal identity reference");
+    expect(compiled.prompt).toContain("profile identity reference");
+  });
+
+  it("compiles edit prompts without generate-style redesign language", () => {
+    const openai = compileEditPrompt({
+      provider: "openai",
+      editIntent: {
+        change: ["background: light gray"],
+        preserve: ["identity", "expression", "clothing", "framing"],
+      },
+    });
+    const minimax = compileEditPrompt({
+      provider: "minimax",
+      editIntent: {
+        change: ["expression: slightly warmer smile"],
+        preserve: ["identity", "background", "clothing"],
+      },
+    });
+
+    expect(openai.prompt).toContain("Requested changes");
+    expect(openai.prompt).toContain("background: light gray");
+    expect(openai.prompt).not.toContain("Create professional profile avatar");
+    expect(openai.prompt).not.toMatch(/creativity|imaginative/i);
+    expect(openai.referenceStrength).toBe(0.95);
+
+    expect(minimax.prompt).toContain("change:");
+    expect(minimax.prompt).toContain("preserve:");
+    expect(minimax.prompt).not.toContain("professional profile avatar");
+    expect(minimax.referenceStrength).toBe(0.95);
   });
 });
