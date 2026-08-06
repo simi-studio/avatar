@@ -4,7 +4,7 @@
 
 | Field           | Value                                                            |
 | --------------- | ---------------------------------------------------------------- |
-| Status          | MVP complete; M10.1–10.3 shipped; M11 in progress (11.1 baseline pending; 11.2 implemented; 11.3 vertical slice landed) |
+| Status          | MVP complete; M10.1–10.3 shipped; M11 in progress (11.1 baseline pending; 11.2 implemented; 11.3 plan+branch UI landed) |
 | Scope           | MVP (M1–M5)                                                      |
 | Providers (MVP) | OpenAI + MiniMax                                                 |
 | Languages (MVP) | English (default) + Simplified Chinese                           |
@@ -39,11 +39,14 @@
   outcome scenarios with strong qualitative scores, but did not exercise the BYOK adapter. The
   11.2 typed capability registry, conservative edit resolver, provider-specific server size
   validation, UI gating/fallback copy, and staleness guard are implemented; live capability
-  verification remains. The first 11.3 vertical slice now edits a selected in-memory result,
-  preserves the parent on failure, and supports restoring the prior candidate.
+  verification remains. Epic 11.3 now includes selected-result image editing, an editable pre-call
+  change/preserve plan with constrained-action chips, session candidate branch selection, parent
+  preservation on failure, stale-plan refusal, and expanded mocked tests. Live edit-preservation
+  scoring remains before quality claims ship.
 - **Public demo is live**: `https://avatar.simi.studio/zh-CN` returned HTTP 200 on 2026-07-27.
 - **GitHub repository metadata is set**: `simi-studio/avatar` is public, has a concise description, homepage URL, and topics configured.
-- **Latest full local gate passed on 2026-07-27**: `npm run eval:avatar -- validate`, `npm run guard:secrets`, `npm run lint`, `npm run typecheck`, `npm run test` (231 tests, 29 files), and `npm run build`.
+- **Latest full local gate passed on 2026-08-06**: `npm run guard:secrets`, `npm run lint`,
+  `npm run typecheck`, `npm run test` (240 tests, 30 files), and `npm run build`.
 - A local gitignored `wrangler.prod.jsonc` exists for `avatar.simi.studio`; the open-source deliverable remains `wrangler.prod.jsonc.example`.
 - **Screenshots are intentionally deferred** while the product is changing quickly; keeping screenshots current would create avoidable maintenance churn.
 
@@ -234,37 +237,37 @@ flowchart LR
 - [ ] 11.2 — Provider capability v2. Typed registry, conservative operation resolver,
       provider-specific size validation, UI gating/fallback copy, invariants, and
       stale-verification guard implemented. Remaining: live capability smoke tests.
-- [ ] 11.3 — Conversational image editing. First vertical slice implemented: in-memory candidate
-      graph, selected-result image editing, normalized change/preserve instructions, regeneration
-      fallback, parent preservation on failure, and previous-version restore. Remaining: editable
-      pre-call plan, broader candidate selection/branch UI, live quality gate, and expanded edge
-      tests.
-- [ ] 11.4 — Multi-reference identity
+- [ ] 11.3 — Conversational image editing. Editable pre-call change/preserve plan, constrained
+      action chips, session candidate branch UI, stale-plan refusal, abort/redaction tests, and
+      selected-result image-edit path are implemented. Remaining: live 11.1 edit-preservation gate
+      and conversation-style continuation after 11.2 live verification.
+- [ ] 11.4 — Multi-reference identity. Intake panel with capability-gated multi-angle slots,
+      honest unsupported copy, photo same-frame disabled fallback, geometry/budget helpers,
+      role prompt compilation, and server multi-image rejection landed. Remaining: adapter
+      multi-image paths after capability verification and 11.1 one-vs-multi comparison.
 - [ ] 11.5 — Avatar copilot workspace
 - [ ] 11.6 — Intelligent intent understanding
 - [ ] 11.7 — Avatar delivery pack
 
-### Recommended next implementation queue (2026-07-27)
+### Recommended next implementation queue (2026-08-06)
 
 No identity/edit quality capability should be advertised until the 11.1 live evidence exists.
 
 1. **P0 — Run and score the 11.1 provider baseline**
    - Use user-owned provider keys on the now-complete reference coverage.
    - Keep generated images gitignored and record only approved aggregate evidence.
-   - Use at least two blinded reviewers for identity/edit scores.
+   - Use at least two blinded reviewers for identity/edit scores, including edit-preservation
+     fixtures that gate 11.3 quality claims.
 2. **P0 — Verify current providers and enable only evidenced operations**
    - Review current official documentation for OpenAI, MiniMax, fal.ai, and xAI.
    - Smoke-test quality-sensitive reference/edit/composite behavior against the 11.1 fixtures.
    - Timestamp each capability; default uncertain values to unsupported.
-3. **P0 — Finish the 11.3 editing experience**
-   - Show normalized `change[]` and `preserve[]` before the paid call and let the user correct them.
-   - Add explicit candidate selection/branch UI and cover stale context, abort, and redaction paths.
-   - Run the edit-preservation fixtures and meet the initial quality threshold.
-4. **P1 — Implement multi-reference intake and truthful couple fallback**
-   - Add client-side quality checks, per-person reference roles, total request budgeting, and
-     server-side magic-byte validation.
+3. **P1 — Finish multi-reference UI and verified couple composite (11.4)**
+   - Geometry/budget helpers and role guidance exist; wire multi-slot upload only when
+     `identityPreservation === "multi-reference"`.
    - Enable same-frame photo couples only for a verified provider; retain the two-call A/B path
      elsewhere.
+   - Run 11.1 one-vs-multi likeness comparison before changing defaults.
 
 After these items, proceed to 11.5 Copilot Workspace. Keep 11.6 intent-model calls and 11.7 export
 packs behind the completed core editing/identity loop.

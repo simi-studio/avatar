@@ -9,6 +9,36 @@ and a constrained-edit parent. Every rubric dimension has at least one `liveElig
 `likeness` has 6 and `editPreservation` has 3. `npm run eval:avatar -- validate` checks the fixture
 schema and reports per-dimension coverage without requiring a key or network call.
 
+## Agent multimodal probes (not a release gate)
+
+Built-in multimodal image edit tools can stress-test **prompt shape** and fixture usefulness on the
+synthetic fixtures without user keys. They **do not** replace a BYOK adapter baseline: call counts,
+adapter payloads, fixed-host behavior, model versions, and per-provider quality still require
+`npm run eval:avatar:live` with user-owned keys and blinded human scoring before shipping
+identity/edit quality claims.
+
+### 2026-08-06 edit-path probes
+
+- Confirmed background-only, expression-only, clothing-only, and clutter-removal edits can preserve
+  identity when the instruction is pure change/preserve language.
+- Exposed a product bug: the edit route previously wrapped `compileEditInstruction` inside the full
+  generate-style `compileAvatarPrompt` stack (goal/style/creativity/background), which fights
+  preservation. The route now uses `compileEditPrompt` instead.
+
+### 2026-08-06 identity / multi-reference probes
+
+Qualitative scores on synthetic fixtures (single reviewer, not blinded):
+
+| Scenario | Likeness | Prompt adherence | Edit preservation | Couple separation | Notes |
+| -------- | -------- | ---------------- | ----------------- | ----------------- | ----- |
+| Single-ref comic restyle (Person A) | 4–5 | 5 | N/A | N/A | Explicit face-geometry wording beats vague creativity |
+| Multi-ref professional (front + profile) | 5 | 5 | N/A | N/A | Second angle helped three-quarter consistency |
+| Photo couple same-frame (A + B) | 4–5 | 5 | N/A | 5 | Distinct people, correct shirt colors, no blend |
+| Clothing-only edit (edit-parent) | 5 | 5 | 4–5 | N/A | Specific outfit change + strong preserve list |
+
+Product follow-through already landed: dedicated edit compiler, high-likeness photo restraint,
+same-frame unblend language, reference geometry/budget helpers, and uploader soft guidance.
+
 Fixture version `1.1.0` adds a same-task reference-count comparison group. Its single-reference
 control is live-eligible; the multi-reference variant remains blocked so it cannot create a false
 claim before a provider adapter supports that input shape. The photo-couple same-frame scenario is
