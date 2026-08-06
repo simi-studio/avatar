@@ -242,9 +242,10 @@ flowchart LR
       selected-result image-edit path are implemented. Remaining: live 11.1 edit-preservation gate
       and conversation-style continuation after 11.2 live verification.
 - [ ] 11.4 — Multi-reference identity. Intake panel with capability-gated multi-angle slots,
-      honest unsupported copy, photo same-frame disabled fallback, geometry/budget helpers,
-      role prompt compilation, and server multi-image rejection landed. Remaining: adapter
-      multi-image paths after capability verification and 11.1 one-vs-multi comparison.
+      honest unsupported copy, photo same-frame disabled fallback, geometry/budget/luma soft
+      checks, always-on face-visibility guidance, role prompt compilation, and server multi-image
+      rejection landed. Remaining: adapter multi-image paths after capability verification and
+      11.1 one-vs-multi comparison.
 - [ ] 11.5 — Avatar copilot workspace
 - [ ] 11.6 — Intelligent intent understanding
 - [ ] 11.7 — Avatar delivery pack

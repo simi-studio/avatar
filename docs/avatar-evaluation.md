@@ -39,6 +39,16 @@ Qualitative scores on synthetic fixtures (single reviewer, not blinded):
 Product follow-through already landed: dedicated edit compiler, high-likeness photo restraint,
 same-frame unblend language, reference geometry/budget helpers, and uploader soft guidance.
 
+### 2026-08-06 weak-reference and stylized restyle probes
+
+| Scenario | Finding | Product follow-through |
+| -------- | ------- | ---------------------- |
+| Underexposed front reference | Restyle invents lighting but loses facial micro-detail; likeness drops hard | Soft underexposure luma check + dark-photo hint |
+| Eyes occluded (sunglasses + cap) | Identity cues blocked; not auto-detectable without face ML | Always-on quality checklist (face fully visible) |
+| Anime restyle of clear front ref | Strong age-shift / enlarged eyes under stylization | Stylized-style high-likeness guard in prompt compiler |
+| Subtle smile edit | Models still overshoot toward a wide smile | Expression chip + edit compiler minimal-smile language |
+| Small-size readability | Face can shrink under stylized crops | Explicit 48×48 readability instruction in prompts |
+
 Fixture version `1.1.0` adds a same-task reference-count comparison group. Its single-reference
 control is live-eligible; the multi-reference variant remains blocked so it cannot create a false
 claim before a provider adapter supports that input shape. The photo-couple same-frame scenario is
