@@ -91,4 +91,53 @@ export async function readImageDimensions(
   return dimensions;
 }
 
+/**
+ * Mean luma (0–255) from packed RGBA samples. Pure and unit-testable.
+ * Multimodal probes: underexposed references lose likeness under restyle.
+ */
+export function meanLumaFromRgba(
+  data: ArrayLike<number>,
+  sampleStride = 16,
+): number {
+  if (data.length < 4) return 0;
+  const step = Math.max(1, sampleStride) * 4;
+  let sum = 0;
+  let count = 0;
+  for (let i = 0; i + 3 < data.length; i += step) {
+    const r = data[i] ?? 0;
+    const g = data[i + 1] ?? 0;
+    const b = data[i + 2] ?? 0;
+    // Rec. 601 luma
+    sum += 0.299 * r + 0.587 * g + 0.114 * b;
+    count += 1;
+  }
+  return count === 0 ? 0 : sum / count;
+}
+
+/**
+ * Sample mean image luminance via a downscaled canvas (browser-only).
+ * Used for soft underexposure / overexposure guidance — not a hard reject.
+ */
+export async function sampleImageLuminance(file: File): Promise<number> {
+  const bitmap = await createImageBitmap(file);
+  const maxSide = 64;
+  const { width, height } = computeScaledDimensions(
+    bitmap.width,
+    bitmap.height,
+    maxSide,
+  );
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, width);
+  canvas.height = Math.max(1, height);
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) {
+    bitmap.close();
+    throw new Error("Canvas 2D context unavailable");
+  }
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  return meanLumaFromRgba(data, 1);
+}
+
 export { MAX_IMAGE_BYTES };

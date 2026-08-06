@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { computeScaledDimensions } from "@/lib/image-utils";
+import {
+  computeScaledDimensions,
+  meanLumaFromRgba,
+} from "@/lib/image-utils";
 
 describe("computeScaledDimensions", () => {
   it("leaves small images unchanged", () => {
@@ -35,5 +38,14 @@ describe("computeScaledDimensions", () => {
     const result = computeScaledDimensions(10000, 1, 100);
     expect(result.width).toBe(100);
     expect(result.height).toBeGreaterThanOrEqual(1);
+  });
+});
+
+describe("meanLumaFromRgba", () => {
+  it("scores dark samples low and bright samples high", () => {
+    const dark = new Uint8ClampedArray([8, 8, 8, 255, 10, 10, 10, 255]);
+    const bright = new Uint8ClampedArray([250, 250, 250, 255, 240, 240, 240, 255]);
+    expect(meanLumaFromRgba(dark, 1)).toBeLessThan(20);
+    expect(meanLumaFromRgba(bright, 1)).toBeGreaterThan(230);
   });
 });
