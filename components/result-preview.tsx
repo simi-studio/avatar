@@ -7,8 +7,15 @@ import { AlertCircle, Download, ImageIcon, Loader2, Wand2 } from "lucide-react";
 import type { ErrorCode, GeneratedImage } from "@/lib/types";
 import { REFINEMENT_ACTIONS, type RefinementAction } from "@/lib/avatar-intent";
 import type { EditStrategy } from "@/lib/provider-capabilities";
+import type {
+  ConstrainedEditAction,
+  EditIntent,
+} from "@/lib/edit-intent";
+import type { GenerationCandidate } from "@/lib/generation-session";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { EditPlanPanel } from "@/components/edit-plan-panel";
+import { CandidateStrip } from "@/components/candidate-strip";
 
 export type GenerationStatus =
   | "idle"
@@ -35,16 +42,29 @@ function extensionFor(mimeType: string): string {
   return "png";
 }
 
+export type PendingEditPlan = {
+  plan: EditIntent;
+  stale: boolean;
+};
+
 export function ResultPreview({
   status,
   images,
   errorCode,
   sourceImages = [],
   expectedImageLabels = [],
+  candidates = [],
+  selectedCandidateId,
+  pendingEdit,
   onRetry,
   onRefine,
   onRefineText,
+  onSelectCandidate,
   onRestorePrevious,
+  onEditPlanChange,
+  onConfirmEditPlan,
+  onCancelEditPlan,
+  onConstrainedAction,
   refinementDisabled = false,
   refinementStrategy = "regenerate",
 }: {
@@ -53,10 +73,18 @@ export function ResultPreview({
   errorCode: ErrorCode | null;
   sourceImages?: SourcePreviewImage[];
   expectedImageLabels?: string[];
+  candidates?: GenerationCandidate[];
+  selectedCandidateId?: string;
+  pendingEdit?: PendingEditPlan | null;
   onRetry?: () => void;
   onRefine?: (action: RefinementAction) => void;
   onRefineText?: (text: string) => void;
+  onSelectCandidate?: (candidateId: string) => void;
   onRestorePrevious?: () => void;
+  onEditPlanChange?: (plan: EditIntent) => void;
+  onConfirmEditPlan?: () => void;
+  onCancelEditPlan?: () => void;
+  onConstrainedAction?: (action: ConstrainedEditAction) => void;
   refinementDisabled?: boolean;
   refinementStrategy?: EditStrategy;
 }) {
@@ -79,6 +107,7 @@ export function ResultPreview({
       : refinementStrategy === "image-edit"
         ? tRefine("imageEditNote")
         : tRefine("regenerateNote");
+  const planOpen = Boolean(pendingEdit);
 
   function download(image: GeneratedImage, index: number) {
     const link = document.createElement("a");
@@ -189,6 +218,17 @@ export function ResultPreview({
             ),
           )}
         </div>
+
+        {/* Branch UI is single-result only; pair generations keep A/B in the grid. */}
+        {onSelectCandidate && candidates.length > 1 && images.length === 1 && (
+          <CandidateStrip
+            candidates={candidates}
+            selectedId={selectedCandidateId}
+            onSelect={onSelectCandidate}
+            disabled={refinementDisabled}
+          />
+        )}
+
         {onRefine && (
           <div className="flex flex-col gap-2 border-t pt-4">
             <span className="text-xs font-medium text-muted-foreground">
@@ -231,9 +271,7 @@ export function ResultPreview({
                   size="sm"
                   disabled={refinementDisabled || !refineText.trim()}
                 >
-                  {refinementStrategy === "regenerate"
-                    ? tRefine("applyRegenerate")
-                    : tAgent("refineApply")}
+                  {tAgent("refineDraft")}
                 </Button>
               </form>
             )}
@@ -243,6 +281,27 @@ export function ResultPreview({
             <p className="text-xs text-muted-foreground">
               {tRefine("costNote")}
             </p>
+            <p className="text-xs text-muted-foreground">
+              {tRefine("reviewBeforeCall")}
+            </p>
+
+            {planOpen &&
+              pendingEdit &&
+              onEditPlanChange &&
+              onConfirmEditPlan &&
+              onCancelEditPlan && (
+                <EditPlanPanel
+                  plan={pendingEdit.plan}
+                  strategy={refinementStrategy}
+                  disabled={refinementDisabled}
+                  stale={pendingEdit.stale}
+                  onPlanChange={onEditPlanChange}
+                  onConfirm={onConfirmEditPlan}
+                  onCancel={onCancelEditPlan}
+                  onConstrainedAction={onConstrainedAction}
+                />
+              )}
+
             {onRestorePrevious && (
               <Button
                 type="button"
