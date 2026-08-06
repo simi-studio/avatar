@@ -48,6 +48,8 @@ same-frame unblend language, reference geometry/budget helpers, and uploader sof
 | Anime restyle of clear front ref | Strong age-shift / enlarged eyes under stylization | Stylized-style high-likeness guard in prompt compiler |
 | Subtle smile edit | Models still overshoot toward a wide smile | Expression chip + edit compiler minimal-smile language |
 | Small-size readability | Face can shrink under stylized crops | Explicit 48×48 readability instruction in prompts |
+| Extreme full profile | One-eye silhouette; poor sole identity anchor | Plan risk + checklist: prefer front / slight 3/4 |
+| Two people in one “single” ref | Model may blend or pick the wrong person | Plan risk + checklist: one person only |
 
 Fixture version `1.1.0` adds a same-task reference-count comparison group. Its single-reference
 control is live-eligible; the multi-reference variant remains blocked so it cannot create a false
