@@ -246,3 +246,20 @@ export function defaultSinglePersonReferenceRoles(
   const order: ReferenceRole[] = ["front", "profile", "expression"];
   return order.slice(0, Math.max(0, count)).map((role) => ({ role }));
 }
+
+/**
+ * Validate explicit role metadata sent alongside ordered single-person images.
+ * Roles must be unique and the required first image must be the front reference.
+ */
+export function parseSinglePersonReferenceRoles(
+  values: readonly unknown[],
+  imageCount: number,
+): ReferenceDescriptor[] | null {
+  if (values.length !== imageCount || imageCount < 1) return null;
+  const roles = values.map(normalizeReferenceRole);
+  if (roles.some((role) => role === undefined)) return null;
+  const validRoles = roles as ReferenceRole[];
+  if (validRoles[0] !== "front") return null;
+  if (new Set(validRoles).size !== validRoles.length) return null;
+  return validRoles.map((role) => ({ role }));
+}

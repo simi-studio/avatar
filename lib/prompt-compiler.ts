@@ -29,6 +29,8 @@ export type CompileAvatarPromptInput = {
   variant?: AvatarVariant;
   /** Optional multi-reference role guidance (Epic 11.4). */
   referenceGuidance?: string;
+  /** Reviewed change/preserve plan used by an explicit regeneration fallback. */
+  refinementGuidance?: string;
 };
 
 const LIKENESS_TEXT: Record<IntentLevel, string> = {
@@ -186,6 +188,7 @@ function openAIPrompt(input: CompileAvatarPromptInput): string {
     `Create ${GOAL_TEXT[intent.goal]} based on ${subject}`,
     styleFragment,
     input.referenceGuidance,
+    input.refinementGuidance,
     `Output: square avatar, ${COMPOSITION_TEXT[intent.composition]}, ${BACKGROUND_TEXT[intent.background]}`,
     "Keep the subject centered with an avatar-safe crop and clear face visibility",
     intent.palette ? `Use this color palette: ${intent.palette}` : undefined,
@@ -225,6 +228,7 @@ function miniMaxPrompt(input: CompileAvatarPromptInput): string {
     subject,
     styleFragment,
     input.referenceGuidance,
+    input.refinementGuidance,
     COMPOSITION_TEXT[intent.composition],
     BACKGROUND_TEXT[intent.background],
     intent.palette,
@@ -247,7 +251,9 @@ function miniMaxPrompt(input: CompileAvatarPromptInput): string {
         ? MINIMAX_PAIR_CONSTRAINTS
         : undefined,
     intent.variation ? "fresh variation, same intent" : undefined,
-    ...MINIMAX_AVATAR_CONSTRAINTS,
+    ...MINIMAX_AVATAR_CONSTRAINTS.filter(
+      (constraint) => !(intent.sameFrame && constraint === "single subject"),
+    ),
     profile.qualityFragment,
     `avoid ${avoid}`,
   ]).join(", ");
@@ -299,8 +305,7 @@ export function compileEditPrompt(input: {
       `preserve: ${input.editIntent.preserve.join("; ")}`,
       "source image is ground truth",
       "no redesign of unrelated details",
-      "no re-crop",
-      "no new accessories",
+      "preserve unrequested style, lighting, crop, and accessories",
       "no text",
       "no logo",
       "no watermark",

@@ -11,6 +11,7 @@ import {
   MAX_REFERENCE_ASPECT_RATIO,
   MAX_TOTAL_REFERENCE_BYTES,
   normalizeReferenceRole,
+  parseSinglePersonReferenceRoles,
   primarySoftIssue,
 } from "@/lib/reference-intake";
 import type { ProviderCapabilitiesV2 } from "@/lib/provider-capabilities";
@@ -113,5 +114,16 @@ describe("reference intake", () => {
       "profile",
     ]);
     expect(defaultSinglePersonReferenceRoles(0)).toEqual([]);
+  });
+
+  it("preserves explicit optional roles and rejects ambiguous metadata", () => {
+    expect(
+      parseSinglePersonReferenceRoles(["front", "expression"], 2),
+    ).toEqual([{ role: "front" }, { role: "expression" }]);
+    expect(
+      parseSinglePersonReferenceRoles(["front", "front"], 2),
+    ).toBeNull();
+    expect(parseSinglePersonReferenceRoles(["profile"], 1)).toBeNull();
+    expect(parseSinglePersonReferenceRoles(["front"], 2)).toBeNull();
   });
 });

@@ -45,8 +45,9 @@
   scoring remains before quality claims ship.
 - **Public demo is live**: `https://avatar.simi.studio/zh-CN` returned HTTP 200 on 2026-07-27.
 - **GitHub repository metadata is set**: `simi-studio/avatar` is public, has a concise description, homepage URL, and topics configured.
-- **Latest full local gate passed on 2026-08-06**: `npm run guard:secrets`, `npm run lint`,
-  `npm run typecheck`, `npm run test` (240 tests, 30 files), and `npm run build`.
+- **Latest full local gate passed on 2026-08-12**: `npm run guard:secrets`, `npm run lint`,
+  `npm run typecheck`, `npm run test` (269 tests, 31 files),
+  `npm run eval:avatar -- validate`, `npm run build`, and `npm run test:e2e` (6 tests).
 - A local gitignored `wrangler.prod.jsonc` exists for `avatar.simi.studio`; the open-source deliverable remains `wrangler.prod.jsonc.example`.
 - **Screenshots are intentionally deferred** while the product is changing quickly; keeping screenshots current would create avoidable maintenance churn.
 

@@ -48,4 +48,9 @@ describe("meanLumaFromRgba", () => {
     expect(meanLumaFromRgba(dark, 1)).toBeLessThan(20);
     expect(meanLumaFromRgba(bright, 1)).toBeGreaterThan(230);
   });
+
+  it("composites transparent pixels onto white instead of treating them as dark", () => {
+    const transparentBlack = new Uint8ClampedArray([0, 0, 0, 0]);
+    expect(meanLumaFromRgba(transparentBlack, 1)).toBe(255);
+  });
 });

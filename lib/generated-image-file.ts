@@ -1,5 +1,11 @@
 import type { GeneratedImage } from "@/lib/types";
 
+/** Build a displayable image source without coupling UI components together. */
+export function generatedImageSrc(image: GeneratedImage): string {
+  if (image.base64) return `data:${image.mimeType};base64,${image.base64}`;
+  return image.url ?? "";
+}
+
 function extensionForMimeType(mimeType: GeneratedImage["mimeType"]): string {
   if (mimeType === "image/jpeg") return "jpg";
   if (mimeType === "image/webp") return "webp";

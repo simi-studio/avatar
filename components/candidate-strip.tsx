@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 
 import type { GenerationCandidate } from "@/lib/generation-session";
-import { imageSrc } from "@/components/result-preview";
+import { generatedImageSrc } from "@/lib/generated-image-file";
 import { cn } from "@/lib/utils";
 
 /**
@@ -32,7 +32,7 @@ export function CandidateStrip({
       <div className="flex gap-2 overflow-x-auto pb-1">
         {candidates.map((candidate, index) => {
           const selected = candidate.id === selectedId;
-          const src = imageSrc(candidate.image);
+          const src = generatedImageSrc(candidate.image);
           const operationLabel = t(`operation.${candidate.operation}`);
           return (
             <button

@@ -155,6 +155,7 @@ describe("compileAvatarPrompt", () => {
     expect(openai.prompt).toContain("distinct");
     expect(openai.prompt).toContain("unblended");
     expect(minimax.prompt).toContain("no identity blend");
+    expect(minimax.prompt).not.toContain("single subject");
   });
 
   it("injects multi-reference role guidance when provided", () => {
@@ -199,6 +200,38 @@ describe("compileAvatarPrompt", () => {
     expect(minimax.prompt).toContain("preserve:");
     expect(minimax.prompt).not.toContain("professional profile avatar");
     expect(minimax.referenceStrength).toBe(0.95);
+  });
+
+  it("does not contradict an explicitly requested crop change", () => {
+    const editIntent = {
+      change: ["tighten the crop to a headshot"],
+      preserve: ["identity", "clothing"],
+    };
+    const openai = compileEditPrompt({ provider: "openai", editIntent });
+    const minimax = compileEditPrompt({ provider: "minimax", editIntent });
+
+    expect(openai.prompt).toContain("unless explicitly requested above");
+    expect(minimax.prompt).not.toContain("no re-crop");
+    expect(minimax.prompt).toContain("preserve unrequested");
+  });
+
+  it("includes a reviewed edit plan in regeneration prompts", () => {
+    const intent = createAvatarIntent({
+      mode: "themed",
+      themeId: "dogs",
+      variantId: "corgi",
+    });
+    const compiled = compileAvatarPrompt({
+      provider: "openai",
+      intent,
+      theme: getThemeById("dogs"),
+      variant: getVariant("dogs", "corgi"),
+      refinementGuidance:
+        "Requested changes: use a light gray background. Must preserve unchanged: clothing.",
+    });
+
+    expect(compiled.prompt).toContain("light gray background");
+    expect(compiled.prompt).toContain("Must preserve unchanged: clothing");
   });
 
   it("guards stylized photo restyles against age-shift and eye caricature", () => {

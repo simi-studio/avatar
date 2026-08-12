@@ -12,6 +12,7 @@ import type {
   EditIntent,
 } from "@/lib/edit-intent";
 import type { GenerationCandidate } from "@/lib/generation-session";
+import { generatedImageSrc } from "@/lib/generated-image-file";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EditPlanPanel } from "@/components/edit-plan-panel";
@@ -24,12 +25,6 @@ export type GenerationStatus =
   | "generating"
   | "success"
   | "error";
-
-/** Build a usable <img> src from a generated image (base64 or url). */
-export function imageSrc(image: GeneratedImage): string {
-  if (image.base64) return `data:${image.mimeType};base64,${image.base64}`;
-  return image.url ?? "";
-}
 
 export type SourcePreviewImage = {
   label?: string;
@@ -66,6 +61,7 @@ export function ResultPreview({
   onCancelEditPlan,
   onConstrainedAction,
   refinementDisabled = false,
+  localInteractionDisabled = false,
   refinementStrategy = "regenerate",
 }: {
   status: GenerationStatus;
@@ -86,6 +82,8 @@ export function ResultPreview({
   onCancelEditPlan?: () => void;
   onConstrainedAction?: (action: ConstrainedEditAction) => void;
   refinementDisabled?: boolean;
+  /** Disable session-local selection/plan editing only while a call is active. */
+  localInteractionDisabled?: boolean;
   refinementStrategy?: EditStrategy;
 }) {
   const tc = useTranslations("Common");
@@ -111,7 +109,7 @@ export function ResultPreview({
 
   function download(image: GeneratedImage, index: number) {
     const link = document.createElement("a");
-    link.href = imageSrc(image);
+    link.href = generatedImageSrc(image);
     const suffix = image.label
       ? `-${image.label}`
       : index > 0
@@ -189,7 +187,7 @@ export function ResultPreview({
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={imageSrc(image)}
+                src={generatedImageSrc(image)}
                 alt={
                   image.label
                     ? tr("altLabeled", { label: image.label })
@@ -225,7 +223,7 @@ export function ResultPreview({
             candidates={candidates}
             selectedId={selectedCandidateId}
             onSelect={onSelectCandidate}
-            disabled={refinementDisabled}
+            disabled={localInteractionDisabled}
           />
         )}
 
@@ -293,7 +291,8 @@ export function ResultPreview({
                 <EditPlanPanel
                   plan={pendingEdit.plan}
                   strategy={refinementStrategy}
-                  disabled={refinementDisabled}
+                  disabled={localInteractionDisabled}
+                  confirmDisabled={refinementDisabled}
                   stale={pendingEdit.stale}
                   onPlanChange={onEditPlanChange}
                   onConfirm={onConfirmEditPlan}

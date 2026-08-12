@@ -196,18 +196,21 @@ export function GenerationForm() {
     }
   }, [availableSizes, provider, size, patch]);
 
-  // Drop optional multi-ref images when the provider cannot accept them.
+  // Drop optional multi-ref images when capability or provider limits shrink.
   useEffect(() => {
-    if (multiReferenceEnabled) return;
-    if (imageProfile?.previewUrl) URL.revokeObjectURL(imageProfile.previewUrl);
-    if (imageExpression?.previewUrl) {
+    const keepProfile = multiReferenceEnabled && maxReferences >= 2;
+    const keepExpression = multiReferenceEnabled && maxReferences >= 3;
+    if (!keepProfile && imageProfile?.previewUrl) {
+      URL.revokeObjectURL(imageProfile.previewUrl);
+    }
+    if (!keepExpression && imageExpression?.previewUrl) {
       URL.revokeObjectURL(imageExpression.previewUrl);
     }
-    setImageProfile(null);
-    setImageExpression(null);
+    if (!keepProfile) setImageProfile(null);
+    if (!keepExpression) setImageExpression(null);
     // Only react to capability flips; avoid re-running on every image change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [multiReferenceEnabled, provider]);
+  }, [multiReferenceEnabled, maxReferences, provider]);
 
   // Photo couple same-frame is not executable without verified composite.
   useEffect(() => {
@@ -362,22 +365,25 @@ export function GenerationForm() {
         formData.append("styleId", payloadIntent.styleId);
       }
       if (requestMode === "single") {
-        if (imageA) formData.append("images", imageA.file, imageA.file.name);
+        if (imageA) {
+          formData.append("images", imageA.file, imageA.file.name);
+          if (multiReferenceEnabled) formData.append("referenceRoles", "front");
+        }
         // Only send extra angles when multi-reference is capability-true.
         if (multiReferenceEnabled) {
-          if (imageProfile) {
-            formData.append(
-              "images",
-              imageProfile.file,
-              imageProfile.file.name,
-            );
-          }
-          if (imageExpression) {
-            formData.append(
-              "images",
-              imageExpression.file,
-              imageExpression.file.name,
-            );
+          const optionalReferences = [
+            { image: imageProfile, role: "profile" },
+            { image: imageExpression, role: "expression" },
+          ].slice(0, Math.max(0, maxReferences - 1));
+          for (const { image: reference, role } of optionalReferences) {
+            if (reference) {
+              formData.append(
+                "images",
+                reference.file,
+                reference.file.name,
+              );
+              formData.append("referenceRoles", role);
+            }
           }
         }
       } else if (requestMode === "couple") {
@@ -411,6 +417,16 @@ export function GenerationForm() {
       formData.append("styleId", requestIntent.styleId);
     }
     if (turnstileToken) formData.append("turnstileToken", turnstileToken);
+    return formData;
+  }
+
+  function buildRegenerateForm(
+    requestIntent: AvatarIntent,
+    editIntent: EditIntent,
+  ): FormData {
+    const formData = buildGenerateForm(requestIntent);
+    formData.set("operation", "regenerate");
+    formData.set("editIntent", JSON.stringify(editIntent));
     return formData;
   }
 
@@ -474,7 +490,7 @@ export function GenerationForm() {
       preserveExistingImages: true,
       buildForm: selectedImage
         ? (intent) => buildEditForm(intent, selectedImage, editIntent)
-        : buildGenerateForm,
+        : (intent) => buildRegenerateForm(intent, editIntent),
       onSuccess: (intent, nextImages) => {
         history.record(intent);
         setGenerationSession((session) =>
@@ -1032,6 +1048,7 @@ export function GenerationForm() {
             onCancelEditPlan={onCancelEditPlan}
             onConstrainedAction={onConstrainedAction}
             refinementDisabled={!canGenerate || status === "generating"}
+            localInteractionDisabled={status === "generating"}
             refinementStrategy={refinementStrategy}
           />
         </CardContent>

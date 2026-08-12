@@ -66,6 +66,12 @@ export async function stripExifAndCompress(
     bitmap.close();
     throw new Error("Canvas 2D context unavailable");
   }
+  // JPEG has no alpha channel. Composite transparency onto white explicitly so
+  // transparent PNG/WebP uploads do not acquire an unexpected black backdrop.
+  if (outputType === "image/jpeg") {
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, width, height);
+  }
   ctx.drawImage(bitmap, 0, 0, width, height);
   bitmap.close();
 
@@ -104,9 +110,11 @@ export function meanLumaFromRgba(
   let sum = 0;
   let count = 0;
   for (let i = 0; i + 3 < data.length; i += step) {
-    const r = data[i] ?? 0;
-    const g = data[i + 1] ?? 0;
-    const b = data[i + 2] ?? 0;
+    const alpha = (data[i + 3] ?? 255) / 255;
+    // Match JPEG preprocessing by compositing transparent samples onto white.
+    const r = (data[i] ?? 0) * alpha + 255 * (1 - alpha);
+    const g = (data[i + 1] ?? 0) * alpha + 255 * (1 - alpha);
+    const b = (data[i + 2] ?? 0) * alpha + 255 * (1 - alpha);
     // Rec. 601 luma
     sum += 0.299 * r + 0.587 * g + 0.114 * b;
     count += 1;

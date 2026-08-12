@@ -24,6 +24,7 @@ export function EditPlanPanel({
   plan,
   strategy,
   disabled = false,
+  confirmDisabled = false,
   stale = false,
   onPlanChange,
   onConfirm,
@@ -33,6 +34,7 @@ export function EditPlanPanel({
   plan: EditIntent;
   strategy: EditStrategy;
   disabled?: boolean;
+  confirmDisabled?: boolean;
   stale?: boolean;
   onPlanChange: (plan: EditIntent) => void;
   onConfirm: () => void;
@@ -122,7 +124,7 @@ export function EditPlanPanel({
         <Button
           type="button"
           size="sm"
-          disabled={disabled || !ready || stale}
+          disabled={disabled || confirmDisabled || !ready || stale}
           onClick={onConfirm}
         >
           {applyLabel}

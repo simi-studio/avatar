@@ -45,4 +45,57 @@ describe("useGenerationRequest", () => {
     expect(result.current.status).toBe("success");
     expect(result.current.images[0]?.base64).toBe("parent");
   });
+
+  it("aborts and ignores an older request when a replacement finishes first", async () => {
+    let resolveFirst: ((value: { json: () => Promise<unknown> }) => void) | undefined;
+    const firstResponse = new Promise<{ json: () => Promise<unknown> }>(
+      (resolve) => {
+        resolveFirst = resolve;
+      },
+    );
+    const fetchMock = vi
+      .fn()
+      .mockReturnValueOnce(firstResponse)
+      .mockResolvedValueOnce({
+        json: async () => ({
+          success: true,
+          images: [{ base64: "newer", mimeType: "image/png" }],
+        }),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const { result } = renderHook(() => useGenerationRequest());
+    let firstRun: Promise<void> | undefined;
+    act(() => {
+      firstRun = result.current.run({
+        intent,
+        apiKey: "sk-test",
+        buildForm: () => new FormData(),
+      });
+    });
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+
+    await act(async () => {
+      await result.current.run({
+        intent,
+        apiKey: "sk-test",
+        buildForm: () => new FormData(),
+      });
+    });
+    expect(
+      (fetchMock.mock.calls[0]?.[1] as RequestInit).signal,
+    ).toHaveProperty("aborted", true);
+    expect(result.current.images[0]?.base64).toBe("newer");
+
+    resolveFirst?.({
+      json: async () => ({
+        success: true,
+        images: [{ base64: "older", mimeType: "image/png" }],
+      }),
+    });
+    await act(async () => {
+      await firstRun;
+    });
+    expect(result.current.images[0]?.base64).toBe("newer");
+  });
 });

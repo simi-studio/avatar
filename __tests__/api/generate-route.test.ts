@@ -278,6 +278,49 @@ describe("/api/generate", () => {
     expect(upstreamForm.get("image")).toBeInstanceOf(File);
   });
 
+  it("carries a reviewed plan into an explicit regeneration fallback", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({ data: [{ b64_json: "generated-base64" }] }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const body = JSON.stringify({
+      provider: "openai",
+      apiKey: "sk-test",
+      mode: "text",
+      operation: "regenerate",
+      styleId: "anime",
+      size: "1024x1024",
+      intent: createAvatarIntentForRouteTest({ mode: "text", styleId: "anime" }),
+      editIntent: {
+        change: ["use a light gray background"],
+        preserve: ["identity", "clothing"],
+      },
+    });
+    const res = await POST(
+      request(body, {
+        "content-type": "application/json",
+        "content-length": String(Buffer.byteLength(body)),
+        origin: "https://avatar.test",
+        host: "avatar.test",
+      }),
+    );
+
+    expect(res.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(
+      "https://api.openai.com/v1/images/generations",
+    );
+    const upstream = fetchMock.mock.calls[0]?.[1] as RequestInit;
+    const upstreamBody = JSON.parse(String(upstream.body)) as { prompt?: string };
+    expect(upstreamBody.prompt).toContain("use a light gray background");
+    expect(upstreamBody.prompt).toContain("identity");
+    expect(upstreamBody.prompt).toContain("clothing");
+  });
+
   it("rejects multi-image single requests when multi-reference is not capability-true", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);

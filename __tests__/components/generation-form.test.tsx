@@ -19,6 +19,7 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/lib/image-utils", () => ({
   stripExifAndCompress: async (file: File) => file,
   readImageDimensions: async () => ({ width: 1024, height: 1024 }),
+  sampleImageLuminance: async () => 128,
 }));
 
 import { GenerationForm } from "@/components/generation-form";
@@ -570,6 +571,41 @@ describe("GenerationForm", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it("sends the reviewed plan when refinement falls back to regeneration", async () => {
+    const fetchMock = setFetch({
+      success: true,
+      images: [{ url: "https://example.test/avatar.png", mimeType: "image/png" }],
+    });
+    renderForm();
+
+    fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
+      target: { value: "sk-test-key" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: en.Mode.themed }));
+    fireEvent.click(screen.getByRole("button", { name: en.Theme.dogs }));
+    fireEvent.click(screen.getByRole("button", { name: en.Theme.corgi }));
+    fireEvent.click(screen.getByRole("button", { name: en.Generate.generate }));
+    await waitFor(() =>
+      expect(screen.getByAltText(en.Result.altSingle)).toBeInTheDocument(),
+    );
+
+    fireEvent.click(
+      screen.getByRole("button", {
+        name: en.Refinement["cleaner-background"],
+      }),
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: en.EditPlan.applyRegenerate }),
+    );
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+
+    const request = fetchMock.mock.calls[1]?.[1] as RequestInit;
+    const form = request.body as FormData;
+    expect(form.get("operation")).toBe("regenerate");
+    expect(String(form.get("editIntent"))).toContain("background");
+    expect(form.getAll("images")).toHaveLength(0);
+  });
+
   it("keeps the previous result visible when a selected-result edit fails", async () => {
     const fetchMock = vi
       .fn()
@@ -664,6 +700,12 @@ describe("GenerationForm", () => {
         .replace("{index}", "1")
         .replace("{operation}", en.Candidates.operation.generate),
     });
+    // Candidate restoration is session-local and must remain available even
+    // when the API key is no longer ready for another paid call.
+    fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
+      target: { value: "" },
+    });
+    expect(generateCandidate).toBeEnabled();
     fireEvent.click(generateCandidate);
 
     // Restoring a candidate is session-local only.

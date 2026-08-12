@@ -15,7 +15,10 @@ import {
   normalizeAvatarIntent,
   parseAvatarIntentJson,
 } from "@/lib/avatar-intent";
-import { normalizeEditIntent } from "@/lib/edit-intent";
+import {
+  compileRegenerationInstruction,
+  normalizeEditIntent,
+} from "@/lib/edit-intent";
 import {
   compileAvatarPrompt,
   compileEditPrompt,
@@ -26,6 +29,7 @@ import {
   canAcceptSameFrameComposite,
   compileReferenceRoleGuidance,
   defaultSinglePersonReferenceRoles,
+  parseSinglePersonReferenceRoles,
 } from "@/lib/reference-intake";
 import {
   checkRateLimit,
@@ -111,15 +115,18 @@ type ParsedRequest = {
   size: string;
   intentRaw?: unknown;
   intentJson?: string;
-  operation: "generate" | "edit" | "invalid";
+  operation: "generate" | "edit" | "regenerate" | "invalid";
   editIntentRaw?: unknown;
   editIntentJson?: string;
+  referenceRoles: string[];
   turnstileToken?: string;
 };
 
 function parseOperation(value: unknown): ParsedRequest["operation"] {
   if (value === undefined || value === null || value === "") return "generate";
-  if (value === "generate" || value === "edit") return value;
+  if (value === "generate" || value === "edit" || value === "regenerate") {
+    return value;
+  }
   return "invalid";
 }
 
@@ -145,6 +152,11 @@ async function parseRequest(
       intentRaw: body.intent,
       operation: parseOperation(body.operation),
       editIntentRaw: body.editIntent,
+      referenceRoles: Array.isArray(body.referenceRoles)
+        ? body.referenceRoles.filter(
+            (value): value is string => typeof value === "string",
+          )
+        : [],
       turnstileToken: body.turnstileToken
         ? String(body.turnstileToken)
         : undefined,
@@ -175,6 +187,9 @@ async function parseRequest(
       intentJson: get("intent"),
       operation: parseOperation(get("operation")),
       editIntentJson: get("editIntent"),
+      referenceRoles: form
+        .getAll("referenceRoles")
+        .filter((value): value is string => typeof value === "string"),
       turnstileToken: get("turnstileToken"),
     };
   }
@@ -372,7 +387,7 @@ export async function POST(
   }
 
   let editIntentForCompile: ReturnType<typeof normalizeEditIntent> = null;
-  if (parsed.operation === "edit") {
+  if (parsed.operation === "edit" || parsed.operation === "regenerate") {
     const rawEditIntent = parsed.editIntentRaw
       ? parsed.editIntentRaw
       : (() => {
@@ -385,11 +400,12 @@ export async function POST(
           }
         })();
     editIntentForCompile = normalizeEditIntent(rawEditIntent);
-    if (
-      !providerCapabilities.supportsImageEdit ||
-      safeImages.length !== 1 ||
-      !editIntentForCompile
-    ) {
+    if (!editIntentForCompile) {
+      return errorResponse("INVALID_MODE_INPUT");
+    }
+  }
+  if (parsed.operation === "edit") {
+    if (!providerCapabilities.supportsImageEdit || safeImages.length !== 1) {
       return errorResponse("INVALID_MODE_INPUT");
     }
     // Keep mode/style metadata for validation and adapters, but compile a
@@ -427,13 +443,25 @@ export async function POST(
     return errorResponse("INVALID_MODE_INPUT");
   }
 
+  const explicitReferenceDescriptors =
+    parsed.referenceRoles.length > 0
+      ? parseSinglePersonReferenceRoles(
+          parsed.referenceRoles,
+          safeImages.length,
+        )
+      : undefined;
+  if (parsed.referenceRoles.length > 0 && !explicitReferenceDescriptors) {
+    return errorResponse("INVALID_MODE_INPUT");
+  }
+
   const referenceGuidance =
     parsed.operation !== "edit" &&
     executionIntent.mode === "single" &&
     multiReferenceEnabled &&
     safeImages.length > 1
       ? compileReferenceRoleGuidance(
-          defaultSinglePersonReferenceRoles(safeImages.length),
+          explicitReferenceDescriptors ??
+            defaultSinglePersonReferenceRoles(safeImages.length),
         )
       : undefined;
 
@@ -450,6 +478,10 @@ export async function POST(
           theme,
           variant,
           referenceGuidance,
+          refinementGuidance:
+            parsed.operation === "regenerate" && editIntentForCompile
+              ? compileRegenerationInstruction(editIntentForCompile)
+              : undefined,
         });
 
   try {

@@ -39,24 +39,30 @@ export function ImageUploader({
   const t = useTranslations("Upload");
   const tErr = useTranslations("Errors");
   const inputRef = useRef<HTMLInputElement>(null);
+  const processingSequence = useRef(0);
   const inputId = useId();
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<ErrorCode | null>(null);
   const [softHint, setSoftHint] = useState<string | null>(null);
 
   async function handleFile(file: File) {
+    const operationId = processingSequence.current + 1;
+    processingSequence.current = operationId;
     setError(null);
     setSoftHint(null);
     const typeOrSize = validateImageFile(file);
     if (typeOrSize) {
       setError(typeOrSize);
+      if (inputRef.current) inputRef.current.value = "";
       return;
     }
     setProcessing(true);
     try {
       const { width, height } = await readImageDimensions(file);
+      if (processingSequence.current !== operationId) return;
       if (width < MIN_IMAGE_DIMENSION || height < MIN_IMAGE_DIMENSION) {
         setError("INVALID_IMAGE");
+        if (inputRef.current) inputRef.current.value = "";
         return;
       }
       let meanLuma: number | undefined;
@@ -65,6 +71,7 @@ export function ImageUploader({
       } catch {
         meanLuma = undefined;
       }
+      if (processingSequence.current !== operationId) return;
       const geometry = assessReferenceGeometry(
         width,
         height,
@@ -74,9 +81,11 @@ export function ImageUploader({
       if (!geometry.acceptable) {
         // Extreme aspect / invalid geometry: reject before EXIF strip work.
         setError("INVALID_IMAGE");
+        if (inputRef.current) inputRef.current.value = "";
         return;
       }
       const processed = await stripExifAndCompress(file);
+      if (processingSequence.current !== operationId) return;
       if (value?.previewUrl) URL.revokeObjectURL(value.previewUrl);
       onChange({ file: processed, previewUrl: URL.createObjectURL(processed) });
       const soft = primarySoftIssue(geometry.softIssues);
@@ -85,13 +94,18 @@ export function ImageUploader({
       else if (soft === "below-recommended-size") setSoftHint(t("softHintSmall"));
       else if (soft === "very-wide-or-tall") setSoftHint(t("softHintAspect"));
     } catch {
-      setError("INVALID_IMAGE");
+      if (processingSequence.current === operationId) {
+        setError("INVALID_IMAGE");
+        if (inputRef.current) inputRef.current.value = "";
+      }
     } finally {
-      setProcessing(false);
+      if (processingSequence.current === operationId) setProcessing(false);
     }
   }
 
   function clear() {
+    processingSequence.current += 1;
+    setProcessing(false);
     if (value?.previewUrl) URL.revokeObjectURL(value.previewUrl);
     onChange(null);
     setError(null);
@@ -107,6 +121,7 @@ export function ImageUploader({
         ref={inputRef}
         type="file"
         accept={ACCEPTED_IMAGE_TYPES.join(",")}
+        disabled={processing}
         className="sr-only"
         onChange={(event) => {
           const file = event.target.files?.[0];
@@ -135,6 +150,7 @@ export function ImageUploader({
         <button
           type="button"
           aria-label={label}
+          disabled={processing}
           onClick={() => inputRef.current?.click()}
           className="flex h-48 w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed text-sm text-muted-foreground hover:border-primary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >

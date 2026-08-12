@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { CLIENT_TIMEOUT_MS, type ErrorCode } from "@/lib/constants";
 import type { AvatarIntent } from "@/lib/avatar-intent";
@@ -37,6 +37,17 @@ export function useGenerationRequest(): GenerationRequest {
   const [images, setImages] = useState<GeneratedImage[]>([]);
   const [errorCode, setErrorCode] = useState<ErrorCode | null>(null);
   const [lastIntent, setLastIntent] = useState<AvatarIntent | null>(null);
+  const requestSequence = useRef(0);
+  const activeController = useRef<AbortController | null>(null);
+
+  useEffect(
+    () => () => {
+      requestSequence.current += 1;
+      activeController.current?.abort();
+      activeController.current = null;
+    },
+    [],
+  );
 
   const run = useCallback(
     async ({
@@ -46,17 +57,25 @@ export function useGenerationRequest(): GenerationRequest {
       preserveExistingImages = false,
       onSuccess,
     }: RunGenerationOptions) => {
+      // Every invocation owns the result surface, including local validation
+      // failures. An older in-flight response must never overwrite it.
+      activeController.current?.abort();
+      activeController.current = null;
+      const requestId = requestSequence.current + 1;
+      requestSequence.current = requestId;
       if (!apiKey) {
         setErrorCode("MISSING_API_KEY");
         setStatus(preserveExistingImages && images.length > 0 ? "success" : "error");
         return;
       }
+      // Start the new network lifecycle after local validation succeeds.
       setLastIntent(intent);
       setStatus("generating");
       setErrorCode(null);
       if (!preserveExistingImages) setImages([]);
 
       const controller = new AbortController();
+      activeController.current = controller;
       const timer = setTimeout(() => controller.abort(), CLIENT_TIMEOUT_MS);
       try {
         const res = await fetch("/api/generate", {
@@ -65,6 +84,7 @@ export function useGenerationRequest(): GenerationRequest {
           signal: controller.signal,
         });
         const data = (await res.json()) as GenerateResponse;
+        if (requestSequence.current !== requestId) return;
         if (data.success && data.images) {
           setImages(data.images);
           setStatus("success");
@@ -76,6 +96,7 @@ export function useGenerationRequest(): GenerationRequest {
           );
         }
       } catch (error) {
+        if (requestSequence.current !== requestId) return;
         setErrorCode(
           error instanceof DOMException && error.name === "AbortError"
             ? "PROVIDER_TIMEOUT"
@@ -86,6 +107,9 @@ export function useGenerationRequest(): GenerationRequest {
         );
       } finally {
         clearTimeout(timer);
+        if (requestSequence.current === requestId) {
+          activeController.current = null;
+        }
       }
     },
     [images],

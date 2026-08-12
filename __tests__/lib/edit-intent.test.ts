@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   applyConstrainedEditAction,
   compileEditInstruction,
+  compileRegenerationInstruction,
   editIntentForAction,
   editIntentForConstrainedAction,
   editIntentFromText,
@@ -68,6 +69,16 @@ describe("edit intent", () => {
       preserve: ["identity", "framing"],
     });
     expect(compiled).toMatch(/minimal|wide open-mouth/i);
+  });
+
+  it("keeps regeneration guidance honest about the missing source pixels", () => {
+    const compiled = compileRegenerationInstruction({
+      change: ["use a light gray background"],
+      preserve: ["identity", "clothing"],
+    });
+    expect(compiled).toContain("Regeneration changes");
+    expect(compiled).toContain("where possible");
+    expect(compiled).not.toMatch(/supplied image|source of truth/i);
   });
 
   it("strengthens face preservation for keep-face without dropping prior changes", () => {

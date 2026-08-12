@@ -76,5 +76,8 @@ as the provider supports.
 - `/api/generate` accepts an explicit edit operation only with one validated image and a
   capability-supported provider, then uses the existing adapter image-edit path with
   `compileEditPrompt`.
+- Explicit regeneration fallbacks carry the reviewed change/preserve plan into the provider prompt
+  without claiming that the prior result pixels are available.
 - The result flow sends base64 output back only for the next request, keeps the parent visible on
-  failure, supports restoring any prior session candidate, and refuses stale draft plans.
+  failure, supports restoring any prior session candidate even when no key is ready, refuses stale
+  draft plans, and ignores late responses from superseded requests.

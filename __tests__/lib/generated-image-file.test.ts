@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { generatedImageToFile } from "@/lib/generated-image-file";
+import {
+  generatedImageSrc,
+  generatedImageToFile,
+} from "@/lib/generated-image-file";
 
 describe("generatedImageToFile", () => {
   it("creates an in-memory edit upload from a base64 provider result", () => {
@@ -22,5 +25,16 @@ describe("generatedImageToFile", () => {
         mimeType: "image/png",
       }),
     ).toBeNull();
+  });
+});
+
+describe("generatedImageSrc", () => {
+  it("prefers an in-memory base64 result and falls back to a URL", () => {
+    expect(
+      generatedImageSrc({ base64: "AAAA", mimeType: "image/png" }),
+    ).toBe("data:image/png;base64,AAAA");
+    expect(
+      generatedImageSrc({ url: "https://example.test/a.webp", mimeType: "image/webp" }),
+    ).toBe("https://example.test/a.webp");
   });
 });

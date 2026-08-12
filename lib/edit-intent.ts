@@ -245,7 +245,7 @@ export function compileEditInstruction(intent: EditIntent): string {
     `Requested changes: ${changeText}.`,
     `Must preserve unchanged: ${preserve.join("; ")}.`,
     "Use the supplied image as the sole source of truth for identity and every non-requested attribute.",
-    "Do not redesign, re-style, re-light, re-crop, beautify, or invent new accessories.",
+    "Do not redesign, re-style, re-light, re-crop, beautify, or invent new accessories unless explicitly requested above.",
     "Keep the same head position, shoulder position, camera distance, and clothing geometry unless a requested change requires otherwise.",
     expressionChange
       ? "If changing expression, keep the adjustment minimal and natural; avoid a wide open-mouth smile unless explicitly requested."
@@ -254,4 +254,22 @@ export function compileEditInstruction(intent: EditIntent): string {
   ]
     .filter(Boolean)
     .join(" ");
+}
+
+/**
+ * Compile a reviewed plan for a regeneration fallback where the prior result
+ * is not sent as edit input. This must not claim that provider has source
+ * pixels or can preserve them exactly.
+ */
+export function compileRegenerationInstruction(intent: EditIntent): string {
+  const preserve = expandPreserveItems(
+    intent.preserve.length > 0
+      ? intent.preserve
+      : Array.from(DEFAULT_EDIT_PRESERVE),
+  );
+  return [
+    `Regeneration changes: ${intent.change.join("; ")}.`,
+    `Keep these existing intent attributes unchanged where possible: ${preserve.join("; ")}.`,
+    "Keep all unmentioned generation settings and the overall avatar direction stable; do not introduce unrelated changes.",
+  ].join(" ");
 }
