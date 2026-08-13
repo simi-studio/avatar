@@ -6,6 +6,17 @@ Simi Avatar is an open-source, **BYOK (Bring Your Own API Key)** AI avatar gener
 
 Live demo: [avatar.simi.studio](https://avatar.simi.studio)
 
+<p>
+  <img src="public/gallery/professional.jpg" alt="Professional sample look" width="120" height="120">
+  <img src="public/gallery/anime.jpg" alt="Anime sample look" width="120" height="120">
+  <img src="public/gallery/comic.jpg" alt="Comic sample look" width="120" height="120">
+  <img src="public/gallery/watercolor.jpg" alt="Watercolor sample look" width="120" height="120">
+  <img src="public/gallery/corgi.jpg" alt="Corgi mascot sample look" width="120" height="120">
+  <img src="public/gallery/couple.jpg" alt="Couple sample look" width="120" height="120">
+</p>
+
+Sample looks are synthetic. They are not a likeness guarantee.
+
 ## Features
 
 | Source                         | Mode         | Upload   | What it does                                                    |

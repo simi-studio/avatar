@@ -8,6 +8,7 @@ import {
 } from "next-intl/server";
 
 import { routing, isSupportedLocale } from "@/i18n/routing";
+import { GALLERY_HERO_SRC } from "@/lib/gallery";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SiteHeader } from "@/components/site-header";
 import "../globals.css";
@@ -40,17 +41,22 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: "Home" });
 
   return {
+    metadataBase: new URL(
+      process.env.NEXT_PUBLIC_SITE_URL ?? "https://avatar.simi.studio",
+    ),
     title: t("metaTitle"),
     description: t("metaDescription"),
     openGraph: {
       title: t("metaTitle"),
       description: t("metaDescription"),
       type: "website",
+      images: [{ url: GALLERY_HERO_SRC }],
     },
     twitter: {
       card: "summary_large_image",
       title: t("metaTitle"),
       description: t("metaDescription"),
+      images: [GALLERY_HERO_SRC],
     },
   };
 }
