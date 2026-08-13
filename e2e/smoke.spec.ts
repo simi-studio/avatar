@@ -5,10 +5,19 @@ import { expect, test } from "@playwright/test";
  * so these tests never send a real key upstream and stay deterministic.
  */
 
-test("home renders and links to the generator", async ({ page }) => {
+test("home renders sample looks and links to the generator", async ({
+  page,
+}) => {
   await page.goto("/en");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.getByRole("img", { name: "Professional" })).toBeVisible();
   await expect(page.locator('a[href$="/generate"]').first()).toBeVisible();
+});
+
+test("a gallery example hydrates the generate form", async ({ page }) => {
+  await page.goto("/en/generate?example=corgi");
+  await expect(page.getByText("Theme", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Optional prompt")).toHaveValue(/team mascot/i);
 });
 
 test("generate page renders the form", async ({ page }) => {
@@ -29,6 +38,7 @@ test("switching mode within the text source updates the form", async ({
   page,
 }) => {
   await page.goto("/en/generate");
+  await page.getByRole("button", { name: "More ways", exact: true }).click();
   await page.getByRole("button", { name: "Themed", exact: true }).click();
   // Themed mode replaces the style picker with the theme picker.
   await expect(page.getByText("Theme", { exact: true })).toBeVisible();

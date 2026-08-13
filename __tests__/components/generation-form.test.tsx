@@ -32,6 +32,10 @@ function renderForm() {
   );
 }
 
+function openMoreWays() {
+  fireEvent.click(screen.getByRole("button", { name: en.Form.moreWays }));
+}
+
 function setFetch(response: unknown, ok = true) {
   const fetchMock = vi.fn().mockResolvedValue({
     ok,
@@ -63,7 +67,9 @@ describe("GenerationForm", () => {
     renderForm();
 
     // Text mode shows the style picker and prompt suggestions, no upload.
-    expect(screen.getByText(en.Style.anime)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: en.Style.anime }),
+    ).toBeInTheDocument();
     expect(screen.getByText(en.Suggestions.label)).toBeInTheDocument();
     expect(screen.queryByText(en.Upload.label)).not.toBeInTheDocument();
 
@@ -82,6 +88,7 @@ describe("GenerationForm", () => {
     fireEvent.click(
       screen.getByRole("button", { name: new RegExp(en.Source.photo) }),
     );
+    openMoreWays();
     fireEvent.click(screen.getByRole("button", { name: en.Mode.couple }));
     const sameFrame = screen.getByLabelText(en.Form.sameFrame);
     expect(sameFrame).toBeDisabled();
@@ -383,6 +390,7 @@ describe("GenerationForm", () => {
     });
     renderForm();
 
+    openMoreWays();
     fireEvent.click(screen.getByRole("button", { name: en.Mode["couple-text"] }));
     fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
       target: { value: "sk-test-key" },
@@ -402,6 +410,7 @@ describe("GenerationForm", () => {
       screen.queryByRole("button", { name: en.Preset.copyLink }),
     ).not.toBeInTheDocument();
 
+    openMoreWays();
     fireEvent.click(screen.getByRole("button", { name: en.Mode["couple-text"] }));
     expect(
       screen.getByRole("button", { name: en.Preset.copyLink }),
@@ -426,6 +435,7 @@ describe("GenerationForm", () => {
     expect(screen.getByText("Runs 1 generation.")).toBeInTheDocument();
 
     // Couple-text pair: two generations.
+    openMoreWays();
     fireEvent.click(screen.getByRole("button", { name: en.Mode["couple-text"] }));
     expect(screen.getByText("Runs 2 generations.")).toBeInTheDocument();
 
@@ -441,13 +451,9 @@ describe("GenerationForm", () => {
     });
     renderForm();
 
-    fireEvent.change(screen.getByLabelText(en.Agent.briefLabel), {
+    fireEvent.change(screen.getByLabelText(en.Form.descriptionLabel), {
       target: { value: "anime social avatar" },
     });
-    // Parsing the brief is deterministic and must not hit the network.
-    fireEvent.click(
-      screen.getByRole("button", { name: en.Agent.briefApply }),
-    );
     expect(fetchMock).not.toHaveBeenCalled();
 
     fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
@@ -581,6 +587,7 @@ describe("GenerationForm", () => {
     fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
       target: { value: "sk-test-key" },
     });
+    openMoreWays();
     fireEvent.click(screen.getByRole("button", { name: en.Mode.themed }));
     fireEvent.click(screen.getByRole("button", { name: en.Theme.dogs }));
     fireEvent.click(screen.getByRole("button", { name: en.Theme.corgi }));

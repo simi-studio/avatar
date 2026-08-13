@@ -123,13 +123,30 @@ export function ResultPreview({
 
   if (status === "generating") {
     return (
-      <div className="flex min-h-[360px] flex-col items-center justify-center gap-4 rounded-lg border bg-muted/20 p-6 text-center text-sm text-muted-foreground">
+      <div
+        role="status"
+        aria-live="polite"
+        className="flex min-h-[360px] flex-col items-center justify-center gap-4 rounded-lg border bg-muted/20 p-6 text-center text-sm text-muted-foreground"
+      >
+        {images.length > 0 && (
+          <div className="grid w-full gap-4 opacity-40 sm:grid-cols-2">
+            {images.map((image, index) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={`${image.label ?? index}`}
+                src={generatedImageSrc(image)}
+                alt=""
+                className="w-full rounded-lg border"
+              />
+            ))}
+          </div>
+        )}
         <div className="rounded-full bg-primary/10 p-3 text-primary">
           <Loader2 className="h-6 w-6 animate-spin" aria-hidden />
         </div>
         <div className="space-y-1">
           <p className="font-medium text-foreground">{t("states.generating")}</p>
-          <p>{tr("generatingHint")}</p>
+          <p>{images.length > 0 ? tr("generatingKeep") : tr("generatingHint")}</p>
         </div>
       </div>
     );

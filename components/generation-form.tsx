@@ -20,6 +20,7 @@ import { useGenerationHistory } from "@/lib/use-generation-history";
 import { useGenerationRequest } from "@/lib/use-generation-request";
 import {
   addGenerationCandidates,
+  candidateStepGroup,
   createGenerationSession,
   hasGenerationCandidate,
   parentGenerationCandidate,
@@ -66,6 +67,7 @@ import {
   type RefinementAction,
 } from "@/lib/avatar-intent";
 import { applyBriefRefinement, parseBriefToIntent } from "@/lib/avatar-brief";
+import { GALLERY_EXAMPLES, getGalleryExample } from "@/lib/gallery";
 import { deriveAvatarPlan } from "@/lib/avatar-plan";
 import { getStyleById } from "@/styles/avatar-styles";
 import { getThemeById, getVariant } from "@/styles/avatar-themes";
@@ -109,10 +111,10 @@ export function GenerationForm() {
   const t = useTranslations("Generate");
   const tf = useTranslations("Form");
   const tp = useTranslations("Provider");
-  const tAgent = useTranslations("Agent");
   const tUpload = useTranslations("Upload");
   const tHistory = useTranslations("History");
   const tRef = useTranslations("Reference");
+  const tGallery = useTranslations("Gallery");
 
   const searchParams = useSearchParams();
 
@@ -123,7 +125,7 @@ export function GenerationForm() {
     hydrated,
   });
   const history = useGenerationHistory();
-  const { status, images, errorCode, lastIntent, run, restore } =
+  const { status, images, errorCode, lastIntent, run, restore, reset } =
     useGenerationRequest();
   const { form, patch } = useAvatarIntentForm();
   const [generationSession, setGenerationSession] = useState(() =>
@@ -169,13 +171,13 @@ export function GenerationForm() {
   const setSize = (value: ImageSize) => patch({ size: value });
 
   const [showKey, setShowKey] = useState(false);
-  const [brief, setBrief] = useState("");
   const [imageA, setImageA] = useState<UploadedImage | null>(null);
   const [imageB, setImageB] = useState<UploadedImage | null>(null);
   const [imageProfile, setImageProfile] = useState<UploadedImage | null>(null);
   const [imageExpression, setImageExpression] =
     useState<UploadedImage | null>(null);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [moreWaysOpen, setMoreWaysOpen] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | undefined>(
     undefined,
   );
@@ -250,12 +252,35 @@ export function GenerationForm() {
     syncIntent(applyGoalPreset(buildIntent(), nextGoal));
   }
 
-  // Deterministic brief → intent: map the free-text brief onto the editable
-  // controls. No network or LLM call; the user can still adjust every field.
-  function onApplyBrief() {
-    const text = brief.trim();
-    if (!text) return;
-    syncIntent(parseBriefToIntent(buildIntent(), text));
+  function resetWorkspace() {
+    reset();
+    setGenerationSession(createGenerationSession());
+    setPendingEdit(null);
+  }
+
+  function onModeChange(next: GenerationMode) {
+    if (next === mode) return;
+    setMode(next);
+    resetWorkspace();
+  }
+
+  function applyExample(exampleId: string) {
+    const example = getGalleryExample(exampleId);
+    if (!example) return;
+    syncIntent(
+      createAvatarIntent({
+        ...buildIntent(),
+        mode: example.mode,
+        styleId: example.styleId,
+        themeId: example.themeId,
+        variantId: example.variantId,
+        subjectDescription: example.prompt,
+        sameFrame: example.sameFrame === true,
+      }),
+    );
+    if (example.mode !== "text" && example.mode !== "single") {
+      setMoreWaysOpen(true);
+    }
   }
 
   function onIntentControlChange(controlPatch: Partial<IntentControlValue>) {
@@ -275,9 +300,10 @@ export function GenerationForm() {
     patch(next);
   }
 
-  // Load a shared team preset (non-sensitive base setup) from the URL once.
+  // Load a shared team preset or gallery example from the URL once.
   useEffect(() => {
     const preset = decodePreset(searchParams.get("preset"));
+    const example = getGalleryExample(searchParams.get("example"));
     const next: Partial<IntentForm> = {};
     if (preset.mode) next.mode = preset.mode;
     if (preset.styleId) next.styleId = preset.styleId;
@@ -285,6 +311,17 @@ export function GenerationForm() {
     if (preset.variantId) next.variantId = preset.variantId;
     if (typeof preset.pairedConsistency === "boolean") {
       next.pairedConsistency = preset.pairedConsistency;
+    }
+    if (example) {
+      next.mode = example.mode;
+      if (example.styleId) next.styleId = example.styleId;
+      if (example.themeId) next.themeId = example.themeId;
+      if (example.variantId) next.variantId = example.variantId;
+      next.userPrompt = example.prompt;
+      next.sameFrame = example.sameFrame === true;
+      if (example.mode !== "text" && example.mode !== "single") {
+        setMoreWaysOpen(true);
+      }
     }
     if (Object.keys(next).length > 0) patch(next);
     if (preset.provider) setProvider(preset.provider);
@@ -297,6 +334,7 @@ export function GenerationForm() {
   function onSourceChange(next: InputSource) {
     if (next === source) return;
     setMode(DEFAULT_MODE_BY_SOURCE[next]);
+    resetWorkspace();
   }
 
   const currentPreset: TeamPreset = {
@@ -432,8 +470,15 @@ export function GenerationForm() {
 
   async function onGenerate(intentOverride?: AvatarIntent) {
     setPendingEdit(null);
+    const raw = intentOverride ?? buildIntent();
+    const intent = intentOverride
+      ? raw
+      : parseBriefToIntent(raw, raw.subjectDescription ?? "");
+    if (!intentOverride && intent !== raw) {
+      syncIntent(intent);
+    }
     await run({
-      intent: intentOverride ?? buildIntent(),
+      intent,
       apiKey,
       buildForm: buildGenerateForm,
       onSuccess: (intent, nextImages) => {
@@ -453,10 +498,8 @@ export function GenerationForm() {
 
   const selectedCandidate = selectedGenerationCandidate(generationSession);
   const canEditSelectedResult =
-    images.length === 1 &&
-    Boolean(images[0]?.base64) &&
-    Boolean(selectedCandidate) &&
-    Boolean((lastIntent ?? buildIntent()).styleId);
+    Boolean(selectedCandidate?.image.base64) &&
+    providerCapabilities.supportsImageEdit;
   const refinementStrategy = resolveEditStrategy(provider, {
     hasSelectedImageInput: canEditSelectedResult,
     hasContinuation: false,
@@ -479,8 +522,8 @@ export function GenerationForm() {
   ) {
     const parentId = selectedCandidate?.id;
     const selectedImage =
-      refinementStrategy === "image-edit" && images[0]
-        ? generatedImageToFile(images[0])
+      refinementStrategy === "image-edit" && selectedCandidate?.image
+        ? generatedImageToFile(selectedCandidate.image)
         : null;
     const operation = selectedImage ? "edit" : "regenerate";
 
@@ -579,7 +622,11 @@ export function GenerationForm() {
     setGenerationSession((session) =>
       selectGenerationCandidate(session, candidateId),
     );
-    restore([candidate.image], candidate.intent);
+    const group = candidateStepGroup(generationSession, candidateId);
+    restore(
+      group.map((item) => item.image),
+      candidate.intent,
+    );
     syncIntent(candidate.intent);
     // Keep any open draft so the plan panel can show a stale notice when the
     // selected candidate no longer matches the draft parent.
@@ -612,8 +659,9 @@ export function GenerationForm() {
   // Single source of truth for the current intent used by the read-only
   // previews (plan, call count, compiled prompt).
   const previewIntent = buildIntent();
+  const resultIntent = selectedCandidate?.intent ?? lastIntent ?? previewIntent;
   // Couple-text same-frame renders a single combined image instead of an A/B pair.
-  const coupleSameFrame = isSameFrameCouple(previewIntent);
+  const coupleSameFrame = isSameFrameCouple(resultIntent);
   const generationCount = generationCountForIntent(previewIntent);
   const avatarPlan = deriveAvatarPlan(previewIntent, {
     style: getStyleById(styleId),
@@ -670,37 +718,23 @@ export function GenerationForm() {
             className="flex flex-col gap-5"
             aria-label={tf("creativeSetup")}
           >
-            <div className="flex flex-col gap-2 rounded-lg border bg-muted/20 p-4">
-              <Label htmlFor="brief">{tAgent("briefLabel")}</Label>
-              <Textarea
-                id="brief"
-                value={brief}
-                placeholder={tAgent("briefPlaceholder")}
-                onChange={(event) => setBrief(event.target.value)}
-                className="min-h-16 resize-y"
-              />
-              <div className="flex flex-wrap items-center gap-3">
-                <Button
-                  type="button"
-                  variant="secondary"
-                  size="sm"
-                  disabled={!brief.trim()}
-                  onClick={onApplyBrief}
-                >
-                  {tAgent("briefApply")}
-                </Button>
-                <p className="text-xs text-muted-foreground">
-                  {tAgent("briefHint")}
-                </p>
-              </div>
-            </div>
-
             <SourceSelector value={source} onChange={onSourceChange} />
-            <ModeSelector
-              modes={MODES_BY_SOURCE[source]}
-              value={mode}
-              onChange={setMode}
-            />
+            {(moreWaysOpen || mode !== DEFAULT_MODE_BY_SOURCE[source]) && (
+              <ModeSelector
+                modes={MODES_BY_SOURCE[source]}
+                value={mode}
+                onChange={onModeChange}
+              />
+            )}
+            {mode === DEFAULT_MODE_BY_SOURCE[source] && (
+              <button
+                type="button"
+                className="self-start text-sm text-muted-foreground underline-offset-4 hover:underline"
+                onClick={() => setMoreWaysOpen((value) => !value)}
+              >
+                {moreWaysOpen ? tf("hideMoreWays") : tf("moreWays")}
+              </button>
+            )}
 
             {mode === "text" && (
               <StylePicker value={styleId} onChange={setStyleId} />
@@ -855,6 +889,30 @@ export function GenerationForm() {
                 />
               )}
             </div>
+
+            <div className="flex flex-col gap-2">
+              <p className="text-sm font-medium">{tf("tryALook")}</p>
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+                {GALLERY_EXAMPLES.map((example) => (
+                  <button
+                    key={example.id}
+                    type="button"
+                    onClick={() => applyExample(example.id)}
+                    className="overflow-hidden rounded-lg border text-left hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={example.src}
+                      alt={tGallery(example.titleKey)}
+                      className="aspect-square w-full object-cover"
+                    />
+                    <span className="block truncate px-1.5 py-1 text-[11px] text-muted-foreground">
+                      {tGallery(example.titleKey)}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
           </section>
 
           <div className="flex flex-col gap-4 rounded-lg border bg-muted/20 p-4">
@@ -993,6 +1051,7 @@ export function GenerationForm() {
                 <Button
                   type="submit"
                   disabled={!canGenerate || status === "generating"}
+                  aria-busy={status === "generating"}
                   size="lg"
                   className="w-full sm:w-auto"
                 >
@@ -1010,7 +1069,10 @@ export function GenerationForm() {
             <div className="mt-6">
               <GenerationHistory
                 entries={history.entries}
-                onRestore={syncIntent}
+                onRestore={(intent) => {
+                  resetWorkspace();
+                  syncIntent(intent);
+                }}
                 onClear={history.clear}
               />
             </div>
@@ -1029,7 +1091,9 @@ export function GenerationForm() {
             errorCode={errorCode}
             sourceImages={sourceImages}
             expectedImageLabels={
-              isCoupleMode(mode) && !coupleSameFrame ? ["A", "B"] : []
+              isCoupleMode(resultIntent.mode) && !coupleSameFrame
+                ? ["A", "B"]
+                : []
             }
             candidates={generationSession.candidates}
             selectedCandidateId={generationSession.selectedCandidateId}
@@ -1047,7 +1111,12 @@ export function GenerationForm() {
             onConfirmEditPlan={onConfirmEditPlan}
             onCancelEditPlan={onCancelEditPlan}
             onConstrainedAction={onConstrainedAction}
-            refinementDisabled={!canGenerate || status === "generating"}
+            refinementDisabled={
+              status === "generating" ||
+              !(canEditSelectedResult
+                ? Boolean(apiKey) && (!TURNSTILE_ENABLED || Boolean(turnstileToken))
+                : canGenerate)
+            }
             localInteractionDisabled={status === "generating"}
             refinementStrategy={refinementStrategy}
           />
