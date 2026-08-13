@@ -28,6 +28,9 @@ export async function SiteHeader() {
           <Button asChild variant="ghost" size="sm">
             <Link href="/about">{t("Nav.about")}</Link>
           </Button>
+          <Button asChild variant="ghost" size="sm">
+            <Link href="/legal">{t("Nav.legal")}</Link>
+          </Button>
           <Button
             asChild
             variant="ghost"
@@ -36,7 +39,9 @@ export async function SiteHeader() {
           >
             <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer">
               <Github className="h-4 w-4" aria-hidden />
-              <span className="sr-only sm:not-sr-only">GitHub</span>
+              <span className="sr-only sm:not-sr-only">
+                {t("Common.viewOnGitHub")}
+              </span>
             </a>
           </Button>
           <ThemeToggle />

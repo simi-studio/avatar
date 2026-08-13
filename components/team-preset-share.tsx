@@ -18,7 +18,7 @@ export function TeamPresetShare({ preset }: { preset: TeamPreset }) {
 
   async function copy() {
     const code = encodePreset(preset);
-    const url = new URL(window.location.href);
+    const url = new URL(window.location.origin + window.location.pathname);
     url.searchParams.set("preset", code);
     try {
       await navigator.clipboard.writeText(url.toString());
