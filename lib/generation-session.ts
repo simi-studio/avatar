@@ -95,6 +95,46 @@ export function hasGenerationCandidate(
  * Ancestors of a candidate from root → parent (excluding the candidate itself).
  * Used for branch navigation and review UI.
  */
+/**
+ * The selected candidate plus its pair sibling when this step produced A/B.
+ * Used to restore a couple result without collapsing it to one image.
+ */
+export function candidateStepGroup(
+  session: GenerationSession,
+  candidateId: string,
+): GenerationCandidate[] {
+  const selected = session.candidates.find(
+    (candidate) => candidate.id === candidateId,
+  );
+  if (!selected) return [];
+  const label = selected.image.label;
+  if (label !== "A" && label !== "B") return [selected];
+
+  const partnerLabel = label === "A" ? "B" : "A";
+  const selectedIndex = session.candidates.findIndex(
+    (candidate) => candidate.id === candidateId,
+  );
+  let partner: GenerationCandidate | undefined;
+  let partnerDistance = Number.POSITIVE_INFINITY;
+  session.candidates.forEach((candidate, index) => {
+    if (
+      candidate.parentId !== selected.parentId ||
+      candidate.operation !== selected.operation ||
+      candidate.image.label !== partnerLabel
+    ) {
+      return;
+    }
+    const distance = Math.abs(index - selectedIndex);
+    if (distance < partnerDistance) {
+      partner = candidate;
+      partnerDistance = distance;
+    }
+  });
+
+  if (!partner) return [selected];
+  return label === "A" ? [selected, partner] : [partner, selected];
+}
+
 export function candidateAncestors(
   session: GenerationSession,
   candidateId: string,

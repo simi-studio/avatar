@@ -4,6 +4,7 @@ import { createAvatarIntent } from "@/lib/avatar-intent";
 import {
   addGenerationCandidates,
   candidateAncestors,
+  candidateStepGroup,
   createGenerationSession,
   hasGenerationCandidate,
   parentGenerationCandidate,
@@ -83,5 +84,20 @@ describe("generation session", () => {
       childId,
     ]);
     expect(hasGenerationCandidate(grand, rootId)).toBe(true);
+  });
+
+  it("restores a labeled couple pair from the same step", () => {
+    const pair = addGenerationCandidates(createGenerationSession("test"), {
+      intent: createAvatarIntent({ mode: "couple-text", styleId: "anime" }),
+      images: [
+        { base64: "a", mimeType: "image/png", label: "A" },
+        { base64: "b", mimeType: "image/png", label: "B" },
+      ],
+      operation: "generate",
+    });
+    const second = pair.candidates[1];
+    expect(second).toBeDefined();
+    const group = candidateStepGroup(pair, second!.id);
+    expect(group.map((candidate) => candidate.image.label)).toEqual(["A", "B"]);
   });
 });

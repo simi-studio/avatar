@@ -25,6 +25,7 @@ export type GenerationRequest = {
   lastIntent: AvatarIntent | null;
   run: (options: RunGenerationOptions) => Promise<void>;
   restore: (images: GeneratedImage[], intent: AvatarIntent) => void;
+  reset: () => void;
 };
 
 /**
@@ -125,5 +126,15 @@ export function useGenerationRequest(): GenerationRequest {
     [],
   );
 
-  return { status, images, errorCode, lastIntent, run, restore };
+  const reset = useCallback(() => {
+    requestSequence.current += 1;
+    activeController.current?.abort();
+    activeController.current = null;
+    setStatus("idle");
+    setImages([]);
+    setErrorCode(null);
+    setLastIntent(null);
+  }, []);
+
+  return { status, images, errorCode, lastIntent, run, restore, reset };
 }
