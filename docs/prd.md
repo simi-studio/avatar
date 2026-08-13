@@ -1,12 +1,12 @@
 # Simi Avatar — Product Requirements Document (PRD)
 
-> One-liner: Simi Avatar is an open-source, no-signup, no-database, no-subscription **BYOK (Bring Your Own API Key) AI avatar generator**. Users plug in their own AI provider API key and generate personalized avatars from two input sources — **text-to-avatar** (the default: pick a style and describe the avatar, no photo needed) and **from a photo** (single-person photo restyle or couple paired avatars) — plus themed avatars generated purely from a prompt, and can self-host with one command.
+> One-liner: Simi Avatar is an open-source **dedicated avatar workspace**. People who already hold an OpenAI, MiniMax, fal.ai, or xAI key use it to generate, restyle, and refine square avatars — no signup, no database, no Simi-hosted credits. Self-host anywhere.
 
 | Field        | Value                                               |
 | ------------ | --------------------------------------------------- |
-| Status       | Implemented through M10.3; M11 in progress (11.1 baseline pending; 11.2 implemented; 11.3 vertical slice landed) |
-| Version      | v0.5                                                |
-| Last updated | 2026-07-27                                          |
+| Status       | M11 in progress; M12 (first impression) in progress |
+| Version      | v0.6                                                |
+| Last updated | 2026-08-13                                          |
 | GitHub       | https://github.com/simi-studio/avatar               |
 | Positioning  | Open Source / No signup / Non-commercial / BYOK     |
 | App stack    | Next.js + TypeScript + Tailwind CSS + Shadcn UI     |
@@ -41,10 +41,14 @@ Simi Avatar is an open-source BYOK AI avatar generator. No signup, no login, no 
 
 ### 1.5 Target users
 
-- Everyday users who want a quick avatar
-- AI enthusiasts who already hold a provider API key
-- Developers who want to compare different AI image models (e.g. OpenAI vs MiniMax)
-- Teams or individuals who want a self-hostable avatar tool
+Primary (M12, D25):
+
+- People who already hold a provider API key and want a dedicated avatar workspace (style, photo restyle, couple/team, refine, download) instead of a general chat box
+- Individuals or teams who want to self-host that workspace
+
+Not primary until a later decision (D26):
+
+- Everyday users with no provider key. They can see sample looks on the public site; they cannot generate without bringing a key. A hosted demo credit is out of scope for M12.
 
 ---
 
@@ -94,9 +98,11 @@ Enter API key → choose source → pick goal/style/intent controls → generate
 
 ### 2.4 Non-goals (out of scope for MVP)
 
-User registration, login, paid subscription, credit system, database, avatar history, server-side team workspace, admin panel, template marketplace, community feed, long-term image hosting.
+User registration, login, paid subscription, credit system, database, **server-side or image history**, server-side team workspace, admin panel, template marketplace, community feed, long-term image hosting.
 
 > Note: "team avatars" are powered by a stateless shared preset code; this does **not** imply a server-side team workspace or account system.
+>
+> Note: Epic 9.2 shipped **client-only intent history** (no images, keys, or continuation IDs). That is not server-side history and is allowed under D25.
 
 ### 2.5 M11 product direction: Avatar Copilot
 
@@ -902,3 +908,4 @@ README / deploy / providers / security docs complete and in English; MIT License
 | D21 | Deterministic brief parsing becomes a fallback; optional LLM parsing is allowed under BYOK | Keyword rules cannot reliably understand zh-CN, negation, priorities, or clarification needs; users retain control and no Simi key is introduced (§21.1) |
 | D22 | “Edit” means provider-supported continuation of a selected result; otherwise the UI says “regenerate” | Honest semantics protect trust and allow capability-aware degradation across providers (§21.1) |
 | D23 | Generation/edit session state is memory-only and disposable | Multi-turn creation needs short-lived context without weakening the no-database/no-image-history privacy boundary (§2.5, §21.1) |
+| D25 | M12 primary user is a key-holder who wants a dedicated avatar workspace; no Simi-hosted credits | Everyday users without a key are not the launch audience; gallery + first-run simplification beat more providers/themes for reach; hosted demo credit deferred as D26 (§1.5) |

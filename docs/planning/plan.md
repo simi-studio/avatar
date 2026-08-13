@@ -4,7 +4,7 @@
 
 | Field           | Value                                                            |
 | --------------- | ---------------------------------------------------------------- |
-| Status          | MVP complete; M10.1–10.3 shipped; M11 in progress (11.1 baseline pending; 11.2 implemented; 11.3 plan+branch UI landed) |
+| Status          | MVP complete; M10.1–10.3 shipped; M11 in progress; M12 first-impression in progress |
 | Scope           | MVP (M1–M5)                                                      |
 | Providers (MVP) | OpenAI + MiniMax                                                 |
 | Languages (MVP) | English (default) + Simplified Chinese                           |
@@ -27,7 +27,23 @@
 - **M4 — Experience & security**: error handling + codes; download/regenerate/Clear Key; mode×input validation; timeout + edge rate limiting guidance with app-level fallback; log redaction + CI guard; mobile + a11y; core unit tests ≥ 80%.
 - **M5 — Open source & deploy**: finalize English docs + legal pages; Wrangler config; GitHub Actions CI; deploy Cloudflare Workers + bind domain.
 
-## Current progress snapshot (2026-07-27)
+## M12 — First impression and first success
+
+Pulled forward from the 2026-08-13 review: the product is engineered well and hard to notice.
+M12 does not add providers or identity claims. It makes the public site visitable and the first
+generation finishable. Quality evidence stays on M11.1.
+
+| Epic | Goal | Priority |
+| ---- | ---- | -------- |
+| [Epic 12.1 — First impression](./epics/epic-12.1-first-impression.md) | Outcome-first home, first-run generate path, adapter honesty, result-state fixes | P0 |
+
+### M12 progress
+
+- [x] 12.1 — Docs (D25), gallery + home, first-run generate, result-state, adapter honesty, chrome
+
+See D25 in [prd.md](../prd.md). Hosted demo credits remain a later D26.
+
+## Current progress snapshot (2026-08-13)
 
 - **M1–M5 are complete**: foundation, i18n, five generation modes, provider adapters, intent-first prompt compilation, security guards, open-source docs, CI, and Cloudflare deployment are implemented.
 - **M6–M8 are complete**: text-first sources, intent controls/refinement, provider-aware capabilities, quick/advanced form split, preview states, partial couple handling, and contextual team preset sharing are shipped.
@@ -43,6 +59,7 @@
   change/preserve plan with constrained-action chips, session candidate branch selection, parent
   preservation on failure, stale-plan refusal, and expanded mocked tests. Live edit-preservation
   scoring remains before quality claims ship.
+- **M12 is in progress**: primary user narrowed to key-holders (D25); first-impression epic opened.
 - **Public demo is live**: `https://avatar.simi.studio/zh-CN` returned HTTP 200 on 2026-07-27.
 - **GitHub repository metadata is set**: `simi-studio/avatar` is public, has a concise description, homepage URL, and topics configured.
 - **Latest full local gate passed on 2026-08-12**: `npm run guard:secrets`, `npm run lint`,

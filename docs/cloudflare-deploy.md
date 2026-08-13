@@ -13,9 +13,11 @@
 
 ```bash
 npm install
-npm run build      # OpenNext build for Cloudflare
-npm run deploy     # wrangler deploy
+npm run deploy     # OpenNext Cloudflare build + wrangler deploy
 ```
+
+`npm run build` is the standard Next.js production build (`next build`). The Workers bundle is
+produced by `npm run cf:build` / `npm run deploy`.
 
 That's it — no database, KV, R2, or D1 to provision for MVP. Users bring their own API key in the UI (BYOK).
 
