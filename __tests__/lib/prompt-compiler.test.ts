@@ -215,6 +215,24 @@ describe("compileAvatarPrompt", () => {
     expect(minimax.prompt).toContain("preserve unrequested");
   });
 
+  it("does not inject a goal-preset style into themed prompts", () => {
+    const intent = createAvatarIntent({
+      mode: "themed",
+      themeId: "dogs",
+      variantId: "corgi",
+    });
+    const compiled = compileAvatarPrompt({
+      provider: "openai",
+      intent,
+      style: getStyleById(intent.styleId),
+      theme: getThemeById("dogs"),
+      variant: getVariant("dogs", "corgi"),
+    });
+    expect(intent.styleId).toBe("professional-headshot");
+    expect(compiled.prompt).toContain("corgi");
+    expect(compiled.prompt).not.toMatch(/professional headshot/i);
+  });
+
   it("includes a reviewed edit plan in regeneration prompts", () => {
     const intent = createAvatarIntent({
       mode: "themed",

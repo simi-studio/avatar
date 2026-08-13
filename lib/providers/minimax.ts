@@ -4,7 +4,7 @@ import type {
   ProviderGenerateInput,
 } from "@/lib/types";
 import { ProviderError } from "@/lib/types";
-import type { ErrorCode, MiniMaxRegion } from "@/lib/constants";
+import type { ErrorCode, ImageSize, MiniMaxRegion } from "@/lib/constants";
 import { isPhotoMode } from "@/lib/constants";
 import {
   collectSuccessful,
@@ -23,7 +23,6 @@ const MINIMAX_BASE_URL: Record<MiniMaxRegion, string> = {
 const DEFAULT_MODEL = "image-01";
 const LIVE_MODEL = "image-01-live";
 const PROVIDER_TIMEOUT_MS = 55_000;
-const MINIMAX_ASPECT_RATIO = "1:1";
 const LIVE_STYLE_IDS = new Set([
   "anime",
   "comic-book",
@@ -40,7 +39,14 @@ export function resolveMiniMaxBaseUrl(region?: MiniMaxRegion): string {
   return MINIMAX_BASE_URL.global;
 }
 
+export function mapMiniMaxPixels(size: ImageSize): 512 | 1024 {
+  return size === "512x512" ? 512 : 1024;
+}
+
 function selectMiniMaxModel(input: ProviderGenerateInput): string {
+  if (input.operation === "edit") {
+    return DEFAULT_MODEL;
+  }
   if (
     isPhotoMode(input.mode) &&
     input.styleId &&
@@ -113,13 +119,15 @@ async function callMiniMax(
 ): Promise<GeneratedImage[]> {
   const baseUrl = resolveMiniMaxBaseUrl(input.region);
 
+  const pixels = mapMiniMaxPixels(input.size);
   const body: Record<string, unknown> = {
     model: selectMiniMaxModel(input),
     prompt: input.prompt,
-    aspect_ratio: MINIMAX_ASPECT_RATIO,
+    width: pixels,
+    height: pixels,
     n: 1,
     response_format: "base64",
-    prompt_optimizer: true,
+    prompt_optimizer: input.operation !== "edit",
   };
 
   if (isPhotoMode(input.mode) && image) {

@@ -46,6 +46,8 @@ export function mapOpenAIError(
   const normalized = readOpenAIErrorBody(body);
   const code = coerceString(normalized.error?.code);
   const type = coerceString(normalized.error?.type);
+  const message = coerceString(normalized.error?.message).toLowerCase();
+  const combined = `${code} ${type} ${message}`;
 
   if (status === 401) return "INVALID_API_KEY";
   if (code === "insufficient_quota" || code === "billing_hard_limit_reached") {
@@ -60,7 +62,15 @@ export function mapOpenAIError(
     return "CONTENT_REJECTED";
   }
   if (status === 408 || status === 504) return "PROVIDER_TIMEOUT";
-  if (status === 400) return "INVALID_IMAGE";
+  if (
+    combined.includes("image") ||
+    combined.includes("media") ||
+    combined.includes("upload") ||
+    combined.includes("file")
+  ) {
+    return "INVALID_IMAGE";
+  }
+  if (status === 400 || status === 422) return "INVALID_MODE_INPUT";
   return "UNKNOWN_ERROR";
 }
 

@@ -55,6 +55,8 @@ export type AvatarTheme = {
   variants: AvatarVariant[];
 };
 
+export type ProviderOperation = "generate" | "edit" | "regenerate";
+
 /** Input passed to a provider adapter. */
 export type ProviderGenerateInput = {
   apiKey: string;
@@ -70,6 +72,8 @@ export type ProviderGenerateInput = {
   themeId?: string;
   variantId?: string;
   size: ImageSize;
+  /** Route operation. Adapters that care (MiniMax optimizer) read this. */
+  operation?: ProviderOperation;
 };
 
 export interface ImageProvider {

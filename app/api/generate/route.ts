@@ -430,6 +430,12 @@ export async function POST(
   });
   if (modeError) return errorResponse(modeError);
 
+  const resolvedSizeError = validateProviderSize(
+    parsed.provider,
+    executionIntent.size,
+  );
+  if (resolvedSizeError) return errorResponse(resolvedSizeError);
+
   const provider = getProvider(parsed.provider as ProviderId);
   const style = getStyleById(executionIntent.styleId);
   const theme = getThemeById(executionIntent.themeId);
@@ -498,6 +504,7 @@ export async function POST(
       themeId: executionIntent.themeId,
       variantId: executionIntent.variantId,
       size: executionIntent.size,
+      operation: parsed.operation,
     });
     return NextResponse.json({ success: true, images });
   } catch (error) {

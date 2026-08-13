@@ -180,7 +180,10 @@ function openAIPrompt(input: CompileAvatarPromptInput): string {
   const profile = getProviderPromptProfile(provider);
   const calibration = getStyleCalibration(provider, intent.styleId);
   const subject = buildSubject(input);
-  const styleFragment = calibration?.promptFragment ?? style?.promptTemplate;
+  const styleFragment =
+    intent.mode === "themed"
+      ? undefined
+      : (calibration?.promptFragment ?? style?.promptTemplate);
   const avoid = buildAvoidList(intent);
   const isPhotoInput = intent.mode === "single" || intent.mode === "couple";
 
@@ -217,7 +220,10 @@ function miniMaxPrompt(input: CompileAvatarPromptInput): string {
   const profile = getProviderPromptProfile(provider);
   const calibration = getStyleCalibration(provider, intent.styleId);
   const subject = buildSubject(input);
-  const styleFragment = calibration?.promptFragment ?? style?.promptTemplate;
+  const styleFragment =
+    intent.mode === "themed"
+      ? undefined
+      : (calibration?.promptFragment ?? style?.promptTemplate);
   const avoid = buildAvoidList(intent);
   const isPhotoInput = intent.mode === "single" || intent.mode === "couple";
   const highPhoto = isPhotoInput && intent.likeness === "high";

@@ -7,6 +7,7 @@ import {
   openaiProvider,
 } from "@/lib/providers/openai";
 import {
+  mapMiniMaxPixels,
   mapMiniMaxStatus,
   minimaxProvider,
   resolveMiniMaxBaseUrl,
@@ -72,8 +73,11 @@ describe("openai adapter", () => {
   it("handles non-object OpenAI error bodies defensively", () => {
     expect(mapOpenAIError(429, null)).toBe("RATE_LIMITED");
     expect(mapOpenAIError(400, { error: { type: 123 } })).toBe(
-      "INVALID_IMAGE",
+      "INVALID_MODE_INPUT",
     );
+    expect(
+      mapOpenAIError(400, { error: { message: "invalid image file" } }),
+    ).toBe("INVALID_IMAGE");
   });
 
   it("calls the edits endpoint for single mode", async () => {
@@ -356,7 +360,7 @@ describe("minimax adapter", () => {
     );
   });
 
-  it("uses square aspect ratio even if called with an invalid size", async () => {
+  it("falls back to 1024 square pixels if called with an invalid size", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       jsonResponse({
         data: { image_base64: ["BBBB"] },
@@ -375,11 +379,17 @@ describe("minimax adapter", () => {
 
     const request = fetchMock.mock.calls[0]?.[1] as RequestInit;
     expect(JSON.parse(String(request.body))).toMatchObject({
-      aspect_ratio: "1:1",
+      width: 1024,
+      height: 1024,
     });
   });
 
-  it("uses square aspect ratio and MiniMax prompt optimization for avatars", async () => {
+  it("maps app sizes to MiniMax pixel dimensions", () => {
+    expect(mapMiniMaxPixels("512x512")).toBe(512);
+    expect(mapMiniMaxPixels("1024x1024")).toBe(1024);
+  });
+
+  it("sends width and height and enables the prompt optimizer for generation", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       jsonResponse({
         data: { image_base64: ["BBBB"] },
@@ -398,12 +408,40 @@ describe("minimax adapter", () => {
 
     const request = fetchMock.mock.calls[0]?.[1] as RequestInit;
     expect(JSON.parse(String(request.body))).toMatchObject({
-      aspect_ratio: "1:1",
+      width: 512,
+      height: 512,
       prompt_optimizer: true,
       response_format: "base64",
     });
-    expect(JSON.parse(String(request.body))).not.toHaveProperty("width");
-    expect(JSON.parse(String(request.body))).not.toHaveProperty("height");
+    expect(JSON.parse(String(request.body))).not.toHaveProperty("aspect_ratio");
+  });
+
+  it("disables the prompt optimizer and restyle model on constrained edits", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse({
+        data: { image_base64: ["EDIT"] },
+        base_resp: { status_code: 0 },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await minimaxProvider.generateAvatar({
+      apiKey: "mm-test",
+      region: "global",
+      mode: "single",
+      operation: "edit",
+      images: [pngFile()],
+      prompt: "change: background only",
+      styleId: "anime",
+      size: "1024x1024",
+    });
+
+    expect(JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body))).toMatchObject({
+      model: "image-01",
+      prompt_optimizer: false,
+      width: 1024,
+      height: 1024,
+    });
   });
 
   it("uses image-01-live for illustrated MiniMax photo avatar styles", async () => {
@@ -600,6 +638,40 @@ describe("fal adapter", () => {
     const body = JSON.parse(String(i2iInit.body));
     expect(body.image_url).toMatch(/^data:image\/png;base64,/);
     expect(typeof body.strength).toBe("number");
+  });
+
+  it("does not follow fal image URL redirects", async () => {
+    const fetchMock = vi.fn<typeof fetch>((input) => {
+      const url = String(input);
+      if (url.startsWith("https://fal.run/")) {
+        return Promise.resolve(
+          jsonResponse({
+            images: [{ url: "https://fal.media/files/out.png" }],
+          }),
+        );
+      }
+      return Promise.resolve(
+        new Response(null, {
+          status: 302,
+          headers: { Location: "https://evil.example.com/out.png" },
+        }),
+      );
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      falProvider.generateAvatar({
+        apiKey: "key-test",
+        mode: "text",
+        prompt: "x",
+        size: "1024x1024",
+      }),
+    ).rejects.toMatchObject({ code: "UNKNOWN_ERROR" });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect((fetchMock.mock.calls[1]?.[1] as RequestInit).redirect).toBe(
+      "manual",
+    );
   });
 
   it("rejects images returned from non-fal hosts", async () => {

@@ -88,7 +88,11 @@ async function downloadImage(
   if (!url || !isAllowedFalImageHost(url)) {
     throw new ProviderError("UNKNOWN_ERROR");
   }
-  const res = await fetchWithTimeout(url, { method: "GET" }, PROVIDER_TIMEOUT_MS);
+  const res = await fetchWithTimeout(
+    url,
+    { method: "GET", redirect: "manual" },
+    PROVIDER_TIMEOUT_MS,
+  );
   if (!res.ok) throw new ProviderError("UNKNOWN_ERROR");
 
   const buffer = Buffer.from(await res.arrayBuffer());

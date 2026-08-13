@@ -70,7 +70,7 @@ MiniMax runs two independent platforms. **Keys are not interchangeable across re
 
 - Auth: `Authorization: Bearer <apiKey>`
 - Model: `image-01` by default; photo-based illustrated styles may use `image-01-live` for stronger stylization.
-- Key params: `prompt`, square `aspect_ratio` (`1:1`) for avatars, `n`, `response_format` (`url` | `base64`), `prompt_optimizer`, and `subject_reference` for image-to-image.
+- Key params: `prompt`, square `width`/`height` (`512` or `1024`), `n`, `response_format` (`url` | `base64`), `prompt_optimizer` (on for generate, off for constrained edit), and `subject_reference` for image-to-image.
 - `resolveBaseUrl("global" | "china")` selects the base URL; sending a key to the wrong region returns `INVALID_REGION` (mapped from auth failure).
 
 Minimal adapter sketch:
@@ -96,10 +96,11 @@ async function minimaxGenerate(
   const body: Record<string, unknown> = {
     model: "image-01",
     prompt: input.prompt,
-    aspect_ratio: "1:1",
+    width: input.size === "512x512" ? 512 : 1024,
+    height: input.size === "512x512" ? 512 : 1024,
     n: 1, // couple and couple-text use two separate calls
     response_format: "base64",
-    prompt_optimizer: true,
+    prompt_optimizer: input.operation !== "edit",
   };
   if (input.mode !== "themed" && input.images?.length) {
     body.subject_reference = [
