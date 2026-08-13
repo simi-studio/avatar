@@ -3,11 +3,10 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { KeyRound, Settings2, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 import {
   DEFAULT_MODE_BY_SOURCE,
-  MODES_BY_SOURCE,
   isCoupleMode,
   sourceForMode,
   type GenerationMode,
@@ -46,8 +45,6 @@ import { decodePreset, type TeamPreset } from "@/lib/preset";
 import {
   capabilitiesForProvider,
   defaultSizeForProvider,
-  modelLabelForProvider,
-  pricingUrlForProvider,
   resolveEditStrategy,
   sizesForProvider,
 } from "@/lib/provider-capabilities";
@@ -67,40 +64,19 @@ import {
   type RefinementAction,
 } from "@/lib/avatar-intent";
 import { applyBriefRefinement, parseBriefToIntent } from "@/lib/avatar-brief";
-import { GALLERY_EXAMPLES, getGalleryExample } from "@/lib/gallery";
+import { getGalleryExample } from "@/lib/gallery";
 import { deriveAvatarPlan } from "@/lib/avatar-plan";
 import { getStyleById } from "@/styles/avatar-styles";
 import { getThemeById, getVariant } from "@/styles/avatar-themes";
-import { compileAvatarPrompt } from "@/lib/prompt-compiler";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  IntentControls,
-  type IntentControlValue,
-} from "@/components/intent-controls";
-import { SourceSelector } from "@/components/source-selector";
-import { ModeSelector } from "@/components/mode-selector";
-import { ProviderSelector } from "@/components/provider-selector";
-import { ApiKeyInput } from "@/components/api-key-input";
-import { StylePicker } from "@/components/style-picker";
-import { ThemePicker } from "@/components/theme-picker";
-import { PromptSuggestions } from "@/components/prompt-suggestions";
-import { TeamPresetShare } from "@/components/team-preset-share";
-import { ImageUploader, type UploadedImage } from "@/components/image-uploader";
-import {
-  ReferenceIntakePanel,
-  type ReferenceIntakeValue,
-} from "@/components/reference-intake-panel";
-import {
-  TurnstileWidget,
-  TURNSTILE_ENABLED,
-} from "@/components/turnstile-widget";
+import { type IntentControlValue } from "@/components/intent-controls";
+import { type UploadedImage } from "@/components/image-uploader";
+import { TURNSTILE_ENABLED } from "@/components/turnstile-widget";
 import { AvatarPlanPanel } from "@/components/avatar-plan-panel";
-import { CompiledPromptPanel } from "@/components/compiled-prompt-panel";
 import { GenerationHistory } from "@/components/generation-history";
+import { CreativeSetup } from "@/components/generate/creative-setup";
+import { ProviderSetup } from "@/components/generate/provider-setup";
+import { GenerateActions } from "@/components/generate/generate-actions";
 import {
   ResultPreview,
   type GenerationStatus,
@@ -110,11 +86,7 @@ import {
 export function GenerationForm() {
   const t = useTranslations("Generate");
   const tf = useTranslations("Form");
-  const tp = useTranslations("Provider");
-  const tUpload = useTranslations("Upload");
   const tHistory = useTranslations("History");
-  const tRef = useTranslations("Reference");
-  const tGallery = useTranslations("Gallery");
 
   const searchParams = useSearchParams();
 
@@ -714,355 +686,80 @@ export function GenerationForm() {
               }
             }}
           >
-          <section
-            className="flex flex-col gap-5"
-            aria-label={tf("creativeSetup")}
-          >
-            <SourceSelector value={source} onChange={onSourceChange} />
-            {(moreWaysOpen || mode !== DEFAULT_MODE_BY_SOURCE[source]) && (
-              <ModeSelector
-                modes={MODES_BY_SOURCE[source]}
-                value={mode}
-                onChange={onModeChange}
-              />
-            )}
-            {mode === DEFAULT_MODE_BY_SOURCE[source] && (
-              <button
-                type="button"
-                className="self-start text-sm text-muted-foreground underline-offset-4 hover:underline"
-                onClick={() => setMoreWaysOpen((value) => !value)}
-              >
-                {moreWaysOpen ? tf("hideMoreWays") : tf("moreWays")}
-              </button>
-            )}
-
-            {mode === "text" && (
-              <StylePicker value={styleId} onChange={setStyleId} />
-            )}
-
-            {mode === "couple-text" && (
-              <>
-                <StylePicker value={styleId} onChange={setStyleId} />
-                <label className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <input
-                    type="checkbox"
-                    checked={sameFrame}
-                    onChange={(event) => setSameFrame(event.target.checked)}
-                    className="h-4 w-4 rounded border-input"
-                  />
-                  {tf("sameFrame")}
-                </label>
-                {!sameFrame && (
-                  <label className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <input
-                      type="checkbox"
-                      checked={pairedConsistency}
-                      onChange={(event) =>
-                        setPairedConsistency(event.target.checked)
-                      }
-                      className="h-4 w-4 rounded border-input"
-                    />
-                    {tf("pairedConsistency")}
-                  </label>
-                )}
-              </>
-            )}
-
-            {mode === "single" && (
-              <>
-                <ReferenceIntakePanel
-                  value={{
-                    front: imageA,
-                    profile: imageProfile,
-                    expression: imageExpression,
-                  } satisfies ReferenceIntakeValue}
-                  onChange={(next) => {
-                    setImageA(next.front);
-                    setImageProfile(next.profile);
-                    setImageExpression(next.expression);
-                  }}
-                  multiEnabled={multiReferenceEnabled}
-                  maxReferences={maxReferences}
-                  providerLabel={tp(provider)}
-                />
-                <StylePicker value={styleId} onChange={setStyleId} />
-              </>
-            )}
-
-            {mode === "couple" && (
-              <>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <ImageUploader
-                    label={tUpload("labelA")}
-                    value={imageA}
-                    onChange={setImageA}
-                  />
-                  <ImageUploader
-                    label={tUpload("labelB")}
-                    value={imageB}
-                    onChange={setImageB}
-                  />
-                </div>
-                <StylePicker value={styleId} onChange={setStyleId} />
-                <label
-                  className={`flex items-center gap-2 text-sm ${
-                    sameFrameCompositeEnabled
-                      ? "text-muted-foreground"
-                      : "text-muted-foreground/80"
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={sameFrame && sameFrameCompositeEnabled}
-                    disabled={!sameFrameCompositeEnabled}
-                    onChange={(event) => setSameFrame(event.target.checked)}
-                    className="h-4 w-4 rounded border-input"
-                    aria-describedby={
-                      sameFrameCompositeEnabled
-                        ? undefined
-                        : "photo-same-frame-note"
-                    }
-                  />
-                  {tf("sameFrame")}
-                </label>
-                {!sameFrameCompositeEnabled && (
-                  <p
-                    id="photo-same-frame-note"
-                    className="text-xs text-muted-foreground"
-                    role="note"
-                  >
-                    {tRef("sameFrameUnsupported", {
-                      provider: tp(provider),
-                    })}
-                  </p>
-                )}
-                {(!sameFrame || !sameFrameCompositeEnabled) && (
-                  <label className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <input
-                      type="checkbox"
-                      checked={pairedConsistency}
-                      onChange={(event) =>
-                        setPairedConsistency(event.target.checked)
-                      }
-                      className="h-4 w-4 rounded border-input"
-                    />
-                    {tf("pairedConsistency")}
-                  </label>
-                )}
-              </>
-            )}
-
-            {mode === "themed" && (
-              <ThemePicker
-                themeId={themeId}
-                variantId={variantId}
-                onThemeChange={(value) => {
-                  setThemeId(value);
-                  setVariantId(undefined);
-                }}
-                onVariantChange={setVariantId}
-              />
-            )}
-
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="prompt">
-                {promptIsPrimary ? tf("descriptionLabel") : tf("promptLabel")}
-              </Label>
-              <Textarea
-                id="prompt"
-                value={userPrompt}
-                placeholder={
-                  promptIsPrimary
-                    ? tf("descriptionPlaceholder")
-                    : tf("promptPlaceholder")
-                }
-                onChange={(event) => setUserPrompt(event.target.value)}
-                className="min-h-28 resize-y"
-              />
-              {promptIsPrimary && (
-                <PromptSuggestions
-                  provider={provider}
-                  mode={mode}
-                  styleId={styleId}
-                  goal={goal}
-                  onSelect={setUserPrompt}
-                />
-              )}
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <p className="text-sm font-medium">{tf("tryALook")}</p>
-              <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-                {GALLERY_EXAMPLES.map((example) => (
-                  <button
-                    key={example.id}
-                    type="button"
-                    onClick={() => applyExample(example.id)}
-                    className="overflow-hidden rounded-lg border text-left hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={example.src}
-                      alt={tGallery(example.titleKey)}
-                      className="aspect-square w-full object-cover"
-                    />
-                    <span className="block truncate px-1.5 py-1 text-[11px] text-muted-foreground">
-                      {tGallery(example.titleKey)}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          <div className="flex flex-col gap-4 rounded-lg border bg-muted/20 p-4">
-            <button
-              type="button"
-              className="flex items-center justify-between gap-3 text-left text-sm font-medium"
-              aria-expanded={advancedOpen}
-              onClick={() => setAdvancedOpen((value) => !value)}
-            >
-              <span className="flex items-center gap-2">
-                <Settings2 className="h-4 w-4" aria-hidden />
-                {advancedOpen
-                  ? tf("hideAdvancedSettings")
-                  : tf("advancedSettings")}
-              </span>
-            </button>
-
-            {advancedOpen && (
-              <div className="flex flex-col gap-4">
-                <IntentControls
-                  mode={mode}
-                  value={intentControlValue}
-                  onGoalChange={onGoalChange}
-                  onChange={onIntentControlChange}
-                />
-
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="size">{tf("sizeLabel")}</Label>
-                  <Select
-                    id="size"
-                    value={size}
-                    onChange={(event) =>
-                      setSize(event.target.value as ImageSize)
-                    }
-                  >
-                    {availableSizes.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-
-                <CompiledPromptPanel
-                  request={compileAvatarPrompt({
-                    provider,
-                    intent: previewIntent,
-                    style: getStyleById(styleId),
-                    theme: getThemeById(themeId),
-                    variant: getVariant(themeId, variantId),
-                  })}
-                />
-              </div>
-            )}
-          </div>
-
-          <section
-            className="flex flex-col gap-4 rounded-lg border bg-background p-4 shadow-sm"
-            aria-label={tf("providerSetup")}
-          >
-            <div className="flex items-start gap-3">
-              <span className="mt-0.5 rounded-full bg-primary/10 p-2 text-primary">
-                <KeyRound className="h-4 w-4" aria-hidden />
-              </span>
-              <div className="space-y-1">
-                <h2 className="text-sm font-semibold">
-                  {tf("providerSetup")}
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  {tf("providerSetupHint")}
-                </p>
-              </div>
-            </div>
-            <ProviderSelector
-              provider={provider}
-              onProviderChange={setProvider}
-              region={region}
-              onRegionChange={setRegion}
-            />
-            <ApiKeyInput
-              value={apiKey}
-              onChange={setApiKey}
-              onClear={handleClearKey}
-              saveForSession={saveForSession}
-              onToggleSave={toggleSave}
-              show={showKey}
-              onToggleShow={() => setShowKey((v) => !v)}
-            />
-            {TURNSTILE_ENABLED && (
-              <div className="flex flex-col gap-2">
-                <Label>{tf("verifyLabel")}</Label>
-                <p className="text-sm text-muted-foreground">
-                  {tf("verifyHint")}
-                </p>
-                <TurnstileWidget
-                  onToken={setTurnstileToken}
-                  resetSignal={turnstileReset}
-                />
-              </div>
-            )}
-          </section>
+          <CreativeSetup
+            source={source}
+            mode={mode}
+            moreWaysOpen={moreWaysOpen}
+            onSourceChange={onSourceChange}
+            onModeChange={onModeChange}
+            onToggleMoreWays={() => setMoreWaysOpen((value) => !value)}
+            styleId={styleId}
+            onStyleIdChange={setStyleId}
+            themeId={themeId}
+            variantId={variantId}
+            onThemeIdChange={setThemeId}
+            onVariantIdChange={setVariantId}
+            sameFrame={sameFrame}
+            onSameFrameChange={setSameFrame}
+            pairedConsistency={pairedConsistency}
+            onPairedConsistencyChange={setPairedConsistency}
+            sameFrameCompositeEnabled={sameFrameCompositeEnabled}
+            imageA={imageA}
+            imageB={imageB}
+            imageProfile={imageProfile}
+            imageExpression={imageExpression}
+            onImageAChange={setImageA}
+            onImageBChange={setImageB}
+            onReferenceChange={(next) => {
+              setImageA(next.front);
+              setImageProfile(next.profile);
+              setImageExpression(next.expression);
+            }}
+            multiReferenceEnabled={multiReferenceEnabled}
+            maxReferences={maxReferences}
+            provider={provider}
+            userPrompt={userPrompt}
+            onUserPromptChange={setUserPrompt}
+            promptIsPrimary={promptIsPrimary}
+            goal={goal}
+            onApplyExample={applyExample}
+            advancedOpen={advancedOpen}
+            onToggleAdvanced={() => setAdvancedOpen((value) => !value)}
+            intentControlValue={intentControlValue}
+            onGoalChange={onGoalChange}
+            onIntentControlChange={onIntentControlChange}
+            size={size}
+            onSizeChange={setSize}
+            availableSizes={availableSizes}
+            previewIntent={previewIntent}
+          />
+          <ProviderSetup
+            provider={provider}
+            onProviderChange={setProvider}
+            region={region}
+            onRegionChange={setRegion}
+            apiKey={apiKey}
+            onApiKeyChange={setApiKey}
+            onClearKey={handleClearKey}
+            saveForSession={saveForSession}
+            onToggleSave={toggleSave}
+            showKey={showKey}
+            onToggleShowKey={() => setShowKey((v) => !v)}
+            onTurnstileToken={setTurnstileToken}
+            turnstileReset={turnstileReset}
+          />
 
           <AvatarPlanPanel plan={avatarPlan} />
 
-          <div className="rounded-lg border bg-muted/30 p-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-1">
-                <p className="text-sm font-medium">
-                  {canGenerate ? tf("readyToGenerate") : tf("finishRequired")}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {generationCount === 1
-                    ? t("estimatedCostSingle")
-                    : t("estimatedCostPair")}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {t("callPlan", {
-                    provider: tp(provider),
-                    model: modelLabelForProvider(provider),
-                    size,
-                  })}{" "}
-                  <a
-                    href={pricingUrlForProvider(provider)}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    className="underline underline-offset-2 hover:text-foreground"
-                  >
-                    {t("pricingLink", { provider: tp(provider) })}
-                  </a>
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {t("privacyNote")}
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
-                <Button
-                  type="submit"
-                  disabled={!canGenerate || status === "generating"}
-                  aria-busy={status === "generating"}
-                  size="lg"
-                  className="w-full sm:w-auto"
-                >
-                  {status === "generating" ? t("generating") : t("generate")}
-                </Button>
-                {showTeamPresetShare && (
-                  <TeamPresetShare preset={currentPreset} />
-                )}
-              </div>
-            </div>
-          </div>
+          <GenerateActions
+            canGenerate={canGenerate}
+            generating={status === "generating"}
+            generationCount={generationCount}
+            provider={provider}
+            size={size}
+            showTeamPresetShare={showTeamPresetShare}
+            preset={currentPreset}
+          />
           </form>
 
           {history.entries.length > 0 && (
