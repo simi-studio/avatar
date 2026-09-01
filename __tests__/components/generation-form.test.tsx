@@ -68,7 +68,7 @@ describe("GenerationForm", () => {
 
     // Text mode shows the style picker and prompt suggestions, no upload.
     expect(
-      screen.getByRole("button", { name: en.Style.anime }),
+      screen.getByRole("button", { name: new RegExp(`^${en.Style.anime}$`) }),
     ).toBeInTheDocument();
     expect(screen.getByText(en.Suggestions.label)).toBeInTheDocument();
     expect(screen.queryByText(en.Upload.label)).not.toBeInTheDocument();
@@ -113,7 +113,7 @@ describe("GenerationForm", () => {
       target: { value: "sk-test-key" },
     });
     // Anime is selectable; a style is required for text mode.
-    fireEvent.click(screen.getByRole("button", { name: en.Style.anime }));
+    fireEvent.click(screen.getByRole("button", { name: new RegExp(`^${en.Style.anime}$`) }));
 
     const generate = screen.getByRole("button", { name: en.Generate.generate });
     await waitFor(() => expect(generate).toBeEnabled());
@@ -293,7 +293,7 @@ describe("GenerationForm", () => {
       expect(screen.getByText(en.Upload.remove)).toBeInTheDocument(),
     );
 
-    fireEvent.click(screen.getByRole("button", { name: en.Style.anime }));
+    fireEvent.click(screen.getByRole("button", { name: new RegExp(`^${en.Style.anime}$`) }));
 
     const generate = screen.getByRole("button", { name: en.Generate.generate });
     await waitFor(() => expect(generate).toBeEnabled());
@@ -355,7 +355,7 @@ describe("GenerationForm", () => {
     await waitFor(() =>
       expect(screen.getByText(en.Upload.remove)).toBeInTheDocument(),
     );
-    fireEvent.click(screen.getByRole("button", { name: en.Style.anime }));
+    fireEvent.click(screen.getByRole("button", { name: new RegExp(`^${en.Style.anime}$`) }));
     fireEvent.click(screen.getByRole("button", { name: en.Generate.generate }));
 
     await waitFor(() =>
@@ -484,7 +484,7 @@ describe("GenerationForm", () => {
     fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
       target: { value: "sk-test-key" },
     });
-    fireEvent.click(screen.getByRole("button", { name: en.Style.anime }));
+    fireEvent.click(screen.getByRole("button", { name: new RegExp(`^${en.Style.anime}$`) }));
     const generate = screen.getByRole("button", { name: en.Generate.generate });
     await waitFor(() => expect(generate).toBeEnabled());
     fireEvent.click(generate);
@@ -560,7 +560,7 @@ describe("GenerationForm", () => {
     fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
       target: { value: "sk-test-key" },
     });
-    fireEvent.click(screen.getByRole("button", { name: en.Style.anime }));
+    fireEvent.click(screen.getByRole("button", { name: new RegExp(`^${en.Style.anime}$`) }));
     fireEvent.click(screen.getByRole("button", { name: en.Generate.generate }));
     await waitFor(() =>
       expect(screen.getByAltText(en.Result.altSingle)).toBeInTheDocument(),
@@ -634,7 +634,7 @@ describe("GenerationForm", () => {
     fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
       target: { value: "sk-test-key" },
     });
-    fireEvent.click(screen.getByRole("button", { name: en.Style.anime }));
+    fireEvent.click(screen.getByRole("button", { name: new RegExp(`^${en.Style.anime}$`) }));
     const generate = screen.getByRole("button", { name: en.Generate.generate });
     await waitFor(() => expect(generate).toBeEnabled());
     fireEvent.click(generate);
@@ -681,7 +681,7 @@ describe("GenerationForm", () => {
     fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
       target: { value: "sk-test-key" },
     });
-    fireEvent.click(screen.getByRole("button", { name: en.Style.anime }));
+    fireEvent.click(screen.getByRole("button", { name: new RegExp(`^${en.Style.anime}$`) }));
     fireEvent.click(screen.getByRole("button", { name: en.Generate.generate }));
     await waitFor(() =>
       expect(screen.getByAltText(en.Result.altSingle)).toBeInTheDocument(),
@@ -742,7 +742,7 @@ describe("GenerationForm", () => {
     fireEvent.change(screen.getByLabelText(en.ApiKey.label), {
       target: { value: "sk-test-key" },
     });
-    fireEvent.click(screen.getByRole("button", { name: en.Style.anime }));
+    fireEvent.click(screen.getByRole("button", { name: new RegExp(`^${en.Style.anime}$`) }));
     fireEvent.click(screen.getByRole("button", { name: en.Generate.generate }));
     await waitFor(() =>
       expect(screen.getByAltText(en.Result.altSingle)).toBeInTheDocument(),

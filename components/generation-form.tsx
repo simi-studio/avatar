@@ -662,8 +662,8 @@ export function GenerationForm() {
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1.02fr)_minmax(420px,0.98fr)]">
-      <Card className="overflow-hidden border-border/70 shadow-sm">
-        <CardHeader className="border-b bg-muted/30">
+      <Card className="overflow-hidden border-border/70 shadow-sm xl:flex xl:max-h-[calc(100vh-13rem)] xl:flex-col">
+        <CardHeader className="shrink-0 border-b bg-muted/30">
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1">
               <CardTitle>{t("inputHeading")}</CardTitle>
@@ -676,9 +676,9 @@ export function GenerationForm() {
             </span>
           </div>
         </CardHeader>
-        <CardContent className="p-4 sm:p-6">
+        <CardContent className="flex min-h-0 flex-1 flex-col p-0">
           <form
-            className="flex flex-col gap-6"
+            className="flex min-h-0 flex-1 flex-col"
             onSubmit={(event) => {
               event.preventDefault();
               if (canGenerate && status !== "generating") {
@@ -686,6 +686,7 @@ export function GenerationForm() {
               }
             }}
           >
+          <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto p-4 sm:p-6">
           <CreativeSetup
             source={source}
             mode={mode}
@@ -749,7 +750,9 @@ export function GenerationForm() {
           />
 
           <AvatarPlanPanel plan={avatarPlan} />
+          </div>
 
+          <div className="shrink-0 border-t bg-background/95 p-4">
           <GenerateActions
             canGenerate={canGenerate}
             generating={status === "generating"}
@@ -759,10 +762,11 @@ export function GenerationForm() {
             showTeamPresetShare={showTeamPresetShare}
             preset={currentPreset}
           />
+          </div>
           </form>
 
           {history.entries.length > 0 && (
-            <div className="mt-6">
+            <div className="border-t px-4 py-4 sm:px-6">
               <GenerationHistory
                 entries={history.entries}
                 onRestore={(intent) => {

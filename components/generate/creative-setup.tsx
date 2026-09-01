@@ -283,7 +283,7 @@ export function CreativeSetup({
                 : tf("promptPlaceholder")
             }
             onChange={(event) => onUserPromptChange(event.target.value)}
-            className="min-h-28 resize-y"
+            className="min-h-20 resize-y"
           />
           {promptIsPrimary && (
             <PromptSuggestions

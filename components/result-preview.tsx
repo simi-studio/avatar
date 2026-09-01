@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { AlertCircle, Download, ImageIcon, Loader2, Wand2 } from "lucide-react";
+import { AlertCircle, Download, Loader2 } from "lucide-react";
 
 import type { ErrorCode, GeneratedImage } from "@/lib/types";
 import { REFINEMENT_ACTIONS, type RefinementAction } from "@/lib/avatar-intent";
@@ -383,13 +383,7 @@ export function ResultPreview({
   }
 
   return (
-    <div className="flex min-h-[360px] flex-col items-center justify-center gap-5 rounded-lg border border-dashed bg-muted/20 p-6 text-center">
-      <div className="relative grid h-24 w-24 place-items-center rounded-2xl border bg-background shadow-sm">
-        <ImageIcon className="h-8 w-8 text-muted-foreground" aria-hidden />
-        <span className="absolute -right-2 -top-2 rounded-full bg-primary p-2 text-primary-foreground shadow-sm">
-          <Wand2 className="h-4 w-4" aria-hidden />
-        </span>
-      </div>
+    <div className="flex min-h-[280px] flex-col items-center justify-center gap-4 rounded-lg border border-dashed bg-muted/20 p-5 text-center">
       <div className="max-w-sm space-y-2">
         <p className="font-medium text-foreground">{tr("emptyTitle")}</p>
         <p className="text-sm text-muted-foreground">{tr("empty")}</p>

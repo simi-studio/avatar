@@ -20,7 +20,7 @@ export function StylePicker({
       <div
         role="group"
         aria-label={t("label")}
-        className="grid grid-cols-5 gap-1.5"
+        className="grid grid-cols-5 gap-1"
       >
         {AVATAR_STYLES.map((style) => {
           const selected = style.id === value;
@@ -34,7 +34,7 @@ export function StylePicker({
               aria-label={label}
               onClick={() => onChange(style.id)}
               className={cn(
-                "flex flex-col items-stretch gap-1 rounded-md p-1 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "flex flex-col items-stretch gap-0.5 rounded-md p-0.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 selected
                   ? "bg-accent text-accent-foreground"
                   : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
