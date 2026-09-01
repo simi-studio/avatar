@@ -261,7 +261,7 @@ MVP supports **OpenAI** and **MiniMax** (see §8). M9 adds **fal.ai**; **xAI (Gr
 
 10 built-in styles: Anime, Pixar 3D, Cyberpunk, Professional Headshot, LinkedIn, Fantasy Hero, Comic Book, Watercolor, Retro Game, Sci-Fi.
 
-> Styles are presented as a compact 5-column grid of small image tiles (not a thumbnail wall) so visitors can see the look and the Generate button stays reachable. Styles that already have a synthetic gallery still reuse it; the rest use illustrated SVG cues. Do not call paid image APIs to fill missing tiles (D27).
+> Styles are presented as compact text chips (no preview thumbnails) to keep the form short and the Generate button reachable without excessive scrolling.
 
 #### Theme & variant (themed mode)
 
@@ -909,4 +909,3 @@ README / deploy / providers / security docs complete and in English; MIT License
 | D22 | “Edit” means provider-supported continuation of a selected result; otherwise the UI says “regenerate” | Honest semantics protect trust and allow capability-aware degradation across providers (§21.1) |
 | D23 | Generation/edit session state is memory-only and disposable | Multi-turn creation needs short-lived context without weakening the no-database/no-image-history privacy boundary (§2.5, §21.1) |
 | D25 | M12 primary user is a key-holder who wants a dedicated avatar workspace; no Simi-hosted credits | Everyday users without a key are not the launch audience; gallery + first-run simplification beat more providers/themes for reach; hosted demo credit deferred as D26 (§1.5) |
-| D27 | Style picker uses compact image tiles; missing stills use illustrated SVG, not paid generation | First-time visitors need to see looks; Generate must stay above the fold; extra provider spend is out of scope for presentation (§6.2) |

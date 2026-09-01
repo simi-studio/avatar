@@ -78,27 +78,6 @@ export const AVATAR_STYLES: AvatarStyle[] = [
   },
 ];
 
-/**
- * Compact picker tiles. Gallery stills are reused where they already exist;
- * remaining styles use illustrated SVG cues under /styles (not paid API output).
- */
-export const STYLE_PREVIEW_SRC: Record<string, string> = {
-  anime: "/gallery/anime.jpg",
-  "pixar-3d": "/styles/pixar-3d.svg",
-  cyberpunk: "/styles/cyberpunk.svg",
-  "professional-headshot": "/gallery/professional.jpg",
-  linkedin: "/styles/linkedin.svg",
-  "fantasy-hero": "/styles/fantasy-hero.svg",
-  "comic-book": "/gallery/comic.jpg",
-  watercolor: "/gallery/watercolor.jpg",
-  "retro-game": "/styles/retro-game.svg",
-  "sci-fi": "/styles/sci-fi.svg",
-};
-
-export function getStylePreviewSrc(styleId: string): string | undefined {
-  return STYLE_PREVIEW_SRC[styleId];
-}
-
 const STYLE_BY_ID = new Map(AVATAR_STYLES.map((style) => [style.id, style]));
 
 export function getStyleById(id: string | undefined): AvatarStyle | undefined {

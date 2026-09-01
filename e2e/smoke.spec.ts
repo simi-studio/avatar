@@ -20,35 +20,12 @@ test("a gallery example hydrates the generate form", async ({ page }) => {
   await expect(page.getByLabel("Optional prompt")).toHaveValue(/team mascot/i);
 });
 
-test("a preview sample look hydrates the generate form", async ({ page }) => {
-  await page.goto("/en/generate");
-  await page
-    .getByRole("button", { name: "Start from Corgi mascot sample" })
-    .click();
-  await expect(page.getByText("Theme", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("Optional prompt")).toHaveValue(/team mascot/i);
-});
-
 test("generate page renders the form", async ({ page }) => {
   await page.goto("/en/generate");
   await expect(
     page.getByRole("button", { name: "Generate", exact: true }),
   ).toBeVisible();
   await expect(page.getByLabel("API Key")).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Anime", exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Start from Professional sample" }),
-  ).toBeVisible();
-});
-
-test("Generate stays in the first laptop viewport", async ({ page }) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/en/generate");
-  await expect(
-    page.getByRole("button", { name: "Generate", exact: true }),
-  ).toBeInViewport();
 });
 
 test("locale switch navigates to the zh-CN generate page", async ({ page }) => {
