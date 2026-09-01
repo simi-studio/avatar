@@ -1,0 +1,31 @@
+name: Feature request
+description: Suggest an improvement that stays within BYOK / no-database rules.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Feature ideas should keep Simi Avatar **BYOK**, with no login, credits, or image history. Do not attach API keys.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is hard or missing today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: A concrete change. Smaller scoped ideas are easier to review.
+    validations:
+      required: true
+  - type: dropdown
+    id: audience
+    attributes:
+      label: Who is this for
+      options:
+        - Key-holder using the live demo
+        - Self-hoster / contributor
+        - Documentation reader
+        - Other

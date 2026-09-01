@@ -8,7 +8,7 @@ import {
 } from "next-intl/server";
 
 import { routing, isSupportedLocale } from "@/i18n/routing";
-import { GALLERY_HERO_SRC } from "@/lib/gallery";
+import { OG_IMAGE_HEIGHT, OG_IMAGE_SRC, OG_IMAGE_WIDTH } from "@/lib/gallery";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SiteHeader } from "@/components/site-header";
 import "../globals.css";
@@ -50,13 +50,20 @@ export async function generateMetadata({
       title: t("metaTitle"),
       description: t("metaDescription"),
       type: "website",
-      images: [{ url: GALLERY_HERO_SRC }],
+      images: [
+        {
+          url: OG_IMAGE_SRC,
+          width: OG_IMAGE_WIDTH,
+          height: OG_IMAGE_HEIGHT,
+          alt: t("ogImageAlt"),
+        },
+      ],
     },
     twitter: {
       card: "summary_large_image",
       title: t("metaTitle"),
       description: t("metaDescription"),
-      images: [GALLERY_HERO_SRC],
+      images: [OG_IMAGE_SRC],
     },
   };
 }

@@ -13,6 +13,7 @@ import type {
 } from "@/lib/edit-intent";
 import type { GenerationCandidate } from "@/lib/generation-session";
 import { generatedImageSrc } from "@/lib/generated-image-file";
+import { GALLERY_EXAMPLES } from "@/lib/gallery";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EditPlanPanel } from "@/components/edit-plan-panel";
@@ -63,6 +64,7 @@ export function ResultPreview({
   refinementDisabled = false,
   localInteractionDisabled = false,
   refinementStrategy = "regenerate",
+  onApplyExample,
 }: {
   status: GenerationStatus;
   images: GeneratedImage[];
@@ -85,6 +87,7 @@ export function ResultPreview({
   /** Disable session-local selection/plan editing only while a call is active. */
   localInteractionDisabled?: boolean;
   refinementStrategy?: EditStrategy;
+  onApplyExample?: (exampleId: string) => void;
 }) {
   const tc = useTranslations("Common");
   const t = useTranslations("Generate");
@@ -92,6 +95,8 @@ export function ResultPreview({
   const tErr = useTranslations("Errors");
   const tRefine = useTranslations("Refinement");
   const tAgent = useTranslations("Agent");
+  const tf = useTranslations("Form");
+  const tGallery = useTranslations("Gallery");
   const [refineText, setRefineText] = useState("");
   const refinementLabel =
     refinementStrategy === "conversation"
@@ -390,6 +395,32 @@ export function ResultPreview({
         <p className="text-sm text-muted-foreground">{tr("empty")}</p>
         <p className="text-xs text-muted-foreground">{tr("emptyHint")}</p>
       </div>
+      {onApplyExample && (
+        <div className="w-full max-w-sm space-y-2 text-left">
+          <p className="text-sm font-medium text-foreground">{tf("tryALook")}</p>
+          <div className="grid grid-cols-3 gap-2">
+            {GALLERY_EXAMPLES.map((example) => (
+              <button
+                key={example.id}
+                type="button"
+                aria-label={tGallery("startFrom", {
+                  name: tGallery(example.titleKey),
+                })}
+                onClick={() => onApplyExample(example.id)}
+                className="overflow-hidden rounded-md border text-left hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={example.src}
+                  alt=""
+                  className="aspect-square w-full object-cover"
+                />
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">{tr("emptySamplesHint")}</p>
+        </div>
+      )}
     </div>
   );
 }

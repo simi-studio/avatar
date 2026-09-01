@@ -11,7 +11,6 @@ import {
   type InputSource,
   type ProviderId,
 } from "@/lib/constants";
-import { GALLERY_EXAMPLES } from "@/lib/gallery";
 import type { AvatarGoal, AvatarIntent } from "@/lib/avatar-intent";
 import { compileAvatarPrompt } from "@/lib/prompt-compiler";
 import { getStyleById } from "@/styles/avatar-styles";
@@ -67,7 +66,6 @@ export function CreativeSetup({
   onUserPromptChange,
   promptIsPrimary,
   goal,
-  onApplyExample,
   advancedOpen,
   onToggleAdvanced,
   intentControlValue,
@@ -109,7 +107,6 @@ export function CreativeSetup({
   onUserPromptChange: (value: string) => void;
   promptIsPrimary: boolean;
   goal: AvatarGoal;
-  onApplyExample: (exampleId: string) => void;
   advancedOpen: boolean;
   onToggleAdvanced: () => void;
   intentControlValue: IntentControlValue;
@@ -124,7 +121,6 @@ export function CreativeSetup({
   const tp = useTranslations("Provider");
   const tUpload = useTranslations("Upload");
   const tRef = useTranslations("Reference");
-  const tGallery = useTranslations("Gallery");
 
   return (
     <>
@@ -298,30 +294,6 @@ export function CreativeSetup({
               onSelect={onUserPromptChange}
             />
           )}
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <p className="text-sm font-medium">{tf("tryALook")}</p>
-          <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-            {GALLERY_EXAMPLES.map((example) => (
-              <button
-                key={example.id}
-                type="button"
-                onClick={() => onApplyExample(example.id)}
-                className="overflow-hidden rounded-lg border text-left hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={example.src}
-                  alt={tGallery(example.titleKey)}
-                  className="aspect-square w-full object-cover"
-                />
-                <span className="block truncate px-1.5 py-1 text-[11px] text-muted-foreground">
-                  {tGallery(example.titleKey)}
-                </span>
-              </button>
-            ))}
-          </div>
         </div>
       </section>
 

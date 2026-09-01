@@ -722,7 +722,6 @@ export function GenerationForm() {
             onUserPromptChange={setUserPrompt}
             promptIsPrimary={promptIsPrimary}
             goal={goal}
-            onApplyExample={applyExample}
             advancedOpen={advancedOpen}
             onToggleAdvanced={() => setAdvancedOpen((value) => !value)}
             intentControlValue={intentControlValue}
@@ -816,6 +815,7 @@ export function GenerationForm() {
             }
             localInteractionDisabled={status === "generating"}
             refinementStrategy={refinementStrategy}
+            onApplyExample={applyExample}
           />
         </CardContent>
       </Card>

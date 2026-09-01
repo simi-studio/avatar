@@ -40,6 +40,7 @@ generation finishable. Quality evidence stays on M11.1.
 ### M12 progress
 
 - [x] 12.1 — Docs (D25), gallery + home, first-run generate, result-state, adapter honesty, chrome
+- [x] 12.1 presentation polish — larger README gallery, landscape OG card, visual style tiles, issue templates
 
 See D25 in [prd.md](../prd.md). Hosted demo credits remain a later D26.
 
