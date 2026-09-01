@@ -51,13 +51,6 @@ already has a provider key should reach Generate without opening Advanced.
 - [x] Team preset share copies origin + pathname + sanitized `preset` only
 - [x] E2E covers gallery visibility, first-run Generate without Advanced, and example hydration
 
-### Presentation polish
-- [x] README shows a large sample grid (not 120px thumbnails)
-- [x] Landscape 1200×630 OG image composed from synthetic stills
-- [x] Style picker uses compact image tiles; missing stills are illustrated SVG
-- [x] Generate empty preview shows gallery samples next to the form
-- [x] Lightweight English bug + feature issue templates
-
 ## Acceptance
 
 - [x] Homepage shows sample avatars, not a wireframe
