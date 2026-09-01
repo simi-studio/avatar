@@ -33,7 +33,7 @@ export function GenerateActions({
   const tp = useTranslations("Provider");
 
   return (
-    <div className="rounded-lg border bg-muted/30 p-4">
+    <div className="rounded-lg bg-muted/30 p-3 sm:p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
           <p className="text-sm font-medium">

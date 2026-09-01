@@ -66,7 +66,7 @@ Implement the `ImageProvider` interface (see [docs/providers.md](./docs/provider
 
 ### A new style
 
-Add an `AvatarStyle` to `styles/avatar-styles.ts` with an `id`, `name`, `description`, and `promptTemplate`. Styles render as text chips, so no thumbnail asset is needed.
+Add an `AvatarStyle` to `styles/avatar-styles.ts` with an `id`, `name`, `description`, and `promptTemplate`, then map a compact `STYLE_PREVIEW_SRC` tile. Reuse a synthetic gallery still when one exists; otherwise add an illustrated SVG under `public/styles/`. Do not call paid image APIs to create picker tiles.
 
 ### A new theme/variant
 

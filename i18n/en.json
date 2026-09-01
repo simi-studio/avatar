@@ -19,6 +19,7 @@
   "Home": {
     "metaTitle": "Simi Avatar — Open-source AI avatar generator",
     "metaDescription": "Open-source AI avatar generator powered by your own API key. No login, no database, no subscription. Self-host anywhere.",
+    "ogImageAlt": "Sample avatar looks from Simi Avatar — professional, anime, comic, watercolor, mascot, and couple stills",
     "heroTitle": "Simi Avatar",
     "heroSubtitle": "Open-source AI avatar generator powered by your own API key.",
     "heroSupport": "No login. No database. No subscriptions. Self-host anywhere.",
@@ -235,7 +236,8 @@
     "comic": "Comic",
     "watercolor": "Watercolor",
     "corgi": "Corgi mascot",
-    "couple": "Couple"
+    "couple": "Couple",
+    "startFrom": "Start from {name} sample"
   },
   "Intent": {
     "label": "Avatar intent",
@@ -391,6 +393,7 @@
     "emptyTitle": "Preview waits here",
     "empty": "Your generated avatar will appear here.",
     "emptyHint": "Start with text for the fastest path, or switch to photo when likeness matters.",
+    "emptySamplesHint": "Synthetic examples only — not a likeness guarantee.",
     "generatingHint": "Provider response time varies by model and image size.",
     "generatingKeep": "Generating a new version. The last result stays visible until it returns.",
     "emptySuccess": "The provider returned no images. Please try again.",

@@ -1,0 +1,41 @@
+name: Bug report
+description: Something in the app or docs is broken.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Do **not** paste API keys, tokens, uploaded photos, or provider responses that might contain secrets.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did you expect, and what did you see instead?
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Generate form
+        - Provider / API
+        - Home / gallery
+        - Docs
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser or environment
+      placeholder: e.g. Firefox 129, or `npm run dev` on Node 20
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Leave out keys and images. Mode, provider, and style are enough.
+      placeholder: |
+        1. Open /generate
+        2. Choose Text → Anime
+        3. …

@@ -74,3 +74,8 @@ export function getGalleryExample(
 }
 
 export const GALLERY_HERO_SRC = GALLERY_EXAMPLES[0]?.src ?? "/gallery/professional.jpg";
+
+/** Landscape social card composed from the synthetic gallery stills. */
+export const OG_IMAGE_SRC = "/og.jpg";
+export const OG_IMAGE_WIDTH = 1200;
+export const OG_IMAGE_HEIGHT = 630;
