@@ -20,7 +20,7 @@ already has a provider key should reach Generate without opening Advanced.
 ## Checklist
 
 ### Positioning
-- [x] PRD primary user is a key-holder (D25); everyday users without a key are not primary
+- [x] Home hero is outcome-first (studio-quality / LinkedIn / stylized from text or a photo) with one privacy/BYOK line; provider catalogs stay in About/highlights
 - [x] §2.4 non-goal is server-side / image history, not client intent history
 - [x] Deploy guide does not call `npm run build` an OpenNext build
 

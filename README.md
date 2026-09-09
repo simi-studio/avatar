@@ -1,10 +1,29 @@
 # Simi Avatar
 
-> Open-source AI avatar generator powered by your own API key.
+> Studio-quality avatars from a sentence or a photo.
 
-Simi Avatar is an open-source, **BYOK (Bring Your Own API Key)** AI avatar generator. No signup, no database, no subscription — plug in your own provider key and generate personalized avatars in the browser. Self-host anywhere with one command.
+Simi Avatar is a dedicated workspace for LinkedIn-ready headshots, stylized portraits, and team looks. Describe a look, or restyle your own photo, then download a square avatar.
+
+Your provider key stays in this browser session. No login, no database, no subscription. MIT-licensed and self-hostable.
 
 Live demo: [avatar.simi.studio](https://avatar.simi.studio)
+
+## Quick start (local)
+
+```bash
+git clone https://github.com/simi-studio/avatar.git
+cd avatar
+npm install
+npm run dev
+```
+
+Open http://localhost:3000, click **Create an avatar**, choose a provider, paste your API key, and generate.
+
+No environment variables are required to run — you bring your key in the UI. See [.env.example](./.env.example) for optional settings.
+
+> Prefer a task runner? `make help` lists the common targets (`make dev`, `make check`, `make deploy`).
+
+## Sample looks
 
 <p>
   <img src="public/gallery/professional.jpg" alt="Professional sample look" width="120" height="120">
@@ -15,7 +34,7 @@ Live demo: [avatar.simi.studio](https://avatar.simi.studio)
   <img src="public/gallery/couple.jpg" alt="Couple sample look" width="120" height="120">
 </p>
 
-Sample looks are synthetic. They are not a likeness guarantee.
+These stills came from the same generate flow the app uses. They are synthetic subjects, not a likeness guarantee.
 
 ## Features
 
@@ -27,7 +46,7 @@ Sample looks are synthetic. They are not a likeness guarantee.
 | **From a photo**               | **Single**   | 1 photo  | Restyle your photo into an avatar (10 built-in styles)          |
 | **From a photo**               | **Couple**   | 2 photos | Generate a style-consistent paired set for two people           |
 
-- 🔑 **BYOK** — use your own OpenAI, MiniMax, fal.ai, or xAI API key; nothing is stored
+- 🔑 **Your key** — use your own OpenAI, MiniMax, fal.ai, or xAI API key; nothing is stored
 - ✍️ **Text-to-avatar** — start from a style + description, no upload required
 - 🎯 **Intent-first controls** — choose goal, likeness, creativity, composition, background, palette, accessories, and avoid-list
 - 🔁 **One-click refinement** — try closer likeness, more realistic, cuter, cleaner background, or another variation
@@ -50,21 +69,6 @@ Sample looks are synthetic. They are not a likeness guarantee.
 > Note: MiniMax **M3 is a text/coding model** — avatar generation uses MiniMax's **image** models (`image-01`). Pick your MiniMax region in the provider selector; keys are not interchangeable between regions.
 >
 > Note: An **X Premium+** subscription is not an xAI API key. Use a key from [console.x.ai](https://console.x.ai/) for BYOK.
-
-## Quick start (local)
-
-```bash
-git clone https://github.com/simi-studio/avatar.git
-cd avatar
-npm install
-npm run dev
-```
-
-Open http://localhost:3000, click **Launch App**, choose a provider, paste your API key, and generate.
-
-No environment variables are required to run — you bring your key in the UI. See [.env.example](./.env.example) for optional settings.
-
-> Prefer a task runner? `make help` lists the common targets (`make dev`, `make check`, `make deploy`).
 
 ## Deploy (Cloudflare Workers)
 
@@ -95,6 +99,7 @@ Your image and API key are used **only** for the current generation request. Sim
 | [docs/security.md](./docs/security.md)                         | Security & privacy model                                                |
 | [docs/cloudflare-deploy.md](./docs/cloudflare-deploy.md)       | Deployment guide                                                        |
 | [docs/release.md](./docs/release.md)                           | Release runbook: gate, deploy, smoke, rollback, observability           |
+| [docs/launch/show-hn.md](./docs/launch/show-hn.md)             | Draft Show HN post (do not submit from the repo)                        |
 | [docs/agent-workflow.md](./docs/agent-workflow.md)             | Shared AI-agent workflow for Codex CLI, Claude Code, and GitHub Copilot |
 | [docs/planning/plan.md](./docs/planning/plan.md)               | Roadmap & milestones                                                    |
 | [docs/README.md](./docs/README.md)                             | Doc map                                                                 |

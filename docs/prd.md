@@ -1,12 +1,12 @@
 # Simi Avatar — Product Requirements Document (PRD)
 
-> One-liner: Simi Avatar is an open-source **dedicated avatar workspace**. People who already hold an OpenAI, MiniMax, fal.ai, or xAI key use it to generate, restyle, and refine square avatars — no signup, no database, no Simi-hosted credits. Self-host anywhere.
+> One-liner: Simi Avatar is an open-source **dedicated avatar workspace**. People who already hold an OpenAI, MiniMax, fal.ai, or xAI key use it to generate studio-quality, LinkedIn-ready, and stylized square avatars from text or a photo — no signup, no database, no Simi-hosted credits. Self-host anywhere.
 
 | Field        | Value                                               |
 | ------------ | --------------------------------------------------- |
 | Status       | M11 in progress; M12 (first impression) in progress |
 | Version      | v0.6                                                |
-| Last updated | 2026-08-13                                          |
+| Last updated | 2026-09-09                                          |
 | GitHub       | https://github.com/simi-studio/avatar               |
 | Positioning  | Open Source / No signup / Non-commercial / BYOK     |
 | App stack    | Next.js + TypeScript + Tailwind CSS + Shadcn UI     |
@@ -24,7 +24,7 @@ Simi Avatar
 
 ### 1.2 Positioning
 
-Simi Avatar is an open-source BYOK AI avatar generator. No signup, no login, no subscription — users just enter their own AI provider API key and generate personalized avatars in the browser.
+Simi Avatar is an open-source workspace for studio-quality, LinkedIn-ready, and stylized avatars. No signup, no login, no subscription — users enter their own AI provider API key and generate from a sentence or a photo.
 
 ### 1.3 Core principles
 
@@ -37,7 +37,7 @@ Simi Avatar is an open-source BYOK AI avatar generator. No signup, no login, no 
 
 ### 1.4 Tagline
 
-> Open-source AI avatar generator powered by your own API key.
+> Studio-quality avatars from a sentence or a photo.
 
 ### 1.5 Target users
 
@@ -167,7 +167,7 @@ photos and generated results must never be collected automatically for evaluatio
 
 ### 4.1 MVP features
 
-**Home**: name, tagline, Launch App button, GitHub button, BYOK explainer, self-host explainer, open-source note.
+**Home**: outcome-first headline, one privacy/BYOK line, Create an avatar + GitHub, sample-looks gallery as proof, then highlights (own key, nothing kept, open source, text-or-photo). Provider and self-host detail live in highlights/About, not the first-screen headline.
 
 **Avatar generation page** (core): provider selector, API key input, session-only key save, image upload, image preview, style picker, optional prompt, size selector, Generate button, generation status, result preview, download, clear.
 
@@ -182,7 +182,7 @@ photos and generated results must never be collected automatically for evaluatio
 ### 5.1 First-time flow
 
 ```
-Open home → Launch App → generate page → pick provider → enter API key
+Open home → Create an avatar → generate page → pick provider → enter API key
 → upload photo → pick style → Generate → wait → view result → download
 ```
 
@@ -202,16 +202,16 @@ Users can click **Clear Key** at any time to remove the locally stored API key.
 
 ### 6.1 Home
 
-**Goal**: within 10 seconds the user understands — this is an AI avatar generator, bring your own API key, no signup, no database, self-hostable, open source.
+**Goal**: within 10 seconds the user understands the **result** (studio-quality / LinkedIn / stylized avatars from text or a photo), then one privacy fact (session-only key, no login, no database, self-hostable). Sample looks are proof, not a thin wireframe. First-screen copy avoids engineer jargon (provider catalogs, BYOK acronyms); those details sit in highlights or About.
 
 **Copy:**
 
-- Title: `Simi Avatar`
-- Subtitle: `Open-source AI avatar generator powered by your own API key.`
-- Support line: `No login. No database. No subscriptions. Self-host anywhere.`
-- Buttons: `Launch App` / `View on GitHub`
+- Title: `Studio-quality avatars from a sentence or a photo.`
+- Subtitle: `LinkedIn headshots, stylized portraits, and team looks — generated in your browser.`
+- Support line: `Your key stays in this session. No login, no database, self-hostable.`
+- Buttons: `Create an avatar` / `View on GitHub`
 
-**Highlights**: BYOK, Privacy-first (key never persisted), Open Source, Extensible Providers.
+**Highlights**: Your key / nothing kept / open source / text or a photo. Provider names and self-host steps are not the hero.
 
 **SEO / sharing**: `<title>`, `<meta description>`, OpenGraph / Twitter Card and a static OG image.
 
@@ -701,12 +701,12 @@ avatar/
 ### 16.1 Repository
 
 - URL: https://github.com/simi-studio/avatar
-- Description: `Open-source AI avatar generator powered by your own API key.`
+- Description: `Studio-quality avatars from a sentence or a photo. BYOK, no login.`
 - Topics: `ai` `avatar` `openai` `minimax` `fal` `xai` `grok` `byok` `nextjs` `typescript` `image-generation` `open-source`
 
 ### 16.2 README
 
-Intro, screenshots, live demo, feature list, local run, deployment, provider extension guide, key-security note, License, Contributing. **Written in English.**
+Same story as the homepage: what it makes → privacy BYOK → quick start → sample looks, then features, providers, deploy, key-security note, License, Contributing. **Written in English.**
 
 ### 16.3 License
 

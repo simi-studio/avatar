@@ -9,9 +9,33 @@ test("home renders sample looks and links to the generator", async ({
   page,
 }) => {
   await page.goto("/en");
-  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    /Studio-quality avatars from a sentence or a photo/,
+  );
+  await expect(
+    page.getByText(/Your key stays in this session/),
+  ).toBeVisible();
   await expect(page.getByRole("img", { name: "Professional" })).toBeVisible();
-  await expect(page.locator('a[href$="/generate"]').first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "Create an avatar" })).toBeVisible();
+  await page.getByRole("link", { name: "Create an avatar" }).click();
+  await expect(page).toHaveURL(/\/(en\/)?generate/);
+  await expect(page.getByLabel("API Key")).toBeVisible();
+  await expect(page.getByText(/try free|free trial|hosted credit/i)).toHaveCount(
+    0,
+  );
+});
+
+test("zh-CN home is outcome-first and stays BYOK", async ({ page }) => {
+  await page.goto("/zh-CN");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    /用一句话或一张照片，做出影棚级头像/,
+  );
+  await expect(page.getByText(/Key 只留在本会话/)).toBeVisible();
+  await expect(page.getByRole("img", { name: "专业" })).toBeVisible();
+  await page.getByRole("link", { name: "生成头像" }).click();
+  await expect(page).toHaveURL(/\/zh-CN\/generate/);
+  await expect(page.getByLabel("API Key")).toBeVisible();
+  await expect(page.getByText(/免费试用|试用额度|Try free/i)).toHaveCount(0);
 });
 
 test("a gallery example hydrates the generate form", async ({ page }) => {
@@ -26,6 +50,7 @@ test("generate page renders the form", async ({ page }) => {
     page.getByRole("button", { name: "Generate", exact: true }),
   ).toBeVisible();
   await expect(page.getByLabel("API Key")).toBeVisible();
+  await expect(page.getByText(/try free|free trial/i)).toHaveCount(0);
 });
 
 test("locale switch navigates to the zh-CN generate page", async ({ page }) => {

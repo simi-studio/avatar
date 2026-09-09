@@ -24,6 +24,8 @@
 | [cloudflare-deploy.md](./cloudflare-deploy.md)       | Cloudflare Workers deployment guide                                     |
 | [release.md](./release.md)                           | Release runbook: gate, deploy, smoke, rollback, observability           |
 | [agent-workflow.md](./agent-workflow.md)             | Shared AI-agent workflow for Codex CLI, Claude Code, and GitHub Copilot |
+| [launch/show-hn.md](./launch/show-hn.md)             | Draft Show HN post (do not submit from the repo)                        |
+| [launch/product-hunt.md](./launch/product-hunt.md)   | Draft Product Hunt blurb (do not submit)                                |
 
 ## Repository root
 
