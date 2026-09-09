@@ -1,7 +1,7 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import {
-  Boxes,
   Github,
+  ImageIcon,
   KeyRound,
   Lock,
   Sparkles,
@@ -29,7 +29,7 @@ export default async function HomePage({
     { icon: KeyRound, title: t("byokTitle"), body: t("byokBody") },
     { icon: Lock, title: t("privacyTitle"), body: t("privacyBody") },
     { icon: Github, title: t("openSourceTitle"), body: t("openSourceBody") },
-    { icon: Boxes, title: t("extensibleTitle"), body: t("extensibleBody") },
+    { icon: ImageIcon, title: t("extensibleTitle"), body: t("extensibleBody") },
   ];
 
   return (
@@ -92,7 +92,7 @@ export default async function HomePage({
                     alt={tGallery(example.titleKey)}
                     className="aspect-square w-full object-cover transition group-hover:scale-[1.03]"
                   />
-                  <span className="block truncate px-2 py-1.5 text-xs text-muted-foreground">
+                  <span className="block truncate px-2 py-1.5 text-xs font-medium text-foreground">
                     {tGallery(example.titleKey)}
                   </span>
                 </Link>

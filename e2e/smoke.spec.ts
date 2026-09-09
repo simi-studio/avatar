@@ -9,8 +9,14 @@ test("home renders sample looks and links to the generator", async ({
   page,
 }) => {
   await page.goto("/en");
-  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(
+    /Studio-quality avatars from a sentence or a photo/,
+  );
+  await expect(
+    page.getByText(/Your key stays in this session/),
+  ).toBeVisible();
   await expect(page.getByRole("img", { name: "Professional" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Create an avatar" })).toBeVisible();
   await expect(page.locator('a[href$="/generate"]').first()).toBeVisible();
 });
 
